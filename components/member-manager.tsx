@@ -10,7 +10,7 @@ export function MemberManager({ leaderboardId }: { leaderboardId: string }) {
   const [loading, setLoading] = useState(false);
   async function submit(event: React.FormEvent) {
     event.preventDefault(); setLoading(true); setMessage("");
-    const response = await fetch(`/api/leaderboards/${leaderboardId}/members`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ shareId }) });
+    const response = await fetch(`/api/v1/leaderboards/${leaderboardId}/members`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ shareId }) });
     const data = await response.json(); setLoading(false);
     if (!response.ok) { setMessage(data.error ?? "Could not add that account."); return; }
     setShareId(""); setMessage("Player added."); router.refresh();
@@ -21,5 +21,5 @@ export function MemberManager({ leaderboardId }: { leaderboardId: string }) {
 export function RemoveMemberButton({ leaderboardId, userId }: { leaderboardId: string; userId: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  return <button className="text-button" disabled={loading} type="button" onClick={async () => { if (!window.confirm("Remove this player from the leaderboard?")) return; setLoading(true); const response = await fetch(`/api/leaderboards/${leaderboardId}/members`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId }) }); if (response.ok) router.refresh(); else setLoading(false); }}>{loading ? "Removing…" : "Remove"}</button>;
+  return <button className="text-button" disabled={loading} type="button" onClick={async () => { if (!window.confirm("Remove this player from the leaderboard?")) return; setLoading(true); const response = await fetch(`/api/v1/leaderboards/${leaderboardId}/members/${userId}`, { method: "DELETE" }); if (response.ok) router.refresh(); else setLoading(false); }}>{loading ? "Removing…" : "Remove"}</button>;
 }

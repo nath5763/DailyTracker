@@ -1,0 +1,107 @@
+name: daily-games
+region: nyc
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+
+ingress:
+  rules:
+    - component:
+        name: backend
+        preserve_path_prefix: true
+      match:
+        path:
+          prefix: /api
+    - component:
+        name: frontend
+        preserve_path_prefix: true
+      match:
+        path:
+          prefix: /
+
+services:
+  - name: frontend
+    github:
+      repo: nath5763/DailyTracker
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+    environment_slug: node-js
+    build_command: npm ci && npm run build
+    run_command: npm start
+    http_port: 3000
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    health_check:
+      http_path: /
+    envs:
+      - key: NODE_ENV
+        value: production
+        scope: RUN_TIME
+      - key: BACKEND_INTERNAL_URL
+        value: ${backend.PRIVATE_URL}
+        scope: RUN_TIME
+
+  - name: backend
+    github:
+      repo: nath5763/DailyTracker
+      branch: main
+      deploy_on_push: true
+    source_dir: /backend
+    dockerfile_path: backend/Dockerfile
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb-fixed
+    health_check:
+      http_path: /api/health
+    envs:
+      - key: DATABASE_URL
+        value: ${daily-games-db.JDBC_DATABASE_URL}
+        scope: RUN_TIME
+      - key: DATABASE_USER
+        value: ${daily-games-db.USERNAME}
+        scope: RUN_TIME
+      - key: DATABASE_PASSWORD
+        value: ${daily-games-db.PASSWORD}
+        scope: RUN_TIME
+      - key: APP_BASE_URL
+        value: ${APP_URL}
+        scope: RUN_TIME
+      - key: SECURE_COOKIE
+        value: "true"
+        scope: RUN_TIME
+      - key: SMTP_HOST
+        value: smtp-relay.brevo.com
+        scope: RUN_TIME
+      - key: SMTP_PORT
+        value: "587"
+        scope: RUN_TIME
+      - key: SMTP_AUTH
+        value: "true"
+        scope: RUN_TIME
+      - key: SMTP_STARTTLS
+        value: "true"
+        scope: RUN_TIME
+      - key: SMTP_USERNAME
+        value: REPLACE_IN_DIGITALOCEAN
+        scope: RUN_TIME
+        type: SECRET
+      - key: SMTP_PASSWORD
+        value: REPLACE_IN_DIGITALOCEAN
+        scope: RUN_TIME
+        type: SECRET
+      - key: MAIL_FROM
+        value: Daily Club <your-verified-sender@example.com>
+        scope: RUN_TIME
+      - key: AUTH_TOKEN_PEPPER
+        value: REPLACE_WITH_A_LONG_RANDOM_VALUE
+        scope: RUN_TIME
+        type: SECRET
+
+databases:
+  - name: daily-games-db
+    engine: PG
+    version: "17"
+    production: true
+    cluster_name: daily-games-db

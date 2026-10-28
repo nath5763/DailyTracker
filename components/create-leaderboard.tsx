@@ -10,7 +10,7 @@ export function CreateLeaderboard() {
   const [loading, setLoading] = useState(false);
   async function submit(event: React.FormEvent) {
     event.preventDefault(); setLoading(true); setMessage("");
-    const response = await fetch("/api/leaderboards", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
+    const response = await fetch("/api/v1/leaderboards", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
     const data = await response.json();
     if (!response.ok) { setMessage(data.error ?? "Could not create leaderboard."); setLoading(false); return; }
     router.push(`/leaderboards/${data.id}`); router.refresh();

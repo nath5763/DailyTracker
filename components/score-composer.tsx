@@ -16,7 +16,7 @@ export function ScoreComposer() {
   async function parse() {
     setStatus("loading");
     setMessage("");
-    const response = await fetch("/api/submissions/preview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game: "fermi", rawText }) });
+    const response = await fetch("/api/v1/submissions/preview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game: "fermi", rawText }) });
     const data = await response.json();
     if (!response.ok) { setPreview(null); setStatus("error"); setMessage(data.error ?? "We could not read that result."); return; }
     setPreview(data.submission);
@@ -30,7 +30,7 @@ export function ScoreComposer() {
   async function save() {
     if (!preview) return;
     setStatus("saving");
-    const response = await fetch("/api/submissions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game: "fermi", rawText, confirmed: preview }) });
+    const response = await fetch("/api/v1/submissions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game: "fermi", rawText, confirmed: preview }) });
     const data = await response.json();
     if (!response.ok) { setStatus("error"); setMessage(data.error ?? "Could not save this score."); return; }
     router.push("/dashboard?added=1");

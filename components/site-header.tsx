@@ -14,9 +14,9 @@ export async function SiteHeader() {
             <Link href="/dashboard">Overview</Link>
             <Link href="/submit">Add score</Link>
             <Link href="/leaderboards">Leaderboards</Link>
-            <Link className="avatar-link" href={`/profile/${profile.share_id}`} title={profile.display_name}>
-              <span className="avatar small" style={{ background: profile.avatar_color }}>
-                {profile.display_name.slice(0, 1).toUpperCase()}
+            <Link className="avatar-link" href={`/profile/${profile.shareId}`} title={profile.displayName}>
+              <span className="avatar small" style={{ background: profile.avatarColor }}>
+                {profile.displayName.slice(0, 1).toUpperCase()}
               </span>
             </Link>
             <SignOutButton />

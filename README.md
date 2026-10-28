@@ -1,52 +1,75 @@
 # Daily Club
 
-A private leaderboard for the daily games friends play together. The first game adapter supports [Fermi.gg](https://fermi.gg): paste its shared result, confirm the parsed puzzle and score, and compare daily, 7-day, 30-day, and all-time results.
+Daily Club is a private friends leaderboard for daily games. The first adapter supports [Fermi.gg](https://fermi.gg): players paste a shared result, confirm the parsed score, and compare daily, 7-day, 30-day, and all-time averages.
 
-## Stack
+## Architecture
 
-- Next.js App Router and TypeScript
-- Supabase passwordless authentication and PostgreSQL with row-level security
-- Render web-service deployment
-- Vitest for parser and leaderboard logic
+- Next.js 16 and TypeScript render the web UI.
+- Java 21 and Spring Boot 4 provide the REST API, magic-link authentication, authorization, and game logic. A multi-stage Dockerfile packages this service for DigitalOcean.
+- PostgreSQL stores accounts, hashed sessions and login tokens, games, immutable scores, and private leaderboards.
+- Flyway owns the schema. The database is never exposed directly to browsers.
+- Brevo SMTP sends production magic links. Mailpit captures them during local development.
 
-## Local setup
+## Local development
 
-1. Install Node.js 20 and dependencies with `npm install`.
-2. Create a Supabase project and install the Supabase CLI if you want a local database.
-3. Copy `.env.example` to `.env.local` and fill in the project URL and anon key.
-4. Apply `supabase/migrations/202610270001_initial_schema.sql` through the Supabase SQL editor, or run `supabase db push` after linking the project.
-5. In Supabase Authentication URL Configuration, set the site URL to `http://localhost:3000` and allow `http://localhost:3000/auth/callback` as a redirect URL.
-6. Run `npm run dev` and open `http://localhost:3000`.
+Requirements: Node.js 20.19, Java 21, Maven 3.6.3 or newer, and Docker Desktop.
 
-Without environment variables, the public landing and sign-in setup notice still render. Authenticated features require Supabase.
+1. Start PostgreSQL and Mailpit:
 
-## Data and privacy behavior
+   ```powershell
+   docker compose up -d
+   ```
 
-- Onboarding creates a profile, permanent public UUID, and a private “My Friends” leaderboard.
-- Only people sharing a leaderboard can read one another’s profiles and submissions.
-- Only a leaderboard owner can add or remove members. Adding is immediate and uses an exact UUID.
-- A user may submit exactly one result per game and puzzle. Normal users receive no update or delete permission for submissions.
-- Deleting an authentication account cascades its profile, submissions, and owned leaderboards.
-- Scores are self-reported. The app validates share-text structure but does not verify results with game publishers.
+2. In one terminal, start Spring Boot:
 
-## Adding another daily game
+   ```powershell
+   cd backend
+   mvn spring-boot:run
+   ```
 
-Implement the `GameAdapter` interface in `lib/games`, register the adapter in `lib/games/index.ts`, and add a `games` catalog row in a new migration. Game-specific details remain in the submission `metrics` JSON while the common puzzle key, date, and primary score continue to power history and leaderboards.
+3. In another terminal, install and start Next.js:
+
+   ```powershell
+   npm install
+   npm run dev
+   ```
+
+4. Open `http://localhost:3000`. Requested sign-in emails appear in Mailpit at `http://localhost:8025`.
+
+The checked-in development defaults match `docker-compose.yml`. Override them with the variables documented in `backend/.env.example` and `.env.example` when necessary. Spring automatically applies Flyway migrations at startup.
 
 ## Verification
 
-Run the complete local suite with:
-
-```sh
+```powershell
 npm run check
+cd backend
+mvn verify
 ```
 
-## Render deployment
+The backend integration test uses a disposable PostgreSQL Testcontainer when Docker is available and skips cleanly when it is not.
 
-1. Push the repository to GitHub and create a Render Blueprint from `render.yaml`.
-2. Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_SITE_URL` in Render. Set the site URL to the final `https://…onrender.com` origin.
-3. Add that origin and `/auth/callback` URL to Supabase Authentication URL Configuration.
-4. Apply database migrations before deploying application code that depends on them.
-5. Verify `/api/health`, request a real magic link, complete onboarding, and submit a Fermi result.
+## DigitalOcean deployment
 
-Supabase credentials are never committed. The public anon key is intentionally browser-safe; authorization is enforced by database policies.
+The `.do/app.yaml` spec defines two App Platform services under one origin: `/api` routes to Spring Boot and all other paths route to Next.js.
+
+1. Activate transactional email in Brevo and create a verified sender. You can verify an email you already own for initial testing; for reliable production delivery, buy a domain later, authenticate it with Brevo's DKIM and DMARC records, and use a sender such as `login@auth.your-domain.com`.
+2. In DigitalOcean, create a managed PostgreSQL 17 cluster named `daily-games-db` in `nyc`. The app spec attaches that existing production cluster by name.
+3. Connect DigitalOcean App Platform to the private `nath5763/DailyTracker` GitHub repository and create the app from `.do/app.yaml`.
+4. Before the first deployment, replace the placeholder values for `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAIL_FROM`, and `AUTH_TOKEN_PEPPER`. `MAIL_FROM` must exactly match a verified Brevo sender. Generate the pepper with a cryptographically secure password generator and keep it stable.
+5. Initially test on the assigned `*.ondigitalocean.app` URL. Because `APP_BASE_URL` uses `${APP_URL}`, magic links follow the active primary URL.
+6. Attach the purchased domain to the app, make it primary, and verify that `${APP_URL}` changed before requesting a new magic link.
+7. Confirm `/api/health`, sign in with two unrelated email addresses, complete both profiles, add one UUID to the other account’s leaderboard, and submit a Fermi score.
+
+App Platform automatically deploys pushes to `main`, provides HTTPS, checks `/api/health`, and alerts on deployment or domain failures. Keep the old Render and Supabase resources until this smoke test passes, then remove them manually to avoid continued billing.
+
+## Security behavior
+
+- Magic links expire after 15 minutes, are single-use, and are stored only as SHA-256 hashes.
+- Requests are limited to one link per email per minute, five per email per hour, and twenty per IP per hour.
+- Sessions use random opaque tokens, stored as hashes and delivered in 30-day `HttpOnly`, `Secure`, `SameSite=Lax` cookies.
+- Only users sharing a leaderboard can see one another’s profiles and scores. Only the owner can change membership.
+- A user may submit one immutable score per game and puzzle.
+
+## Adding another daily game
+
+Add a game catalog row in a Flyway migration and implement its parser and validation behind the backend game service. Keep common puzzle key, date, and primary score fields in `submissions`; put game-specific details in the JSON `metrics` column.
