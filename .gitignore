@@ -6,4 +6,3 @@ coverage/
 .vercel/
 *.tsbuildinfo
 npm-debug.log*
-backend/target/

@@ -1,4 +1,4 @@
-name: daily-games
+name: dailytracker
 region: nyc
 
 alerts:
@@ -45,11 +45,11 @@ services:
 
   - name: backend
     github:
-      repo: nath5763/DailyTracker
-      branch: main
+      repo: nath5763/DailyTrackerBackend
+      branch: master
       deploy_on_push: true
-    source_dir: /backend
-    dockerfile_path: backend/Dockerfile
+    source_dir: /
+    dockerfile_path: Dockerfile
     http_port: 8080
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-1gb-fixed
@@ -71,28 +71,15 @@ services:
       - key: SECURE_COOKIE
         value: "true"
         scope: RUN_TIME
-      - key: SMTP_HOST
-        value: smtp-relay.brevo.com
-        scope: RUN_TIME
-      - key: SMTP_PORT
-        value: "587"
-        scope: RUN_TIME
-      - key: SMTP_AUTH
-        value: "true"
-        scope: RUN_TIME
-      - key: SMTP_STARTTLS
-        value: "true"
-        scope: RUN_TIME
-      - key: SMTP_USERNAME
+      - key: BREVO_API_KEY
         value: REPLACE_IN_DIGITALOCEAN
         scope: RUN_TIME
         type: SECRET
-      - key: SMTP_PASSWORD
-        value: REPLACE_IN_DIGITALOCEAN
+      - key: BREVO_SENDER_EMAIL
+        value: noreply.dailyg@gmail.com
         scope: RUN_TIME
-        type: SECRET
-      - key: MAIL_FROM
-        value: Daily Club <your-verified-sender@example.com>
+      - key: BREVO_SENDER_NAME
+        value: Daily Tracker
         scope: RUN_TIME
       - key: AUTH_TOKEN_PEPPER
         value: REPLACE_WITH_A_LONG_RANDOM_VALUE

@@ -5,25 +5,26 @@ Daily Club is a private friends leaderboard for daily games. The first adapter s
 ## Architecture
 
 - Next.js 16 and TypeScript render the web UI.
-- Java 21 and Spring Boot 4 provide the REST API, magic-link authentication, authorization, and game logic. A multi-stage Dockerfile packages this service for DigitalOcean.
+- The sibling `DailyGamesBackend` repository contains the Java 21 and Spring Boot 4 REST API, authentication, authorization, game logic, and production Dockerfile.
 - PostgreSQL stores accounts, hashed sessions and login tokens, games, immutable scores, and private leaderboards.
 - Flyway owns the schema. The database is never exposed directly to browsers.
-- Brevo SMTP sends production magic links. Mailpit captures them during local development.
+- Brevo's HTTPS transactional email API sends magic links without requiring SMTP access.
 
 ## Local development
 
-Requirements: Node.js 20.19, Java 21, Maven 3.6.3 or newer, and Docker Desktop.
+Requirements for the complete stack: Node.js 20.19, Java 21, Maven 3.6.3 or newer, Docker Desktop, and sibling checkouts named `DailyGames` and `DailyGamesBackend`.
 
-1. Start PostgreSQL and Mailpit:
+1. Start PostgreSQL:
 
    ```powershell
+   cd ..\DailyGamesBackend
    docker compose up -d
    ```
 
 2. In one terminal, start Spring Boot:
 
    ```powershell
-   cd backend
+   cd ..\DailyGamesBackend
    mvn spring-boot:run
    ```
 
@@ -34,15 +35,15 @@ Requirements: Node.js 20.19, Java 21, Maven 3.6.3 or newer, and Docker Desktop.
    npm run dev
    ```
 
-4. Open `http://localhost:3000`. Requested sign-in emails appear in Mailpit at `http://localhost:8025`.
+4. Set `BREVO_API_KEY` and `BREVO_SENDER_EMAIL` for the backend, then open `http://localhost:3000`. Magic-link emails are sent through Brevo.
 
-The checked-in development defaults match `docker-compose.yml`. Override them with the variables documented in `backend/.env.example` and `.env.example` when necessary. Spring automatically applies Flyway migrations at startup.
+The backend repository's development defaults match its `docker-compose.yml`. Override them with the variables documented in `DailyGamesBackend/.env.example` and this repository's `.env.example` when necessary. Spring automatically applies Flyway migrations at startup.
 
 ## Verification
 
 ```powershell
 npm run check
-cd backend
+cd ..\DailyGamesBackend
 mvn verify
 ```
 
@@ -54,8 +55,8 @@ The `.do/app.yaml` spec defines two App Platform services under one origin: `/ap
 
 1. Activate transactional email in Brevo and create a verified sender. You can verify an email you already own for initial testing; for reliable production delivery, buy a domain later, authenticate it with Brevo's DKIM and DMARC records, and use a sender such as `login@auth.your-domain.com`.
 2. In DigitalOcean, create a managed PostgreSQL 17 cluster named `daily-games-db` in `nyc`. The app spec attaches that existing production cluster by name.
-3. Connect DigitalOcean App Platform to the private `nath5763/DailyTracker` GitHub repository and create the app from `.do/app.yaml`.
-4. Before the first deployment, replace the placeholder values for `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAIL_FROM`, and `AUTH_TOKEN_PEPPER`. `MAIL_FROM` must exactly match a verified Brevo sender. Generate the pepper with a cryptographically secure password generator and keep it stable.
+3. Create the private `nath5763/DailyGamesBackend` repository and push the sibling backend checkout to it. Then give DigitalOcean access to both `nath5763/DailyTracker` and `nath5763/DailyGamesBackend` and create the app from `.do/app.yaml`.
+4. Before the first deployment, replace the placeholder values for `BREVO_API_KEY` and `AUTH_TOKEN_PEPPER`. `BREVO_API_KEY` must be an API key, not an SMTP key, and `BREVO_SENDER_EMAIL` must exactly match a verified Brevo sender. Generate the pepper with a cryptographically secure password generator and keep it stable.
 5. Initially test on the assigned `*.ondigitalocean.app` URL. Because `APP_BASE_URL` uses `${APP_URL}`, magic links follow the active primary URL.
 6. Attach the purchased domain to the app, make it primary, and verify that `${APP_URL}` changed before requesting a new magic link.
 7. Confirm `/api/health`, sign in with two unrelated email addresses, complete both profiles, add one UUID to the other account’s leaderboard, and submit a Fermi score.
