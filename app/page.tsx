@@ -24,7 +24,7 @@ export default function HomePage() {
 
         <div className="hero-board" aria-label="Example leaderboard">
           <div className="board-topline">
-            <div><span className="live-dot" /> Fermi · Week 42</div>
+            <div><span className="live-dot" /> Daily challenge · Week 42</div>
             <span>Lower is better</span>
           </div>
           {sampleRows.map((row) => (
@@ -49,7 +49,7 @@ export default function HomePage() {
           <h2>From result screen<br />to bragging rights.</h2>
         </div>
         <div className="steps">
-          <article><span>1</span><h3>Play elsewhere</h3><p>Finish today’s Fermi puzzle and copy the share text.</p></article>
+          <article><span>1</span><h3>Play elsewhere</h3><p>Finish a supported daily puzzle and copy the share text.</p></article>
           <article><span>2</span><h3>Paste it here</h3><p>We read the puzzle and score, then ask you to confirm.</p></article>
           <article><span>3</span><h3>See the table</h3><p>Your private groups update across today, this week, and all time.</p></article>
         </div>
@@ -60,7 +60,7 @@ export default function HomePage() {
         <h2>Tomorrow’s score<br />starts today.</h2>
         <Link className="button button-dark" href="/auth">Create your account <span>→</span></Link>
       </section>
-      <footer className="shell"><span>Daily Club © 2026</span><span>Scores are self-reported. Keep it honest.</span></footer>
+      <footer className="shell"><span>Daily Club © 2026</span><span>Scores are self-reported. Keep it honest.</span><Link href="/privacy">Privacy</Link></footer>
     </main>
   );
 }

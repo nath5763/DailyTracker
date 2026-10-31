@@ -1,19 +1,37 @@
 import Link from "next/link";
+import { CheckoutStatusNotice, ManageBillingButton, SubscribeButton } from "@/components/billing-actions";
 import { CreateLeaderboard } from "@/components/create-leaderboard";
 import { SiteHeader } from "@/components/site-header";
 import { apiFetch } from "@/lib/api";
 import { requireViewer } from "@/lib/auth";
-import type { BoardSummary } from "@/lib/types";
+import type { BillingStatus, BoardSummary, Game } from "@/lib/types";
 
 export const metadata = { title: "Leaderboards" };
 export const dynamic = "force-dynamic";
 
-export default async function LeaderboardsPage() {
+export default async function LeaderboardsPage({ searchParams }: { searchParams: Promise<{ checkout?: string }> }) {
   await requireViewer();
-  const groups = await apiFetch<BoardSummary[]>("/leaderboards");
+  const query = await searchParams;
+  const [boards, games, billing] = await Promise.all([
+    apiFetch<BoardSummary[]>("/leaderboards"),
+    apiFetch<Game[]>("/games"),
+    apiFetch<BillingStatus>("/billing/status"),
+  ]);
+  const boardsByGame = boards.reduce((groups, board) => {
+    const existing = groups.get(board.game.name) ?? [];
+    existing.push(board);
+    groups.set(board.game.name, existing);
+    return groups;
+  }, new Map<string, BoardSummary[]>());
+  const grouped = Array.from(boardsByGame.entries()).sort(([left], [right]) => left.localeCompare(right));
+
   return <main className="app-shell"><SiteHeader /><section className="page shell">
-    <div className="page-heading"><div><p className="section-number">PRIVATE CLUBS</p><h1>Your leaderboards.</h1></div><p>Each group is visible only to its members. Owners manage the roster with account UUIDs.</p></div>
-    <div className="grid grid-2"><section className="card"><h2>All groups</h2>{groups.length ? <div className="list">{groups.map((board) => <Link className="list-row" href={`/leaderboards/${board.id}`} key={board.id}><span className="rank">↗</span><span>{board.name}<small>{board.owner ? "Owner" : "Member"}</small></span><strong>Open</strong></Link>)}</div> : <div className="empty">No leaderboards yet.</div>}</section>
-      <section className="card card-lime"><h2>Start another club</h2><p>Keep work friends, family, and the ultra-competitive people in separate tables.</p><CreateLeaderboard /></section></div>
+    {query.checkout === "success" ? <CheckoutStatusNotice waiting={!billing.unlimitedLeaderboards} /> : null}
+    {query.checkout === "cancelled" ? <div className="notice">Checkout was cancelled. Your existing leaderboards were not changed.</div> : null}
+    <div className="page-heading"><div><p className="section-number">PRIVATE LEADERBOARDS</p><h1>Your leaderboards.</h1></div><p>Every leaderboard belongs to one daily game. Groups are visible only to their members.</p></div>
+    <div className="grid leaderboard-layout"><section className="card"><h2>Boards by game</h2>{grouped.length ? <div className="game-groups">{grouped.map(([gameName, gameBoards]) => <section className="game-group" key={gameName}><div className="game-group-heading"><h3>{gameName}</h3><span>{gameBoards.length} board{gameBoards.length === 1 ? "" : "s"}</span></div><div className="list">{gameBoards.map((board) => board.locked ? <div className="list-row locked-row" key={board.id}><span className="rank" aria-hidden="true">LOCK</span><span>{board.name}<small>{board.owner ? "You own this board" : "Shared with you"}</small></span><strong>{board.owner ? "Renew" : "Locked"}</strong></div> : <Link className="list-row" href={`/leaderboards/${board.id}`} key={board.id}><span className="rank" aria-hidden="true">OPEN</span><span>{board.name}<small>{board.owner ? "You own this board" : "Shared with you"}</small></span><strong>View</strong></Link>)}</div></section>)}</div> : <div className="empty">No leaderboards yet. Create your first one for free.</div>}</section>
+      <aside className="form-stack"><section className="card card-lime"><h2>Create a leaderboard</h2><p>Your first leaderboard is free for life. A subscription unlocks unlimited boards.</p><CreateLeaderboard games={games} billing={billing} /></section>
+        <section className="card"><p className="section-number">BILLING</p>{billing.unlimitedLeaderboards ? <><h2>Unlimited boards active</h2><p className="subtle">Your $2 monthly subscription lets you create as many game-specific leaderboards as you want.</p>{billing.cancelAtPeriodEnd && billing.currentPeriodEnd ? <div className="form-message">Access continues through {new Date(billing.currentPeriodEnd).toLocaleDateString()}.</div> : null}<ManageBillingButton /></> : billing.freeLeaderboardAvailable ? <><h2>Your first board is free</h2><p className="subtle">You can subscribe now or wait until you want to create another leaderboard.</p><SubscribeButton /></> : <><h2>Create unlimited boards</h2><p className="subtle">Subscribe for a flat $2 per month. Your payment details stay with Stripe.</p>{billing.graceUntil ? <div className="form-message error">Payment needs attention before {new Date(billing.graceUntil).toLocaleDateString()}.</div> : null}<SubscribeButton />{billing.status ? <ManageBillingButton /> : null}</>}</section>
+      </aside></div>
   </section></main>;
 }
