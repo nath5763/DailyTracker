@@ -101,6 +101,8 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 .auth-card { width: min(430px, 100%); }
 .auth-card h2 { font-family: var(--font-display); font-size: 40px; letter-spacing: -.04em; margin: 0 0 10px; }
 .auth-card > p { color: var(--muted); line-height: 1.55; margin-bottom: 28px; }
+.auth-links { display: flex; justify-content: space-between; gap: 16px; font-size: 14px; }
+.auth-card small { color: var(--muted); line-height: 1.4; }
 .divider { margin: 28px 0; border: 0; border-top: 1px solid var(--line); }
 .privacy-note { font-size: 12px; color: var(--muted); line-height: 1.5; }
 .score-layout { grid-template-columns: minmax(0, 1.35fr) minmax(310px, .65fr); align-items: start; }

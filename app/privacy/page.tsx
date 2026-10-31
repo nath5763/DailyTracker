@@ -20,7 +20,7 @@ export default function PrivacyPage() {
           <section>
             <h2>Information we collect</h2>
             <ul>
-              <li><strong>Account and authentication data:</strong> your email address, sign-in and session records, hashed login and session tokens, and an authentication cookie used to keep you signed in.</li>
+              <li><strong>Account and authentication data:</strong> your email address, a one-way password hash, email-verification and password-reset records, sign-in and session records, hashed action and session tokens, and an authentication cookie used to keep you signed in.</li>
               <li><strong>Profile data:</strong> your display name, avatar color, and shareable account UUID.</li>
               <li><strong>Game and leaderboard data:</strong> the scores and result text you submit, puzzle and play dates, leaderboard names, memberships, rankings, and ownership.</li>
               <li><strong>Billing data:</strong> subscription status and Stripe customer or subscription identifiers. Payment card details are collected and handled by Stripe, not stored by Daily Club.</li>
@@ -30,7 +30,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2>How we use information</h2>
-            <p>We use this information to send secure sign-in links, maintain your session, create and display your profile, accept and rank scores, operate private leaderboards, process subscriptions, prevent abuse, troubleshoot and secure the service, and show and measure advertising.</p>
+            <p>We use this information to verify email addresses, authenticate accounts, send password-reset messages, maintain sessions, create and display profiles, accept and rank scores, operate private leaderboards, process subscriptions, prevent abuse, troubleshoot and secure the service, and show and measure advertising.</p>
           </section>
 
           <section>
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
             <p>Daily Club shares information only as needed to run the service, comply with law, or protect the service and its users:</p>
             <ul>
               <li><strong>Other leaderboard members</strong> can see the profile, scores, rankings, and account UUIDs made available within leaderboards they share with you. Leaderboard owners can manage membership.</li>
-              <li><strong>Brevo</strong> processes your email address and sign-in-message delivery data to send magic-link emails.</li>
+              <li><strong>Brevo</strong> processes your email address and message-delivery data to send verification and password-reset emails.</li>
               <li><strong>Stripe</strong> processes payment and billing data for subscriptions and the customer billing portal.</li>
               <li><strong>DigitalOcean</strong> hosts the application and database and may process stored data and technical request logs on our behalf.</li>
               <li><strong>Google</strong> uses cookies and similar technologies to deliver, personalize, and measure advertising through Google AdSense. Depending on your settings and consent choices, Google may use activity from this site and other sites for personalized ads.</li>
@@ -54,7 +54,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2>Retention and security</h2>
-            <p>We keep account, profile, score, leaderboard, and subscription records for as long as needed to provide the service and meet security, fraud-prevention, legal, and accounting obligations. Authentication tokens are stored as hashes, and production traffic uses HTTPS. No online service can guarantee absolute security.</p>
+            <p>We keep account, profile, score, leaderboard, and subscription records for as long as needed to provide the service and meet security, fraud-prevention, legal, and accounting obligations. Passwords are stored only as adaptive one-way hashes, authentication tokens are stored as hashes, and production traffic uses HTTPS. No online service can guarantee absolute security.</p>
           </section>
 
           <section>
