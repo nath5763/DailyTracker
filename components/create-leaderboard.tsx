@@ -3,10 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SubscribeButton } from "@/components/billing-actions";
+import { useAppData } from "@/components/app-data-provider";
+import { invalidateClientCache } from "@/lib/client-cache";
 import type { BillingStatus, Game } from "@/lib/types";
 
 export function CreateLeaderboard({ games, billing }: { games: Game[]; billing: BillingStatus }) {
   const router = useRouter();
+  const { userId } = useAppData();
   const [name, setName] = useState("");
   const [gameSlug, setGameSlug] = useState(games[0]?.slug ?? "");
   const [message, setMessage] = useState("");
@@ -30,8 +33,8 @@ export function CreateLeaderboard({ games, billing }: { games: Game[]; billing: 
       setLoading(false);
       return;
     }
+    invalidateClientCache(userId, ["/dashboard", "/leaderboards", "/billing/status"]);
     router.push(`/leaderboards/${data.id}`);
-    router.refresh();
   }
 
   if (!games.length) return <div className="empty">No games are currently available.</div>;
@@ -43,6 +46,6 @@ export function CreateLeaderboard({ games, billing }: { games: Game[]; billing: 
     {message ? <div className="form-message error">{message}</div> : null}
   </form>
     {subscriptionRequired ? <SubscribeButton /> : null}
-    {!billing.freeLeaderboardAvailable && !billing.unlimitedLeaderboards && !subscriptionRequired ? <p className="subtle">Your lifetime free leaderboard has been used. Subscribe to create more.</p> : null}
+    {!billing.freeLeaderboardAvailable && !billing.unlimitedLeaderboards && !subscriptionRequired ? <p className="subtle">Your five free leaderboards have been used. Subscribe to create more.</p> : null}
   </div>;
 }

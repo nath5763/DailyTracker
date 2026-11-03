@@ -3,8 +3,10 @@ import { Logo } from "@/components/logo";
 import { getViewer } from "@/lib/auth";
 import { SignOutButton } from "@/components/sign-out-button";
 
-export async function SiteHeader() {
-  const { user, profile } = await getViewer();
+type Viewer = Awaited<ReturnType<typeof getViewer>>;
+
+export async function SiteHeader({ viewer }: { viewer?: Viewer } = {}) {
+  const { user, profile } = viewer ?? await getViewer();
   return (
     <header className="site-header shell">
       <Logo />

@@ -87,6 +87,6 @@ The public `/privacy` page documents authentication, profile, score, leaderboard
 
 ## Adding another daily game
 
-Add a game catalog row in a Flyway migration and implement the backend `GameAdapter` contract. The adapter supplies parsing, confirmation rules, score formatting, and form metadata, so the shared service and frontend submission flow never branch on a game slug. Keep common puzzle key, date, and primary score fields in `submissions`; put game-specific details in the JSON `metrics` column.
+Add a game catalog row in a Flyway migration and implement the backend `GameAdapter` contract. The adapter supplies final validation, score formatting, and form metadata. Add the matching browser preview parser in `lib/preview-score.ts` so preview remains local; the backend validates the result again when it is saved. Keep common puzzle key, date, and primary score fields in `submissions`; put game-specific details in the JSON `metrics` column.
 
-Deploy additive backend adapter/API changes before the frontend. The frontend discovers supported games and their presentation from `/api/v1/games`, so adding another adapter does not require a game-specific UI branch.
+Deploy the backend adapter and API changes before the frontend preview parser. The frontend discovers the game catalog and presentation from `/api/v1/games` when the authenticated layout first loads.
