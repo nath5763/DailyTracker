@@ -3,6 +3,13 @@
 import { useState } from "react";
 
 type BillingEndpoint = "/api/v1/billing/checkout-session" | "/api/v1/billing/portal-session";
+type BillingResponse = { url?: string; error?: string; code?: string };
+
+async function createBillingSession(endpoint: BillingEndpoint) {
+  const response = await fetch(endpoint, { method: "POST" });
+  const data = await response.json().catch(() => ({})) as BillingResponse;
+  return { response, data };
+}
 
 function BillingButton({ endpoint, children, className = "button" }: { endpoint: BillingEndpoint; children: React.ReactNode; className?: string }) {
   const [loading, setLoading] = useState(false);
@@ -11,14 +18,22 @@ function BillingButton({ endpoint, children, className = "button" }: { endpoint:
   async function openBilling() {
     setLoading(true);
     setMessage("");
-    const response = await fetch(endpoint, { method: "POST" });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.url) {
-      setMessage(data.error ?? "Billing could not be opened. Try again shortly.");
+    try {
+      let { response, data } = await createBillingSession(endpoint);
+      if (endpoint === "/api/v1/billing/checkout-session" && response.status === 409 &&
+          data.code === "BILLING_SUBSCRIPTION_REQUIRES_MANAGEMENT") {
+        ({ response, data } = await createBillingSession("/api/v1/billing/portal-session"));
+      }
+      if (!response.ok || !data.url) {
+        setMessage(data.error ?? "Billing could not be opened. Try again shortly.");
+        return;
+      }
+      window.location.assign(data.url);
+    } catch {
+      setMessage("Billing could not be opened. Check your connection and try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-    window.location.assign(data.url);
   }
 
   return <div className="billing-action"><button className={className} disabled={loading} onClick={openBilling} type="button">{loading ? "Opening..." : children}</button>{message ? <div className="form-message error">{message}</div> : null}</div>;

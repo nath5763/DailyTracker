@@ -30,13 +30,23 @@ export function LeaderboardsView({ checkout }: { checkout?: string }) {
   useEffect(() => {
     if (checkout !== "success" || billingResult.data?.unlimitedLeaderboards) return;
     let attempts = 0;
-    const timer = window.setInterval(() => {
+    let cancelled = false;
+    let timer: number;
+    const poll = async () => {
       attempts += 1;
-      void refresh();
-      if (attempts >= 5) window.clearInterval(timer);
-    }, 2000);
-    return () => window.clearInterval(timer);
-  }, [checkout, billingResult.data?.unlimitedLeaderboards, refresh]);
+      try {
+        const updated = await refreshBilling();
+        if (!cancelled && updated.unlimitedLeaderboards) {
+          await refreshBoards();
+          invalidateClientCache(userId, ["/dashboard"]);
+          return;
+        }
+      } catch { /* The visible refresh controls remain available if Stripe is delayed. */ }
+      if (!cancelled && attempts < 30) timer = window.setTimeout(() => void poll(), 2000);
+    };
+    timer = window.setTimeout(() => void poll(), 2000);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [checkout, billingResult.data?.unlimitedLeaderboards, refreshBilling, refreshBoards, userId]);
 
   const boards = boardsResult.data;
   const billing = billingResult.data;
