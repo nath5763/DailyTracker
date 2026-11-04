@@ -1,0 +1,61 @@
+"use client";
+
+import { useState } from "react";
+import { useCachedApi } from "@/lib/client-cache";
+import { formatScore } from "@/lib/format";
+import type { Game, LeaderboardInsights } from "@/lib/types";
+
+const lineColor = (index: number) => `hsl(${Math.round((index * 137.5 + 260) % 360)} 65% 36%)`;
+const dateLabel = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+
+export function LeaderboardInsightsView({ boardId, game }: { boardId: string; game: Game }) {
+  const [view, setView] = useState<"line" | "heatmap">("line");
+  const path = `/leaderboards/${encodeURIComponent(boardId)}/insights?game=${encodeURIComponent(game.slug)}`;
+  const { data, error, refresh } = useCachedApi<LeaderboardInsights>(path, { storage: "memory" });
+  return <div className="insights-panel">
+    <div className="insights-heading"><div><p className="section-number">LAST 30 DAYS</p><h2>Progress</h2></div><div className="tabs" role="group" aria-label="Progress view"><button className={`tab ${view === "line" ? "active" : ""}`} type="button" aria-pressed={view === "line"} onClick={() => setView("line")}>Rank progression</button><button className={`tab ${view === "heatmap" ? "active" : ""}`} type="button" aria-pressed={view === "heatmap"} onClick={() => setView("heatmap")}>My heatmap</button></div></div>
+    {!data ? <div className="empty">{error || "Loading progress…"}{error ? <button className="text-button" type="button" onClick={() => void refresh()}>Retry</button> : null}</div> : view === "line" ? <RankGraph data={data} /> : <PerformanceHeatmap data={data} game={game} />}
+  </div>;
+}
+
+function RankGraph({ data }: { data: LeaderboardInsights }) {
+  const active = data.ranks.filter(series => series.points.some(point => point.rank !== null));
+  if (!active.length) return <div className="empty">No ranks to chart yet. Scores will appear here as members play.</div>;
+  const maxRank = Math.max(data.ranks.length, 1);
+  const x = (index: number) => 42 + index * (550 / 29);
+  const y = (rank: number) => 25 + (maxRank === 1 ? 0 : (rank - 1) * (170 / (maxRank - 1)));
+  const segments = (points: { rank: number | null }[]) => {
+    const groups: string[] = [];
+    let current: string[] = [];
+    points.forEach((point, index) => {
+      if (point.rank === null) { if (current.length) groups.push(current.join(" ")); current = []; }
+      else current.push(`${x(index)},${y(point.rank)}`);
+    });
+    if (current.length) groups.push(current.join(" "));
+    return groups;
+  };
+  return <div>
+    <div className="rank-chart-scroll"><svg viewBox="0 0 620 235" role="img" aria-label={`Rank progression from ${dateLabel(data.from)} to ${dateLabel(data.to)}; rank one is best`}>
+      {[1, maxRank].filter((value, index, values) => values.indexOf(value) === index).map(rank => <g key={rank}><line x1="42" x2="592" y1={y(rank)} y2={y(rank)} stroke="#d6d1c6" /><text x="4" y={y(rank) + 4} fontSize="12">#{rank}</text></g>)}
+      {active.map((series, index) => { const color = lineColor(index); return <g key={series.userId}><title>{series.displayName}: {series.points.filter(point => point.rank !== null).length} ranked days</title>{segments(series.points).map((segment, segmentIndex) => <polyline key={segmentIndex} points={segment} fill="none" stroke={color} strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />)}{series.points.map((point, day) => point.rank === null ? null : <circle key={point.date} cx={x(day)} cy={y(point.rank)} r="3.5" fill={color}><title>{series.displayName}, {dateLabel(point.date)}: rank {point.rank}</title></circle>)}</g>; })}
+      <text x="42" y="225" fontSize="12">{dateLabel(data.from)}</text><text x="592" y="225" fontSize="12" textAnchor="end">{dateLabel(data.to)}</text>
+    </svg></div>
+    <div className="rank-legend">{active.map((series, index) => <span key={series.userId}><i style={{ background: lineColor(index) }} />{series.displayName}</span>)}</div>
+    <p className="subtle">Each day shows the standing among current members using scores from the preceding 30 days. A gap means no score in that window.</p>
+  </div>;
+}
+
+function PerformanceHeatmap({ data, game }: { data: LeaderboardInsights; game: Game }) {
+  const scores = data.personalScores;
+  if (!scores.length) return <div className="empty">No scores in the last 30 days. Add a result to start your heatmap.</div>;
+  const ordered = [...scores].sort((a, b) => a.assistanceTier - b.assistanceTier || (game.rankingDirection === "lower" ? a.score - b.score : b.score - a.score));
+  const middle = ordered[Math.floor((ordered.length - 1) / 2)];
+  const byDate = new Map(scores.map(score => [score.date, score]));
+  const days = Array.from({ length: 30 }, (_, index) => { const date = new Date(`${data.from}T12:00:00Z`); date.setUTCDate(date.getUTCDate() + index); return date.toISOString().slice(0, 10); });
+  const performance = (score: typeof middle) => {
+    if (score.assistanceTier !== middle.assistanceTier) return score.assistanceTier < middle.assistanceTier ? "better" : "worse";
+    const delta = game.rankingDirection === "lower" ? score.score - middle.score : middle.score - score.score;
+    return delta < 0 ? "better" : delta > 0 ? "worse" : "typical";
+  };
+  return <div><div className="performance-grid">{days.map(date => { const score = byDate.get(date); const level = score ? performance(score) : "empty"; return <div className={`performance-day ${level}`} key={date} title={score ? `${dateLabel(date)}: ${formatScore(score.score, game.scoreFormat)} (${level})` : `${dateLabel(date)}: no score`} aria-label={score ? `${dateLabel(date)}: ${formatScore(score.score, game.scoreFormat)}, ${level}` : `${dateLabel(date)}: no score`}>{new Date(`${date}T12:00:00Z`).getUTCDate()}</div>; })}</div><div className="heatmap-legend"><span className="performance-day better" />Better <span className="performance-day typical" />Typical <span className="performance-day worse" />Worse <span className="performance-day empty" />No score</div><p className="subtle">Compared with your median result over these 30 days. Assistance is considered before score.</p></div>;
+}

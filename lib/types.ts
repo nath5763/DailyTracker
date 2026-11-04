@@ -45,6 +45,7 @@ export type Dashboard = { profile: Profile; stats: Stats; statsByGame: GameStats
 export type Member = { userId: string; shareId: string; displayName: string; avatarColor: string; owner: boolean };
 export type Ranking = { rank: number; userId: string; shareId: string; displayName: string; average: number; gamesPlayed: number; assistedResults?: number; unknownAssistanceResults?: number; hints?: number; mistakes?: number; beginnerAssists?: number };
 export type Leaderboard = { id: string; name: string; ownerId: string; game: Game; boardType: "SINGLE_GAME" | "MULTI_GAME"; games: Game[]; range: string; owner: boolean; members: Member[]; rankings: Ranking[]; absent: Member[] };
+export type LeaderboardInsights = { from: string; to: string; ranks: { userId: string; displayName: string; avatarColor: string; points: { date: string; rank: number | null }[] }[]; personalScores: { date: string; score: number; assistanceTier: number }[] };
 export type PlayerProfile = { profile: Profile; self: boolean; stats: Stats; statsByGame: GameStats[]; scores: Score[] };
 export type BillingTier = "FREE" | "STANDARD" | "PREMIUM";
 export type BillingStatus = { tier: BillingTier; singleGameCount: number; singleGameLimit: number; allGameCount: number; allGameLimit: number; status: string | null; cancelAtPeriodEnd: boolean; currentPeriodEnd: string | null; graceUntil: string | null };
