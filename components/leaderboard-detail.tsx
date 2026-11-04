@@ -11,6 +11,7 @@ import { formatScore } from "@/lib/format";
 import type { BillingStatus, BoardSummary, Leaderboard } from "@/lib/types";
 
 const ranges = [{ key: "today", label: "Today" }, { key: "7d", label: "Last 7 days" }, { key: "30d", label: "Last 30 days" }, { key: "all", label: "All time" }] as const;
+const backToBoards = <AppLink className="button button-ghost" href="/leaderboards">Back to all leaderboards</AppLink>;
 
 export function LeaderboardDetail({ id, requestedGame, requestedRange }: { id: string; requestedGame?: string; requestedRange?: string }) {
   const summaries = useCachedApi<BoardSummary[]>("/leaderboards");
@@ -35,16 +36,16 @@ function Content({ id, path, range, summary, summaries }: { id: string; path: st
     catch (cause) { setRefreshError(cause instanceof Error ? cause.message : "Could not refresh leaderboard."); }
     finally { setRefreshing(false); }
   }
-  if (!summaries.data) return <section className="page shell"><div className="card">{summaries.error || "Loading leaderboard…"}</div></section>;
-  if (!summary) return <section className="page shell"><div className="card">Leaderboard not found.</div></section>;
+  if (!summaries.data) return <section className="page shell"><div className="card">{summaries.error || "Loading leaderboard…"}</div><div className="spacer" />{backToBoards}</section>;
+  if (!summary) return <section className="page shell"><div className="card">Leaderboard not found.</div><div className="spacer" />{backToBoards}</section>;
   if (summary.locked || result.errorStatus === 402) return <Locked board={summary} refreshing={refreshing} refresh={refresh} />;
-  if (!path) return <section className="page shell"><div className="card">No games are available for this leaderboard.</div></section>;
+  if (!path) return <section className="page shell"><div className="card">No games are available for this leaderboard.</div><div className="spacer" />{backToBoards}</section>;
   const board = result.data;
-  if (!board) return <section className="page shell"><div className="card"><p>{refreshError || result.error || "Loading leaderboard…"}</p>{result.error ? <button className="button button-ghost" onClick={() => void refresh()}>Retry</button> : null}</div></section>;
+  if (!board) return <section className="page shell"><div className="card"><p>{refreshError || result.error || "Loading leaderboard…"}</p>{result.error ? <button className="button button-ghost" onClick={() => void refresh()}>Retry</button> : null}</div><div className="spacer" />{backToBoards}</section>;
   const scoring = board.game.rankingDirection === "lower" ? "Lower average wins." : "Higher average wins.";
   const games = board.games?.length ? board.games : [board.game];
   return <section className="page shell">
-    <div className="page-heading"><div><p className="section-number">{board.game.name.toUpperCase()} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions"><p>{board.members.length} player{board.members.length === 1 ? "" : "s"} · {scoring} <a className="secondary-link" href={board.game.sourceUrl} rel="noreferrer" target="_blank">Play {board.game.name}</a></p><button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div>
+    <div className="page-heading"><div><p className="section-number">{board.game.name.toUpperCase()} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions"><p>{board.members.length} player{board.members.length === 1 ? "" : "s"} · {scoring} <a className="secondary-link" href={board.game.sourceUrl} rel="noreferrer" target="_blank">Play {board.game.name}</a></p>{backToBoards}<button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div>
     {refreshError ? <div className="form-message error">{refreshError}</div> : null}
     <div className="grid score-layout"><section className="card">
       {games.length > 1 ? <div className="tabs">{games.map((game) => <AppLink className={`tab ${game.slug === board.game.slug ? "active" : ""}`} href={`/leaderboards/${id}?game=${encodeURIComponent(game.slug)}&range=${range}`} key={game.slug}>{game.name}</AppLink>)}</div> : null}
@@ -57,7 +58,7 @@ function Content({ id, path, range, summary, summaries }: { id: string; path: st
 
 function Locked({ board, refreshing, refresh }: { board: BoardSummary; refreshing: boolean; refresh: () => Promise<void> }) {
   const billing = useCachedApi<BillingStatus>("/billing/status");
-  return <section className="page shell"><div className="page-heading"><div><p className="section-number">{board.game?.name.toUpperCase() ?? "PRIVATE"} LEADERBOARD</p><h1>{board.name}</h1></div><button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div><section className="card locked-card"><span className="lock-mark" aria-hidden="true">LOCKED</span><h2>This leaderboard is currently locked.</h2><p>{board.owner ? "Restore your unlimited leaderboard subscription to reopen its rankings and roster for everyone." : "The owner needs to restore their subscription before members can view rankings or the roster."}</p>{board.owner ? <div className="billing-buttons" id="locked-board-billing-controls"><SubscribeButton />{billing.data?.status ? <ManageBillingButton /> : null}</div> : null}<AppLink className="text-button" href="/leaderboards">Back to all leaderboards</AppLink></section></section>;
+  return <section className="page shell"><div className="page-heading"><div><p className="section-number">{board.game?.name.toUpperCase() ?? "PRIVATE"} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions">{backToBoards}<button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div><section className="card locked-card"><span className="lock-mark" aria-hidden="true">LOCKED</span><h2>This leaderboard is currently locked.</h2><p>{board.owner ? "Restore your unlimited leaderboard subscription to reopen its rankings and roster for everyone." : "The owner needs to restore their subscription before members can view rankings or the roster."}</p>{board.owner ? <div className="billing-buttons" id="locked-board-billing-controls"><SubscribeButton />{billing.data?.status ? <ManageBillingButton /> : null}</div> : null}</section></section>;
 }
 
 

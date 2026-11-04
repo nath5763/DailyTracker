@@ -5,21 +5,27 @@ import { navigateInApp } from "@/components/app-link";
 import { formatScore } from "@/lib/format";
 import { useAppData } from "@/components/app-data-provider";
 import { invalidateClientCache, invalidateLeaderboardCacheForGame } from "@/lib/client-cache";
+import { detectShareGame } from "@/lib/detect-share-game";
 import { previewScore } from "@/lib/preview-score";
 import type { Game, ParsedSubmission } from "@/lib/types";
 
 export function ScoreComposer({ games }: { games: Game[] }) {
   const { userId, shareId } = useAppData();
-  const [gameSlug, setGameSlug] = useState(games[0]?.slug ?? "");
+  const [manualGameSlug, setManualGameSlug] = useState("");
   const [rawText, setRawText] = useState("");
   const [preview, setPreview] = useState<ParsedSubmission | null>(null);
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [message, setMessage] = useState("");
-  const game = games.find((candidate) => candidate.slug === gameSlug) ?? games[0];
+  const detectedGameSlug = detectShareGame(rawText, games.map((candidate) => candidate.slug));
+  const game = games.find((candidate) => candidate.slug === (detectedGameSlug ?? manualGameSlug));
   const editable = new Set(game?.submission.editableFields ?? []);
 
   function parse() {
-    if (!game) return;
+    if (!game) {
+      setStatus("error");
+      setMessage("Choose the game for this result before previewing it.");
+      return;
+    }
     setMessage("");
     try {
       setPreview(previewScore(game.slug, rawText));
@@ -55,32 +61,35 @@ export function ScoreComposer({ games }: { games: Game[] }) {
     navigateInApp("/dashboard?added=1");
   }
 
-  if (!game) return <div className="empty">No games are currently available for score submission.</div>;
+  if (!games.length) return <div className="empty">No games are currently available for score submission.</div>;
 
   return (
     <div className="grid score-layout">
       <section className="card">
         <form className="form-stack" onSubmit={(event) => { event.preventDefault(); parse(); }}>
           <div className="field">
-            <label htmlFor="game">Game</label>
-            <select id="game" value={game.slug} onChange={(event) => {
-              setGameSlug(event.target.value);
-              setRawText("");
+            <label htmlFor="result">Shared result text</label>
+            <textarea id="result" placeholder="Paste a complete game share result" value={rawText} onChange={(event) => {
+              setRawText(event.target.value);
+              setManualGameSlug("");
+              setPreview(null);
+              setMessage("");
+              setStatus("idle");
+            }} required />
+          </div>
+          {detectedGameSlug && game ? <p className="subtle">Detected game: <strong>{game.name}</strong></p> : null}
+          {rawText.trim() && !detectedGameSlug ? <div className="field">
+            <label htmlFor="game">Choose game</label>
+            <select id="game" value={manualGameSlug} onChange={(event) => {
+              setManualGameSlug(event.target.value);
               setPreview(null);
               setMessage("");
               setStatus("idle");
             }}>
+              <option value="">Select a game</option>
               {games.map((option) => <option key={option.id} value={option.slug}>{option.name}</option>)}
             </select>
-          </div>
-          <div className="field">
-            <label htmlFor="result">Shared result text</label>
-            <textarea id="result" placeholder={game.submission.exampleShareText} value={rawText} onChange={(event) => {
-              setRawText(event.target.value);
-              setPreview(null);
-              setMessage("");
-            }} required />
-          </div>
+          </div> : null}
           {message ? <div className="form-message error" role="alert">{message}</div> : null}
           <button className="button" disabled={!rawText.trim()} type="submit">
             Preview score<span>→</span>
@@ -89,7 +98,7 @@ export function ScoreComposer({ games }: { games: Game[] }) {
       </section>
 
       <aside className="card preview-card">
-        {preview ? <>
+        {preview && game ? <>
           <span className="result-chip">Ready to confirm</span>
           <div className="score-big">{formatScore(preview.primaryScore, game.scoreFormat)}</div>
           <p className="subtle">{game.name} · {game.submission.puzzleLabel} {preview.puzzleKey}</p>
@@ -100,7 +109,7 @@ export function ScoreComposer({ games }: { games: Game[] }) {
             <p className="privacy-note">Once confirmed, this result cannot be changed or removed individually.</p>
             <button className="button" type="button" disabled={status === "saving"} onClick={() => void save()}>{status === "saving" ? "Saving…" : "Confirm permanent score"}<span>✓</span></button>
           </div>
-        </> : <div className="empty"><strong>Your parsed result will appear here.</strong><br /><br />Paste a complete {game.name} result to preview its {game.submission.puzzleLabel.toLowerCase()} and score.</div>}
+        </> : <div className="empty"><strong>Your parsed result will appear here.</strong><br /><br />Paste a complete game result to preview its score.</div>}
       </aside>
     </div>
   );
