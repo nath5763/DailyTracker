@@ -11,6 +11,7 @@ export async function SiteHeader({ viewer }: { viewer?: Viewer } = {}) {
     <header className="site-header shell">
       <Logo />
       <nav aria-label="Main navigation">
+        <AppLink className="nav-games" href="/games">Games</AppLink>
         {profile ? (
           <>
             <AppLink href="/dashboard">Overview</AppLink>

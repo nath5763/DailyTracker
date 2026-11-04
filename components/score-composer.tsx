@@ -100,7 +100,7 @@ export function ScoreComposer({ games }: { games: Game[] }) {
       <aside className="card preview-card">
         {preview && game ? <>
           <span className="result-chip">Ready to confirm</span>
-          <div className="score-big">{formatScore(preview.primaryScore, game.scoreFormat)}</div>
+          <div className="score-big">{(typeof preview.metrics.displayScore === "string" ? preview.metrics.displayScore : formatScore(preview.primaryScore, game.scoreFormat))}</div>
           <p className="subtle">{game.name} · {game.submission.puzzleLabel} {preview.puzzleKey}</p>
           <div className="form-stack">
             <div className="field"><label htmlFor="puzzle">{game.submission.puzzleLabel}</label><input id="puzzle" type="text" value={preview.puzzleKey} readOnly={!editable.has("puzzleKey")} onChange={(event) => update("puzzleKey", event.target.value)} /></div>

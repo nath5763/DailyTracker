@@ -1,6 +1,6 @@
 # Daily Club
 
-Daily Club is a private friends leaderboard for daily games. Game adapters support [Fermi.gg](https://fermi.gg) and [Krillion](https://krillion.io): players paste a shared result, confirm the parsed score, and compare daily, 7-day, 30-day, and all-time averages.
+Daily Club is a private friends leaderboard for daily games. The public `/games` directory links to original publishers. Website score tracking supports Fermi, Krillion, Wordle, Pinpoint, Queens, Crossclimb, Tango, and Zip: players paste a shared result, confirm the parsed score, and compare daily, 7-day, 30-day, and all-time averages. Discord game choices remain Fermi and Krillion.
 
 ## Architecture
 

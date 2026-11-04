@@ -1,4 +1,5 @@
 import type { ParsedSubmission } from "./types";
+import { extendedPreviewScore } from "./extended-preview-score";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const multiplier = /(\d+(?:[.,]\d+)?)\s*[×x]/gi;
@@ -82,5 +83,6 @@ function krillion(rawText: string): ParsedSubmission {
 export function previewScore(gameSlug: string, rawText: string): ParsedSubmission {
   if (gameSlug === "fermi") return fermi(rawText);
   if (gameSlug === "krillion") return krillion(rawText);
+  if (["wordle", "pinpoint", "queens", "crossclimb", "tango", "zip"].includes(gameSlug)) return extendedPreviewScore(gameSlug, rawText);
   throw new Error("Preview is not available for this game yet.");
 }

@@ -20,6 +20,7 @@ export default function HomePage() {
         <div className="hero-actions">
           <Link className="button" href="/auth">Start your club <span>→</span></Link>
           <a className="secondary-link" href="#how">See how it works</a>
+          <Link className="secondary-link" href="/games">Browse games</Link>
         </div>
 
         <div className="hero-board" aria-label="Example leaderboard">
