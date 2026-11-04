@@ -56,6 +56,11 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="discord-feature shell" aria-labelledby="discord-title">
+        <div><p className="section-number">PLAY TOGETHER, WHERE YOU CHAT</p><h2 id="discord-title">Your daily games club belongs in Discord, too.</h2></div>
+        <div><p>Link your Daily Club account, submit Fermi and Krillion results with <code>/daily</code>, and see your group&apos;s rankings with <code>/leaderboard</code> in a connected channel.</p><p>Paid board owners can connect server channels. Friends on the free plan can join in.</p><Link className="button" href="/pricing">See plans <span aria-hidden="true">→</span></Link></div>
+      </section>
+
       <section className="closing shell">
         <div className="closing-mark">↗</div>
         <h2>Tomorrow’s score<br />starts today.</h2>

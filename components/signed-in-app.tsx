@@ -27,6 +27,6 @@ function CurrentView() {
   const board = /^\/leaderboards\/([^/]+)$/.exec(pathname);
   if (board) return <LeaderboardDetail id={decodeURIComponent(board[1])} requestedGame={query.get("game") ?? undefined} requestedRange={query.get("range") ?? undefined} />;
   const profile = /^\/profile\/([^/]+)$/.exec(pathname);
-  if (profile) return <ProfileView shareId={decodeURIComponent(profile[1])} />;
+  if (profile) return <ProfileView shareId={decodeURIComponent(profile[1])} checkout={query.get("checkout") ?? undefined} billingReturn={query.get("billing") ?? undefined} />;
   return <section className="page shell"><div className="card">Page not found.</div></section>;
 }

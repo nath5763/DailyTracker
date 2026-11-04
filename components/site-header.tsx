@@ -12,12 +12,13 @@ export async function SiteHeader({ viewer }: { viewer?: Viewer } = {}) {
       <Logo />
       <nav aria-label="Main navigation">
         <AppLink className="nav-games" href="/games">Games</AppLink>
+        <AppLink className="nav-pricing" href="/pricing">Pricing</AppLink>
         {profile ? (
           <>
             <AppLink href="/dashboard">Overview</AppLink>
             <AppLink href="/submit">Add score</AppLink>
             <AppLink href="/leaderboards">Leaderboards</AppLink>
-            <AppLink className="avatar-link" href={`/profile/${profile.shareId}`} title={profile.displayName}>
+            <AppLink className="avatar-link" href={`/profile/${profile.shareId}`} title="Your profile and subscription" aria-label="Your profile and subscription">
               <span className="avatar small" style={{ background: profile.avatarColor }}>
                 {profile.displayName.slice(0, 1).toUpperCase()}
               </span>

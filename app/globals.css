@@ -56,6 +56,22 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .how { padding: 140px 0; display: grid; grid-template-columns: 1fr 1.2fr; gap: 100px; }
 .section-number { font-size: 11px; font-weight: 900; letter-spacing: .12em; color: var(--purple); }
 .how h2, .closing h2 { margin: 24px 0; font-family: var(--font-display); font-size: clamp(45px, 5vw, 74px); line-height: .96; letter-spacing: -.055em; }
+.discord-feature { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; padding: 68px; margin-bottom: 85px; border: 1px solid var(--ink); background: var(--cream); box-shadow: 6px 6px 0 var(--purple); }
+.discord-feature h2 { font-family: var(--font-display); font-size: clamp(36px, 4vw, 60px); line-height: 1; letter-spacing: -.055em; margin: 18px 0; }
+.discord-feature p { line-height: 1.6; }
+.discord-feature code { background: var(--paper); padding: 2px 5px; }
+.discord-feature .button { margin-top: 12px; }
+.pricing-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.pricing-card { display: flex; flex-direction: column; }
+.pricing-card h2 { font-size: 48px; margin: 10px 0; }
+.pricing-card h2 small { font-family: var(--font-body); font-size: 15px; letter-spacing: 0; }
+.pricing-card ul { padding-left: 20px; line-height: 1.65; flex: 1; }
+.pricing-card li { margin-bottom: 9px; }
+.pricing-note { max-width: 850px; line-height: 1.6; color: var(--muted); margin-top: 30px; }
+.pricing-action-stack, .subscription-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.pricing-current, .subscription-tier { font-weight: 900; }
+.subscription-tier { font-family: var(--font-display); font-size: 34px; margin: 12px 0; }
+.subscription-panel { margin-top: 0; }
 .steps article { display: grid; grid-template-columns: 52px 150px 1fr; gap: 22px; align-items: baseline; padding: 30px 0; border-top: 1px solid var(--ink); }
 .steps article:last-child { border-bottom: 1px solid var(--ink); }
 .steps article > span { font-family: Georgia, serif; font-style: italic; font-size: 30px; color: var(--purple); }
@@ -174,7 +190,9 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 
 @media (max-width: 850px) {
   .site-header nav { gap: 14px; }
-  .site-header nav > a:not(.button):not(.avatar-link):not(.nav-games) { display: none; }
+  .site-header nav > a:not(.button):not(.avatar-link):not(.nav-games):not(.nav-pricing) { display: none; }
+  .pricing-grid, .discord-feature { grid-template-columns: 1fr; }
+  .discord-feature { gap: 12px; padding: 40px; }
   .catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero { min-height: 860px; padding-top: 55px; }
   .hero h1 { font-size: clamp(62px, 18vw, 105px); }
@@ -194,6 +212,8 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 @media (max-width: 520px) {
   .shell { width: min(100% - 28px, 1180px); }
   .site-header { height: 72px; }
+  .site-header nav { gap: 8px; font-size: 12px; }
+  .discord-feature { padding: 26px; }
   .hero { min-height: 800px; }
   .hero h1 { font-size: 58px; }
   .hero-copy { font-size: 17px; }

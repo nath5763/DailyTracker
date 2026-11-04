@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export function OnboardingForm() {
+export function OnboardingForm({ next = "/dashboard" }: { next?: string }) {
   const router = useRouter();
   const [displayName, setDisplayName] = useState("");
   const [avatarColor, setAvatarColor] = useState("#dfff4f");
@@ -13,7 +13,7 @@ export function OnboardingForm() {
     event.preventDefault(); setLoading(true); setError("");
     const response = await fetch("/api/v1/me/profile", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ displayName, avatarColor }) });
     if (!response.ok) { const data = await response.json().catch(() => ({})); setError(data.error ?? "Could not create your profile."); setLoading(false); return; }
-    router.push("/dashboard"); router.refresh();
+    router.push(next); router.refresh();
   }
   return <form className="form-stack" onSubmit={submit}>
     <div className="field"><label htmlFor="displayName">Display name</label><input id="displayName" value={displayName} onChange={(event) => setDisplayName(event.target.value)} minLength={2} maxLength={32} required autoFocus /></div>
