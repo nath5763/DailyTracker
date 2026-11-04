@@ -56,9 +56,9 @@ export function LeaderboardsView({ checkout }: { checkout?: string }) {
   </div></section>;
 
   const boardsByGame = boards.reduce((groups, board) => {
-    const existing = groups.get(board.game.name) ?? [];
+    const existing = groups.get((board.game?.name ?? "Multiple games")) ?? [];
     existing.push(board);
-    groups.set(board.game.name, existing);
+    groups.set((board.game?.name ?? "Multiple games"), existing);
     return groups;
   }, new Map<string, BoardSummary[]>());
   const grouped = Array.from(boardsByGame.entries()).sort(([left], [right]) => left.localeCompare(right));
@@ -74,3 +74,4 @@ export function LeaderboardsView({ checkout }: { checkout?: string }) {
       </aside></div>
   </section>;
 }
+

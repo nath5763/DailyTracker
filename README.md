@@ -9,6 +9,7 @@ Daily Club is a private friends leaderboard for daily games. Game adapters suppo
 - PostgreSQL stores accounts, adaptive password hashes, hashed sessions and one-time action tokens, games, immutable scores, and private leaderboards.
 - Flyway owns the schema. The database is never exposed directly to browsers.
 - Brevo's HTTPS transactional email API sends verification and password-reset messages without requiring SMTP access.
+- Discord signed HTTP interactions link an optional Discord identity, map exact server channels to leaderboards, and accept Fermi or Krillion submissions without a Gateway bot.
 
 ## Local development
 
@@ -61,6 +62,8 @@ The `.do/app.yaml` spec defines two App Platform services under one origin: `/ap
 6. Attach the purchased domain to the app, make it primary, and verify that `${APP_URL}` changed before requesting new account emails.
 7. Confirm `/api/health`, sign in with two unrelated email addresses, complete both profiles, add one UUID to the other account’s leaderboard, and submit a score for each supported game.
 
+Deploy the backend Discord migration and `DISCORD_APPLICATION_ID` / `DISCORD_PUBLIC_KEY` configuration before this frontend. The backend runtime does not need—and must not receive—the registrar-only bot token. After the frontend is deployed, create the Discord application, validate the interactions endpoint, install it with `applications.commands`, register test-guild commands with the backend repository's script, and promote globally only after smoke testing.
+
 App Platform automatically deploys pushes to `main`, provides HTTPS, checks `/api/health`, and alerts on deployment or domain failures. Keep the old Render and Supabase resources until this smoke test passes, then remove them manually to avoid continued billing.
 
 ## Google AdSense
@@ -84,6 +87,7 @@ The public `/privacy` page documents authentication, profile, score, leaderboard
 - Sessions use random opaque tokens, stored as hashes and delivered in 30-day `HttpOnly`, `Secure`, `SameSite=Lax` cookies.
 - Only users sharing a leaderboard can see one another’s profiles and scores. Only the owner can change membership.
 - A user may submit one immutable score per game and puzzle.
+- Discord link codes expire after ten minutes, are single-use, and are stored only as peppered hashes. Exact server/channel mappings are reauthorized against leaderboard ownership, membership, and lock state on every command; threads do not inherit a parent channel mapping.
 
 ## Adding another daily game
 

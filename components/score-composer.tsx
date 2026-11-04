@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatScore } from "@/lib/format";
 import { useAppData } from "@/components/app-data-provider";
-import { invalidateClientCache } from "@/lib/client-cache";
+import { invalidateClientCache, invalidateLeaderboardCacheForGame } from "@/lib/client-cache";
 import { previewScore } from "@/lib/preview-score";
 import type { Game, ParsedSubmission } from "@/lib/types";
 
@@ -51,6 +51,7 @@ export function ScoreComposer({ games }: { games: Game[] }) {
       return;
     }
     invalidateClientCache(userId, ["/dashboard"]);
+    invalidateLeaderboardCacheForGame(userId, game.slug);
     router.push("/dashboard?added=1");
   }
 

@@ -85,6 +85,12 @@ services:
         value: REPLACE_WITH_A_LONG_RANDOM_VALUE
         scope: RUN_TIME
         type: SECRET
+      - key: DISCORD_APPLICATION_ID
+        value: REPLACE_WITH_DISCORD_APPLICATION_ID
+        scope: RUN_TIME
+      - key: DISCORD_PUBLIC_KEY
+        value: REPLACE_WITH_DISCORD_PUBLIC_KEY
+        scope: RUN_TIME
 
 databases:
   - name: daily-games-db

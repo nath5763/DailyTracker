@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function CopyButton({ value }: { value: string }) {
+export function CopyButton({ value, label = "Copy UUID" }: { value: string; label?: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -14,7 +14,7 @@ export function CopyButton({ value }: { value: string }) {
         window.setTimeout(() => setCopied(false), 1800);
       }}
     >
-      {copied ? "Copied!" : "Copy UUID"}
+      {copied ? "Copied!" : label}
     </button>
   );
 }

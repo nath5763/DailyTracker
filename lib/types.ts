@@ -38,11 +38,13 @@ export type Game = {
   submission: SubmissionConfig;
 };
 export type Score = { id: string; puzzleKey: string; playedOn: string; primaryScore: number; gameName: string; gameSlug: string; game: Game };
-export type BoardSummary = { id: string; name: string; ownerId: string; owner: boolean; game: Game; locked: boolean; createdAt: string };
+export type BoardSummary = { id: string; name: string; ownerId: string; owner: boolean; game: Game | null; boardType: "SINGLE_GAME" | "MULTI_GAME"; games: Game[]; locked: boolean; createdAt: string };
 export type GameStats = Stats & { game: Game };
 export type Dashboard = { profile: Profile; stats: Stats; statsByGame: GameStats[]; recentScores: Score[]; leaderboards: BoardSummary[] };
 export type Member = { userId: string; shareId: string; displayName: string; avatarColor: string; owner: boolean };
 export type Ranking = { rank: number; userId: string; shareId: string; displayName: string; average: number; gamesPlayed: number };
-export type Leaderboard = { id: string; name: string; ownerId: string; game: Game; range: string; owner: boolean; members: Member[]; rankings: Ranking[]; absent: Member[] };
+export type Leaderboard = { id: string; name: string; ownerId: string; game: Game; boardType: "SINGLE_GAME" | "MULTI_GAME"; games: Game[]; range: string; owner: boolean; members: Member[]; rankings: Ranking[]; absent: Member[] };
 export type PlayerProfile = { profile: Profile; self: boolean; stats: Stats; statsByGame: GameStats[]; scores: Score[] };
 export type BillingStatus = { unlimitedLeaderboards: boolean; freeLeaderboardAvailable: boolean; status: string | null; cancelAtPeriodEnd: boolean; currentPeriodEnd: string | null; graceUntil: string | null };
+export type DiscordStatus = { configured: boolean; linked: boolean; linkedAt: string | null };
+export type DiscordLinkCode = { code: string; expiresAt: string };
