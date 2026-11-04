@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { navigateInApp } from "@/components/app-link";
 import { SubscribeButton } from "@/components/billing-actions";
 import { useAppData } from "@/components/app-data-provider";
 import { invalidateClientCache } from "@/lib/client-cache";
 import type { BillingStatus, Game } from "@/lib/types";
 
 export function CreateLeaderboard({ games, billing }: { games: Game[]; billing: BillingStatus }) {
-  const router = useRouter();
   const { userId } = useAppData();
   const [name, setName] = useState("");
   const [gameSlug, setGameSlug] = useState(games[0]?.slug ?? "");
@@ -34,7 +33,7 @@ export function CreateLeaderboard({ games, billing }: { games: Game[]; billing: 
       return;
     }
     invalidateClientCache(userId, ["/dashboard", "/leaderboards", "/billing/status"]);
-    router.push(`/leaderboards/${data.id}`);
+    navigateInApp(`/leaderboards/${data.id}`);
   }
 
   if (!games.length) return <div className="empty">No games are currently available.</div>;

@@ -3,35 +3,21 @@
 import { useEffect, useState } from "react";
 import { CopyButton } from "@/components/copy-button";
 import type { DiscordLinkCode, DiscordStatus } from "@/lib/types";
+import { invalidateClientCache, useCachedApi } from "@/lib/client-cache";
+import { useAppData } from "@/components/app-data-provider";
 
 type ErrorBody = { error?: string; code?: string };
 
 export function DiscordCard() {
-  const [status, setStatus] = useState<DiscordStatus | null>(null);
+  const { userId } = useAppData();
+  const statusResult = useCachedApi<DiscordStatus>("/discord/status");
+  const status = statusResult.data;
   const [code, setCode] = useState<DiscordLinkCode | null>(null);
-  const [loading, setLoading] = useState(true);
+  const loading = statusResult.loading;
   const [working, setWorking] = useState(false);
   const [message, setMessage] = useState("");
   const [clockTick, setClockTick] = useState(() => Date.now());
   const expired = Boolean(code && (!Number.isFinite(Date.parse(code.expiresAt)) || clockTick >= Date.parse(code.expiresAt)));
-
-  useEffect(() => {
-    let active = true;
-    void fetch("/api/v1/discord/status", {
-      credentials: "same-origin",
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-    }).then(async (response) => {
-      if (!response.ok) throw new Error("Discord linking is currently unavailable.");
-      const value = await response.json() as DiscordStatus;
-      if (active) setStatus(value);
-    }).catch(() => {
-      if (active) setStatus({ configured: false, linked: false, linkedAt: null });
-    }).finally(() => {
-      if (active) setLoading(false);
-    });
-    return () => { active = false; };
-  }, []);
 
   useEffect(() => {
     if (!code) return;
@@ -77,7 +63,8 @@ export function DiscordCard() {
         setMessage(body.error ?? "Discord could not be unlinked. Try again shortly.");
         return;
       }
-      setStatus((current) => current ? { ...current, linked: false, linkedAt: null } : current);
+      invalidateClientCache(userId, ["/discord/status"]);
+      void statusResult.refresh();
       setCode(null);
       setMessage("Discord has been unlinked.");
     } catch {

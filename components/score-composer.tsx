@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { navigateInApp } from "@/components/app-link";
 import { formatScore } from "@/lib/format";
 import { useAppData } from "@/components/app-data-provider";
 import { invalidateClientCache, invalidateLeaderboardCacheForGame } from "@/lib/client-cache";
@@ -9,8 +9,7 @@ import { previewScore } from "@/lib/preview-score";
 import type { Game, ParsedSubmission } from "@/lib/types";
 
 export function ScoreComposer({ games }: { games: Game[] }) {
-  const router = useRouter();
-  const { userId } = useAppData();
+  const { userId, shareId } = useAppData();
   const [gameSlug, setGameSlug] = useState(games[0]?.slug ?? "");
   const [rawText, setRawText] = useState("");
   const [preview, setPreview] = useState<ParsedSubmission | null>(null);
@@ -51,8 +50,9 @@ export function ScoreComposer({ games }: { games: Game[] }) {
       return;
     }
     invalidateClientCache(userId, ["/dashboard"]);
+    invalidateClientCache(userId, [`/profiles/${encodeURIComponent(shareId)}`]);
     invalidateLeaderboardCacheForGame(userId, game.slug);
-    router.push("/dashboard?added=1");
+    navigateInApp("/dashboard?added=1");
   }
 
   if (!game) return <div className="empty">No games are currently available for score submission.</div>;

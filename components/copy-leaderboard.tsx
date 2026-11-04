@@ -1,13 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { navigateInApp } from "@/components/app-link";
 import { SubscribeButton } from "@/components/billing-actions";
 import { useAppData } from "@/components/app-data-provider";
 import { invalidateClientCache } from "@/lib/client-cache";
 
 export function CopyLeaderboard({ leaderboardId, sourceName, sourceGameSlug }: { leaderboardId: string; sourceName: string; sourceGameSlug: string }) {
-  const router = useRouter();
   const { userId, games } = useAppData();
   const destinations = useMemo(() => games.filter((game) => game.slug !== sourceGameSlug), [games, sourceGameSlug]);
   const [gameSlug, setGameSlug] = useState(destinations[0]?.slug ?? "");
@@ -34,7 +33,7 @@ export function CopyLeaderboard({ leaderboardId, sourceName, sourceGameSlug }: {
       return;
     }
     invalidateClientCache(userId, ["/dashboard", "/leaderboards", "/billing/status"]);
-    router.push(`/leaderboards/${data.id}`);
+    navigateInApp(`/leaderboards/${data.id}`);
   }
 
   if (!destinations.length) return <div className="empty compact-empty">More daily games are coming soon. When one is added, you can reuse this exact group in one step.</div>;

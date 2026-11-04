@@ -3,11 +3,11 @@
 import { createContext, useContext } from "react";
 import type { Game } from "@/lib/types";
 
-type AppData = { userId: string; games: Game[] };
+type AppData = { userId: string; shareId: string; games: Game[] };
 const Context = createContext<AppData | null>(null);
 
-export function AppDataProvider({ userId, games, children }: AppData & { children: React.ReactNode }) {
-  return <Context.Provider value={{ userId, games }}>{children}</Context.Provider>;
+export function AppDataProvider({ userId, shareId, games, children }: AppData & { children: React.ReactNode }) {
+  return <Context.Provider value={{ userId, shareId, games }}>{children}</Context.Provider>;
 }
 
 export function useAppData() {
