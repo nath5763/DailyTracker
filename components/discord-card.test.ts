@@ -5,11 +5,12 @@ import { DiscordCard } from "./discord-card";
 
 const state = vi.hoisted(() => ({
   status: null as null | { configured: boolean; linked: boolean; linkedAt: string | null; installUrl: string | null },
+  tier: "STANDARD" as "FREE" | "STANDARD" | "PREMIUM",
 }));
 
 vi.mock("@/components/app-data-provider", () => ({ useAppData: () => ({ userId: "viewer" }) }));
 vi.mock("@/lib/client-cache", () => ({
-  useCachedApi: () => ({ data: state.status, loading: false, refresh: vi.fn() }),
+  useCachedApi: (path: string) => ({ data: path === "/billing/status" ? { tier: state.tier } : state.status, loading: false, refresh: vi.fn() }),
   invalidateClientCache: vi.fn(),
 }));
 
@@ -28,4 +29,13 @@ test("hides installation when Discord is unconfigured", () => {
   state.status = { configured: false, linked: false, linkedAt: null, installUrl: null };
   const html = renderToStaticMarkup(createElement(DiscordCard));
   expect(html).not.toContain("Add to Discord");
+});
+
+test("free members can link Discord but cannot install it", () => {
+  state.tier = "FREE";
+  state.status = { configured: true, linked: false, linkedAt: null, installUrl };
+  const html = renderToStaticMarkup(createElement(DiscordCard));
+  expect(html).toContain("Generate link code");
+  expect(html).not.toContain("Add to Discord");
+  state.tier = "STANDARD";
 });

@@ -8,7 +8,7 @@ export function AuthShell({ title, description, children }: { title: string; des
     <section className="auth-form-wrap"><div className="auth-card"><h2>{title}</h2><p>{description}</p>
       {children}
       <hr className="divider" />
-      <p className="privacy-note">By continuing, you agree to keep the leaderboard friendly and your scores honest. See our <Link href="/privacy">Privacy Policy</Link>.</p>
+      <p className="privacy-note">By continuing, you agree to our <Link href="/terms">Terms of Service</Link>. See our <Link href="/privacy">Privacy Policy</Link> for how we handle your data.</p>
     </div></section>
   </main>;
 }

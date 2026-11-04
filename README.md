@@ -10,6 +10,7 @@ Daily Club is a private friends leaderboard for daily games. Game adapters suppo
 - Flyway owns the schema. The database is never exposed directly to browsers.
 - Brevo's HTTPS transactional email API sends verification and password-reset messages without requiring SMTP access.
 - Discord signed HTTP interactions link an optional Discord identity, map exact server channels to leaderboards, and accept Fermi or Krillion submissions without a Gateway bot.
+- Free, $2/month, and $5/month tiers each allow five single-game boards. Paid tiers add one or five all-game boards and Discord server integration.
 
 ## Local development
 
@@ -73,7 +74,7 @@ The root layout loads the AdSense Auto ads script for publisher `ca-pub-72541670
 After deploying to the production domain:
 
 1. Add and verify the production domain in AdSense, enable Auto ads, and confirm that `https://<production-domain>/ads.txt` returns HTTP 200 with exactly `google.com, pub-7254167041351258, DIRECT, f08c47fec0942fa0`.
-2. Under Auto ads page exclusions, exclude `/auth`, `/onboarding`, and `/profile` with **all pages under this section**. Exclude `/leaderboards` and `/privacy` as **this page only**, so individual `/leaderboards/{id}` pages remain eligible.
+2. Under Auto ads page exclusions, exclude `/auth`, `/onboarding`, and `/profile` with **all pages under this section**. Exclude `/leaderboards`, `/privacy`, and `/terms` as **this page only**, so individual `/leaderboards/{id}` pages remain eligible.
 3. In the Auto ads preview, exclude the protected elements `#account-uuid`, `#leaderboard-roster-management`, `#leaderboard-roster-copy`, and `#locked-board-billing-controls` from in-page placements. Check both desktop and mobile previews.
 4. Under **Privacy & messaging**, configure Google's certified consent-management platform for visitors in the EEA, United Kingdom, and Switzerland, and configure the applicable US-state privacy messages.
 5. Preview included and excluded routes, including client-side navigation between them, then request the AdSense site review. Confirm that ads can appear only on eligible routes and never within the protected management elements.

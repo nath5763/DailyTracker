@@ -60,7 +60,6 @@ export default function HomePage() {
         <h2>Tomorrow’s score<br />starts today.</h2>
         <Link className="button button-dark" href="/auth">Create your account <span>→</span></Link>
       </section>
-      <footer className="shell"><span>Daily Club © 2026</span><span>Scores are self-reported. Keep it honest.</span><Link href="/privacy">Privacy</Link></footer>
     </main>
   );
 }

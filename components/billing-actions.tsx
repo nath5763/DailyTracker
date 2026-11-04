@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import type { BillingTier } from "@/lib/types";
 
 type BillingEndpoint = "/api/v1/billing/checkout-session" | "/api/v1/billing/portal-session";
 type BillingResponse = { url?: string; error?: string; code?: string };
 
-async function createBillingSession(endpoint: BillingEndpoint) {
-  const response = await fetch(endpoint, { method: "POST" });
+async function createBillingSession(endpoint: BillingEndpoint, tier?: BillingTier) {
+  const response = await fetch(endpoint, { method: "POST", headers: tier ? { "Content-Type": "application/json" } : undefined,
+    body: tier ? JSON.stringify({ tier }) : undefined });
   const data = await response.json().catch(() => ({})) as BillingResponse;
   return { response, data };
 }
 
-function BillingButton({ endpoint, children, className = "button" }: { endpoint: BillingEndpoint; children: React.ReactNode; className?: string }) {
+function BillingButton({ endpoint, tier, children, className = "button" }: { endpoint: BillingEndpoint; tier?: BillingTier; children: React.ReactNode; className?: string }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -19,7 +21,7 @@ function BillingButton({ endpoint, children, className = "button" }: { endpoint:
     setLoading(true);
     setMessage("");
     try {
-      let { response, data } = await createBillingSession(endpoint);
+      let { response, data } = await createBillingSession(endpoint, tier);
       if (endpoint === "/api/v1/billing/checkout-session" && response.status === 409 &&
           data.code === "BILLING_SUBSCRIPTION_REQUIRES_MANAGEMENT") {
         ({ response, data } = await createBillingSession("/api/v1/billing/portal-session"));
@@ -39,8 +41,12 @@ function BillingButton({ endpoint, children, className = "button" }: { endpoint:
   return <div className="billing-action"><button className={className} disabled={loading} onClick={openBilling} type="button">{loading ? "Opening..." : children}</button>{message ? <div className="form-message error">{message}</div> : null}</div>;
 }
 
-export function SubscribeButton() {
-  return <BillingButton endpoint="/api/v1/billing/checkout-session">Subscribe for $2/month <span aria-hidden="true">-&gt;</span></BillingButton>;
+export function SubscribeButton({ tier = "STANDARD" }: { tier?: "STANDARD" | "PREMIUM" }) {
+  return <BillingButton endpoint="/api/v1/billing/checkout-session" tier={tier}>Subscribe for {tier === "PREMIUM" ? "$5" : "$2"}/month <span aria-hidden="true">-&gt;</span></BillingButton>;
+}
+
+export function SubscriptionChoices() {
+  return <div className="billing-buttons"><SubscribeButton tier="STANDARD" /><SubscribeButton tier="PREMIUM" /></div>;
 }
 
 export function ManageBillingButton() {

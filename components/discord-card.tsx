@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CopyButton } from "@/components/copy-button";
-import type { DiscordLinkCode, DiscordStatus } from "@/lib/types";
+import type { BillingStatus, DiscordLinkCode, DiscordStatus } from "@/lib/types";
 import { invalidateClientCache, useCachedApi } from "@/lib/client-cache";
 import { useAppData } from "@/components/app-data-provider";
 
@@ -11,6 +11,7 @@ type ErrorBody = { error?: string; code?: string };
 export function DiscordCard() {
   const { userId } = useAppData();
   const statusResult = useCachedApi<DiscordStatus>("/discord/status");
+  const billingResult = useCachedApi<BillingStatus>("/billing/status");
   const status = statusResult.data;
   const [code, setCode] = useState<DiscordLinkCode | null>(null);
   const loading = statusResult.loading;
@@ -97,9 +98,9 @@ export function DiscordCard() {
         {working ? "Generating…" : code && expired ? "Generate a new code" : "Generate link code"}
       </button>
     </>}
-    {status?.configured && status.installUrl ? <a className="button" href={status.installUrl} rel="noopener noreferrer" target="_blank">
+    {status?.configured && status.installUrl && billingResult.data?.tier !== "FREE" && billingResult.data ? <a className="button" href={status.installUrl} rel="noopener noreferrer" target="_blank">
       Add to Discord
-    </a> : null}
+    </a> : status?.configured && billingResult.data?.tier === "FREE" ? <p className="subtle">A paid tier is required to add Daily Tracker to a server. You can still link your account and use commands in a paid owner&apos;s connected channel.</p> : null}
     {message ? <div className={`form-message ${message.includes("unlinked") ? "success" : "error"}`} role="status">{message}</div> : null}
   </section>;
 }

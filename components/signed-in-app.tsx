@@ -23,7 +23,7 @@ function CurrentView() {
   }, [pathname]);
   if (pathname === "/dashboard") return <DashboardView />;
   if (pathname === "/submit") return <SubmitView />;
-  if (pathname === "/leaderboards") return <LeaderboardsView checkout={query.get("checkout") ?? undefined} />;
+  if (pathname === "/leaderboards") return <LeaderboardsView checkout={query.get("checkout") ?? undefined} billingReturn={query.get("billing") ?? undefined} />;
   const board = /^\/leaderboards\/([^/]+)$/.exec(pathname);
   if (board) return <LeaderboardDetail id={decodeURIComponent(board[1])} requestedGame={query.get("game") ?? undefined} requestedRange={query.get("range") ?? undefined} />;
   const profile = /^\/profile\/([^/]+)$/.exec(pathname);
