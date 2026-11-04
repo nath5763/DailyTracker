@@ -97,6 +97,9 @@ export function DiscordCard() {
         {working ? "Generating…" : code && expired ? "Generate a new code" : "Generate link code"}
       </button>
     </>}
+    {status?.configured && status.installUrl ? <a className="button" href={status.installUrl} rel="noopener noreferrer" target="_blank">
+      Add to Discord
+    </a> : null}
     {message ? <div className={`form-message ${message.includes("unlinked") ? "success" : "error"}`} role="status">{message}</div> : null}
   </section>;
 }
