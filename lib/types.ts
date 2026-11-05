@@ -31,7 +31,7 @@ export type SubmissionConfig = {
 export type ManualEntryField = {
   key: string;
   label: string;
-  type: "INTEGER" | "DECIMAL" | "DURATION" | "BOOLEAN" | "ENUM";
+  type: "INTEGER" | "DECIMAL" | "DURATION" | "BOOLEAN" | "ENUM" | "TEXT";
   required: boolean;
   min: number | null;
   max: number | null;
@@ -54,6 +54,7 @@ export type Game = {
   scoreFormat: ScoreFormat;
   submission: SubmissionConfig;
   manualEntry: ManualEntryConfig;
+  supportedFormats?: string[];
 };
 export type CatalogGame = { slug: string; name: string; description: string; category: string; sourceUrl: string; scoreTrackingAvailable: boolean };
 export type Score = { id: string; puzzleKey: string; playedOn: string; primaryScore: number; gameName: string; gameSlug: string; game: Game; metrics?: Record<string, unknown>; submissionMethod?: "SHARE_TEXT" | "MANUAL" };

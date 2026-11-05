@@ -21,14 +21,15 @@ export function ScoreComposer({ games }: { games: Game[] }) {
 }
 
 function PasteScoreComposer({ games, onManual }: { games: Game[]; onManual: (slug: string) => void }) {
+  const pasteGames = games.filter(game => game.supportedFormats?.includes("share-text") ?? true);
   const { userId, shareId } = useAppData();
   const [manualGameSlug, setManualGameSlug] = useState("");
   const [rawText, setRawText] = useState("");
   const [preview, setPreview] = useState<ParsedSubmission | null>(null);
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [message, setMessage] = useState("");
-  const detectedGameSlug = detectShareGame(rawText, games.map((candidate) => candidate.slug));
-  const game = games.find((candidate) => candidate.slug === (detectedGameSlug ?? manualGameSlug));
+  const detectedGameSlug = detectShareGame(rawText, pasteGames.map((candidate) => candidate.slug));
+  const game = pasteGames.find((candidate) => candidate.slug === (detectedGameSlug ?? manualGameSlug));
   const editable = new Set(game?.submission.editableFields ?? []);
 
   async function parse() {
@@ -104,7 +105,7 @@ function PasteScoreComposer({ games, onManual }: { games: Game[]; onManual: (slu
               setStatus("idle");
             }}>
               <option value="">Select a game</option>
-              {games.map((option) => <option key={option.id} value={option.slug}>{option.name}</option>)}
+              {pasteGames.map((option) => <option key={option.id} value={option.slug}>{option.name}</option>)}
             </select>
           </div> : null}
           {message ? <><div className="form-message error" role="alert">{message}</div><button className="text-button" type="button" onClick={() => onManual(game?.manualEntry.supported ? game.slug : "")}>Enter the score manually instead</button></> : null}
@@ -203,5 +204,5 @@ function ManualScoreComposer({ games, initialSlug }: { games: Game[]; initialSlu
 function ManualField({ field, value, onChange }: { field: ManualEntryField; value: string | boolean | undefined; onChange: (value: string | boolean) => void }) {
   const id = `manual-${field.key}`;
   if (field.type === "BOOLEAN") return <div className="field checkbox-field"><label htmlFor={id}><input id={id} type="checkbox" checked={value === true} onChange={event => onChange(event.target.checked)} /> {field.label}</label>{field.helpText ? <small className="subtle">{field.helpText}</small> : null}</div>;
-  return <div className="field"><label htmlFor={id}>{field.label}{!field.required ? <span className="subtle"> (optional)</span> : null}</label>{field.type === "ENUM" ? <select id={id} value={typeof value === "string" ? value : ""} onChange={event => onChange(event.target.value)} required={field.required}><option value="">Select</option>{field.options.map(option => <option key={option} value={option}>{option === "FAIL" ? "Failed" : option}</option>)}</select> : <input id={id} type={field.type === "DURATION" ? "text" : "number"} inputMode={field.type === "DURATION" ? "numeric" : "decimal"} min={field.min ?? undefined} max={field.max ?? undefined} step={field.step ?? undefined} placeholder={field.type === "DURATION" ? "m:ss" : undefined} value={typeof value === "string" ? value : ""} onChange={event => onChange(event.target.value)} required={field.required} />}{field.helpText ? <small className="subtle">{field.helpText}</small> : null}</div>;
+  return <div className="field"><label htmlFor={id}>{field.label}{!field.required ? <span className="subtle"> (optional)</span> : null}</label>{field.type === "ENUM" ? <select id={id} value={typeof value === "string" ? value : ""} onChange={event => onChange(event.target.value)} required={field.required}><option value="">Select</option>{field.options.map(option => <option key={option} value={option}>{option === "FAIL" ? "Failed" : option}</option>)}</select> : <input id={id} type={field.type === "DURATION" || field.type === "TEXT" ? "text" : "number"} inputMode={field.type === "DURATION" ? "numeric" : field.type === "TEXT" ? "text" : "decimal"} min={field.min ?? undefined} max={field.max ?? undefined} step={field.step ?? undefined} maxLength={field.type === "TEXT" ? 50 : undefined} placeholder={field.type === "DURATION" ? "m:ss" : undefined} value={typeof value === "string" ? value : ""} onChange={event => onChange(event.target.value)} required={field.required} />}{field.helpText ? <small className="subtle">{field.helpText}</small> : null}</div>;
 }
