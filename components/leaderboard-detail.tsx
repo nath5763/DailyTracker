@@ -7,6 +7,7 @@ import { CopyLeaderboard } from "@/components/copy-leaderboard";
 import { LeaderboardInsightsView } from "@/components/leaderboard-insights";
 import { LeaderboardHighlights } from "@/components/leaderboard-highlights";
 import { LeaderboardDiscord } from "@/components/leaderboard-discord";
+import { LeaderboardGameSelector } from "@/components/leaderboard-game-selector";
 import { MemberManager, RemoveMemberButton } from "@/components/member-manager";
 import { ManageBillingButton, SubscriptionChoices } from "@/components/billing-actions";
 import { invalidateClientCachePrefix, leaderboardCachePath, useCachedApi } from "@/lib/client-cache";
@@ -52,7 +53,7 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
     <div className="page-heading"><div><p className="section-number">{board.game.name.toUpperCase()} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions"><p>{board.members.length} player{board.members.length === 1 ? "" : "s"} · {scoring} <a className="secondary-link" href={board.game.sourceUrl} rel="noreferrer" target="_blank">Play {board.game.name}</a></p>{backToBoards}<button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div>
     {refreshError ? <div className="form-message error">{refreshError}</div> : null}
     <div className="grid score-layout"><section className="card">
-      {games.length > 1 ? <div className="tabs">{games.map((game) => <AppLink className={`tab ${game.slug === board.game.slug ? "active" : ""}`} href={`/leaderboards/${id}?game=${encodeURIComponent(game.slug)}&range=${range}`} key={game.slug}>{game.name}</AppLink>)}</div> : null}
+      {games.length > 1 ? <LeaderboardGameSelector boardId={id} games={games} selected={board.game} range={range} /> : null}
       <div className="tabs">{ranges.map((tab) => <AppLink className={`tab ${range === tab.key ? "active" : ""}`} href={`/leaderboards/${id}?game=${encodeURIComponent(board.game.slug)}&range=${tab.key}`} key={tab.key}>{tab.label}</AppLink>)}</div>
       <LeaderboardInsightsView key={`${board.game.slug}-${insightsVersion}-${board.members.map(member => member.userId).join(",")}`} boardId={id} game={board.game} />
       <LeaderboardHighlights board={board} userId={userId} />

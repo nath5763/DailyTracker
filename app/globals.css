@@ -190,6 +190,17 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 .my-position .section-number { color: var(--lime); margin: 0 0 6px; }.my-position strong { font-family: var(--font-display); font-size: 24px; }.my-position p:last-child { margin: 6px 0 0; font-size: 13px; }
 .tab { border: 1px solid var(--ink); padding: 8px 13px; font-size: 12px; font-weight: 800; background: transparent; }
 .tab.active { background: var(--ink); color: white; }
+.leaderboard-game-selector { position: relative; width: min(100%, 310px); margin-bottom: 20px; }
+.leaderboard-game-selector .field-label { display: block; margin-bottom: 7px; }
+.leaderboard-game-trigger { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 14px; border: 1px solid var(--ink); background: white; text-align: left; font-weight: 800; cursor: pointer; }
+.leaderboard-game-trigger:focus-visible, .leaderboard-game-popover input:focus-visible, .leaderboard-game-option:focus-visible { outline: 3px solid var(--purple); outline-offset: 2px; }
+.leaderboard-game-popover { position: absolute; z-index: 20; top: 100%; left: 0; right: 0; margin-top: 5px; padding: 8px; border: 1px solid var(--ink); background: var(--cream); box-shadow: 4px 4px 0 rgba(21,21,21,.15); }
+.leaderboard-game-popover input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); background: white; }
+.leaderboard-game-options { max-height: 250px; overflow-y: auto; margin-top: 6px; }
+.leaderboard-game-option { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; font-size: 14px; }
+.leaderboard-game-option:hover, .leaderboard-game-option.highlighted { background: var(--paper); }
+.leaderboard-game-option[aria-selected="true"] { font-weight: 800; }
+.leaderboard-game-empty { margin: 0; padding: 12px; color: var(--muted); font-size: 14px; }
 .empty { padding: 45px 20px; text-align: center; color: var(--muted); border: 1px dashed var(--line); }
 .inline-form { display: flex; gap: 10px; align-items: end; }
 .inline-form .field { flex: 1; }
