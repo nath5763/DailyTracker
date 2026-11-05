@@ -2,14 +2,16 @@ import { redirect } from "next/navigation";
 import { RegisterForm } from "@/components/auth-form";
 import { AuthShell } from "@/components/auth-shell";
 import { getViewer } from "@/lib/auth";
+import { discordSignupNext } from "@/lib/discord-signup";
 
 export const metadata = { title: "Create account" };
 export const dynamic = "force-dynamic";
 
 export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
-  const next = (await searchParams).next === "/pricing" ? "/pricing" : "/dashboard";
+  const requested = (await searchParams).next;
+  const next = discordSignupNext(requested) ?? (requested === "/pricing" ? "/pricing" : "/dashboard");
   const { user, profile } = await getViewer();
   if (profile) redirect(next);
-  if (user) redirect(next === "/pricing" ? "/onboarding?next=%2Fpricing" : "/onboarding");
+  if (user) redirect("/onboarding?next=" + encodeURIComponent(next));
   return <AuthShell title="Create your account." description="Use your email as your username. We’ll verify it before your first sign-in."><RegisterForm next={next} /></AuthShell>;
 }

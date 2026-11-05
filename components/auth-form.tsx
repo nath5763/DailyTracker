@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PASSWORD_HELP, passwordIsValid } from "@/lib/auth-validation";
+import { discordSignupNext } from "@/lib/discord-signup";
 
 type ApiError = { error?: string; code?: string };
 type AuthResponse = { onboarded: boolean };
@@ -32,12 +33,13 @@ export function AuthForm({ next = "/dashboard" }: { next?: string }) {
     if (!response.ok) {
       setStatus("error"); setCode(data.code ?? ""); setMessage(data.error ?? "Could not sign in."); return;
     }
-    router.replace(data.onboarded ? next : next === "/pricing" ? "/onboarding?next=%2Fpricing" : "/onboarding"); router.refresh();
+    router.replace(data.onboarded ? next : "/onboarding?next=" + encodeURIComponent(next)); router.refresh();
   }
 
   async function resend() {
     setStatus("sending");
-    const response = await post("/api/v1/auth/verification/resend", { email });
+    const signupIntent = discordSignupNext(next)?.split("intent=")[1];
+    const response = await post("/api/v1/auth/verification/resend" + (signupIntent ? "?signupIntent=" + signupIntent : ""), { email });
     const data = await response.json().catch(() => ({})) as ApiError & { message?: string };
     setStatus(response.ok ? "idle" : "error");
     setMessage(response.ok ? (data.message ?? "Verification email sent.") : (data.error ?? "Could not resend verification."));
@@ -46,7 +48,7 @@ export function AuthForm({ next = "/dashboard" }: { next?: string }) {
   return <form className="form-stack" onSubmit={submit}>
     <div className="field"><label htmlFor="email">Email address</label><input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required autoComplete="username" /></div>
     <div className="field"><label htmlFor="password">Password</label><input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" /></div>
-    <div className="auth-links"><Link href="/auth/forgot-password">Forgot password?</Link><Link href={next === "/pricing" ? "/auth/register?next=%2Fpricing" : "/auth/register"}>Create an account</Link></div>
+    <div className="auth-links"><Link href="/auth/forgot-password">Forgot password?</Link><Link href={"/auth/register?next=" + encodeURIComponent(next)}>Create an account</Link></div>
     <button className="button" disabled={status === "sending"} type="submit">{status === "sending" ? "Signing in…" : "Sign in"}<span>→</span></button>
     {message ? <div className={`form-message ${status === "error" ? "error" : "success"}`} role="status">{message}</div> : null}
     {code === "EMAIL_NOT_VERIFIED" ? <button className="text-button" disabled={status === "sending"} type="button" onClick={resend}>Resend verification email</button> : null}
@@ -67,7 +69,8 @@ export function RegisterForm({ next = "/dashboard" }: { next?: string }) {
     if (password !== confirmation) { setMessage("Passwords do not match."); return; }
     if (!passwordIsValid(password)) { setMessage(PASSWORD_HELP); return; }
     setLoading(true);
-    const response = await post("/api/v1/auth/register", { email, password });
+    const signupIntent = discordSignupNext(next)?.split("intent=")[1];
+    const response = await post("/api/v1/auth/register" + (signupIntent ? "?signupIntent=" + signupIntent : ""), { email, password });
     const data = await response.json().catch(() => ({})) as ApiError & { message?: string };
     setLoading(false);
     if (!response.ok) { setMessage(data.error ?? "Could not create your account."); return; }
@@ -76,19 +79,20 @@ export function RegisterForm({ next = "/dashboard" }: { next?: string }) {
 
   async function resend() {
     setLoading(true);
-    const response = await post("/api/v1/auth/verification/resend", { email });
+    const signupIntent = discordSignupNext(next)?.split("intent=")[1];
+    const response = await post("/api/v1/auth/verification/resend" + (signupIntent ? "?signupIntent=" + signupIntent : ""), { email });
     const data = await response.json().catch(() => ({})) as ApiError & { message?: string };
     setLoading(false); setMessage(response.ok ? (data.message ?? "Verification email sent.") : (data.error ?? "Could not resend verification."));
   }
 
-  if (sent) return <div className="form-stack"><div className="form-message success" role="status">{message}</div><button className="text-button" disabled={loading} type="button" onClick={resend}>{loading ? "Sending…" : "Resend verification email"}</button><Link href={next === "/pricing" ? "/auth?next=%2Fpricing" : "/auth"}>Back to sign in</Link><Link href={`/auth/forgot-password?email=${encodeURIComponent(email)}`}>Already registered? Reset your password</Link></div>;
+  if (sent) return <div className="form-stack"><div className="form-message success" role="status">{message}</div><button className="text-button" disabled={loading} type="button" onClick={resend}>{loading ? "Sending…" : "Resend verification email"}</button><Link href={"/auth?next=" + encodeURIComponent(next)}>Back to sign in</Link><Link href={`/auth/forgot-password?email=${encodeURIComponent(email)}`}>Already registered? Reset your password</Link></div>;
   return <form className="form-stack" onSubmit={submit}>
     <div className="field"><label htmlFor="register-email">Email address</label><input id="register-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="username" /></div>
     <div className="field"><label htmlFor="new-password">Password</label><input id="new-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="new-password" aria-describedby="password-help" /><small id="password-help">{PASSWORD_HELP}</small></div>
     <div className="field"><label htmlFor="confirm-password">Confirm password</label><input id="confirm-password" type="password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required autoComplete="new-password" /></div>
     {message ? <div className="form-message error" role="status">{message}</div> : null}
     <button className="button" disabled={loading} type="submit">{loading ? "Creating…" : "Create account"}<span>→</span></button>
-    <Link href={next === "/pricing" ? "/auth?next=%2Fpricing" : "/auth"}>Already have an account? Sign in</Link>
+    <Link href={"/auth?next=" + encodeURIComponent(next)}>Already have an account? Sign in</Link>
   </form>;
 }
 

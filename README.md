@@ -63,7 +63,7 @@ The `.do/app.yaml` spec defines two App Platform services under one origin: `/ap
 6. Attach the purchased domain to the app, make it primary, and verify that `${APP_URL}` changed before requesting new account emails.
 7. Confirm `/api/health`, sign in with two unrelated email addresses, complete both profiles, add one UUID to the other account’s leaderboard, and submit a score for each supported game.
 
-Deploy the backend Discord migration and `DISCORD_APPLICATION_ID` / `DISCORD_PUBLIC_KEY` configuration before this frontend. The backend runtime does not need—and must not receive—the registrar-only bot token. After the frontend is deployed, create the Discord application, validate the interactions endpoint, install it with `applications.commands`, register test-guild commands with the backend repository's script, and promote globally only after smoke testing.
+Deploy the backend Discord signup migration and command changes before this frontend. The backend requires `DISCORD_APPLICATION_ID`, `DISCORD_PUBLIC_KEY`, `DISCORD_CLIENT_SECRET`, `DISCORD_BOT_TOKEN`, and the registered OAuth callback URL. After the frontend is deployed, test `/signup` in connected and unconnected channels, email verification in another browser, Discord identity mismatch, automatic membership, `/my-id`, `/add-member`, and live game autocomplete. The backend registers global commands automatically; the backend repository's script remains available for troubleshooting.
 
 App Platform automatically deploys pushes to `main`, provides HTTPS, checks `/api/health`, and alerts on deployment or domain failures. Keep the old Render and Supabase resources until this smoke test passes, then remove them manually to avoid continued billing.
 

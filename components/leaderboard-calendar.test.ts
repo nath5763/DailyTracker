@@ -1,16 +1,24 @@
 import { expect, test } from "vitest";
-import { calendarMonths } from "./leaderboard-insights";
+import { rollingHeatmapDates } from "./leaderboard-insights";
 
-test("builds Monday-first month calendars across the 30-day range", () => {
-  const months = calendarMonths("2026-10-06", "2026-11-04");
-  expect(months.map(month => month.key)).toEqual(["2026-10", "2026-11"]);
-  expect(months[0].days.slice(0, 4)).toEqual([null, null, null, "2026-10-01"]);
-  expect(months[0].days.filter(Boolean)).toHaveLength(31);
-  expect(months[1].days.filter(Boolean)).toHaveLength(30);
-  expect(months.every(month => month.days.length % 7 === 0)).toBe(true);
+test("builds exactly 30 local dates ending today across a month boundary", () => {
+  const days = rollingHeatmapDates(new Date(2026, 10, 4, 23, 30));
+  expect(days).toHaveLength(30);
+  expect(days[0]).toEqual({ date: "2026-10-06", weekday: 1 });
+  expect(days[29]).toEqual({ date: "2026-11-04", weekday: 2 });
+  expect(days.filter(day => day.date.startsWith("2026-10"))).toHaveLength(26);
+  expect(days.filter(day => day.date.startsWith("2026-11"))).toHaveLength(4);
+  expect(days.every((day, index) => index === 0 || day.weekday === (days[index - 1].weekday + 1) % 7)).toBe(true);
 });
 
-test("handles a rolling window that crosses three months in a short February", () => {
-  expect(calendarMonths("2027-01-31", "2027-03-01").map(month => month.key))
-    .toEqual(["2027-01", "2027-02", "2027-03"]);
+test("stays continuous through a short February and daylight saving time", () => {
+  const months = rollingHeatmapDates(new Date(2027, 2, 1, 0, 30));
+  expect(months[0].date).toBe("2027-01-31");
+  expect(months[29].date).toBe("2027-03-01");
+  expect(months.filter(day => day.date.startsWith("2027-02"))).toHaveLength(28);
+
+  const spring = rollingHeatmapDates(new Date(2026, 2, 9, 0, 30));
+  expect(spring).toHaveLength(30);
+  expect(new Set(spring.map(day => day.date)).size).toBe(30);
+  expect(spring[29].date).toBe("2026-03-09");
 });
