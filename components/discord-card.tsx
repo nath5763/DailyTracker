@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { CopyButton } from "@/components/copy-button";
 import type { BillingStatus, DiscordLinkCode, DiscordStatus } from "@/lib/types";
-import { invalidateClientCache, useCachedApi } from "@/lib/client-cache";
+import { invalidateClientCache, invalidateClientCachePrefix, useCachedApi } from "@/lib/client-cache";
 import { useAppData } from "@/components/app-data-provider";
 
 type ErrorBody = { error?: string; code?: string };
@@ -50,7 +50,7 @@ export function DiscordCard() {
   }
 
   async function unlink() {
-    if (!window.confirm("Unlink your Discord account from Daily Tracker?")) return;
+    if (!window.confirm("Unlink your Discord account? Channels connected to leaderboards you own will also be disconnected.")) return;
     setWorking(true);
     setMessage("");
     try {
@@ -65,9 +65,10 @@ export function DiscordCard() {
         return;
       }
       invalidateClientCache(userId, ["/discord/status"]);
+      invalidateClientCachePrefix(userId, "/discord/leaderboards/");
       void statusResult.refresh();
       setCode(null);
-      setMessage("Discord has been unlinked.");
+      setMessage("Discord has been unlinked. Channels connected to leaderboards you own were disconnected.");
     } catch {
       setMessage("Discord could not be unlinked. Check your connection and try again.");
     } finally {
