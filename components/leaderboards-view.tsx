@@ -8,7 +8,7 @@ import { useAppData } from "@/components/app-data-provider";
 import { invalidateClientCache, useCachedApi } from "@/lib/client-cache";
 import type { BillingStatus, BoardSummary } from "@/lib/types";
 
-export function LeaderboardsView({ checkout, billingReturn }: { checkout?: string; billingReturn?: string }) {
+export function LeaderboardsView({ checkout, billingReturn, discordStatus }: { checkout?: string; billingReturn?: string; discordStatus?: string }) {
   const { userId, shareId, games } = useAppData();
   const boardsResult = useCachedApi<BoardSummary[]>("/leaderboards");
   const billingResult = useCachedApi<BillingStatus>("/billing/status");
@@ -71,6 +71,7 @@ export function LeaderboardsView({ checkout, billingReturn }: { checkout?: strin
   const canStartCheckout = billing.tier === "FREE" && (!billing.status || billing.status === "canceled" || billing.status === "incomplete_expired");
 
   return <section className="page shell">
+    {discordStatus ? <div className="form-message error" role="alert">Discord setup could not be completed. Open the leaderboard you own and try again.</div> : null}
     {checkout === "success" ? <div className="notice">{billing.tier !== "FREE" ? "Subscription active. Your all-game leaderboard access is ready." : "Payment received. Waiting for Stripe to confirm your subscription…"}</div> : null}
     {checkout === "cancelled" ? <div className="notice">Checkout was cancelled. Your existing leaderboards were not changed.</div> : null}
     {refreshError || boardsResult.error || billingResult.error ? <div className="form-message error">{refreshError || boardsResult.error || billingResult.error}</div> : null}
