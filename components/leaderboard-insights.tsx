@@ -45,46 +45,54 @@ function RankGraph({ data }: { data: LeaderboardInsights }) {
   </div>;
 }
 
+export function calendarMonths(from: string, to: string) {
+  const months: { key: string; label: string; days: (string | null)[] }[] = [];
+  const cursor = new Date(`${from.slice(0, 7)}-01T12:00:00Z`);
+  while (cursor.toISOString().slice(0, 7) <= to.slice(0, 7)) {
+    const year = cursor.getUTCFullYear();
+    const month = cursor.getUTCMonth();
+    const key = cursor.toISOString().slice(0, 7);
+    const offset = (cursor.getUTCDay() + 6) % 7;
+    const days: (string | null)[] = Array(offset).fill(null);
+    const count = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    for (let day = 1; day <= count; day++) days.push(`${key}-${String(day).padStart(2, "0")}`);
+    while (days.length % 7) days.push(null);
+    months.push({ key, label: cursor.toLocaleDateString(undefined, { month: "long", year: "numeric", timeZone: "UTC" }), days });
+    cursor.setUTCMonth(month + 1);
+  }
+  return months;
+}
+
 function PerformanceHeatmap({ data, game }: { data: LeaderboardInsights; game: Game }) {
   const scores = data.personalScores;
   const ordered = [...scores].sort((a, b) => a.assistanceTier - b.assistanceTier || (game.rankingDirection === "lower" ? a.score - b.score : b.score - a.score));
   const middle = ordered.length ? ordered[Math.floor((ordered.length - 1) / 2)] : null;
   const byDate = new Map(scores.map(score => [score.date, score]));
-  const days = Array.from({ length: 30 }, (_, index) => { const date = new Date(`${data.from}T12:00:00Z`); date.setUTCDate(date.getUTCDate() + index); return date.toISOString().slice(0, 10); });
   const performance = (score: (typeof scores)[number]) => {
     if (!middle) return "empty";
     if (score.assistanceTier !== middle.assistanceTier) return score.assistanceTier < middle.assistanceTier ? "better" : "worse";
     const delta = game.rankingDirection === "lower" ? score.score - middle.score : middle.score - score.score;
     return delta < 0 ? "better" : delta > 0 ? "worse" : "typical";
   };
-  const firstWeekday = (new Date(`${data.from}T12:00:00Z`).getUTCDay() + 6) % 7;
-  const cells: (string | null)[] = [...Array<string | null>(firstWeekday).fill(null), ...days];
-  while (cells.length % 7) cells.push(null);
-  const weeks = Array.from({ length: cells.length / 7 }, (_, index) => cells.slice(index * 7, index * 7 + 7));
   const betterDays = scores.filter(score => performance(score) === "better").length;
   return <div className="heatmap-panel">
-    <div className="heatmap-copy"><p className="section-number">YOUR ACTIVITY</p><strong>{scores.length}<span> / 30 days</span></strong><p>{scores.length ? `${betterDays} ${betterDays === 1 ? "day" : "days"} above your median result` : "No scores yet. Add a result to start your heatmap."}</p></div>
-    <div className="heatmap-chart">
-      <div className="heatmap-months" aria-hidden="true">{weeks.map((week, index) => {
-        const first = week.find((date): date is string => Boolean(date));
-        const monthStart = week.find(date => date?.endsWith("-01"));
-        const labelDate = monthStart ?? (index === 0 ? first : null);
-        return <span key={index}>{labelDate ? new Date(`${labelDate}T12:00:00Z`).toLocaleDateString(undefined, { month: "short", timeZone: "UTC" }) : ""}</span>;
-      })}</div>
-      <div className="heatmap-calendar" role="group" aria-label={`Daily results from ${dateLabel(data.from)} to ${dateLabel(data.to)}`}>
-        <div className="heatmap-weekdays"><span>Mon</span><span /><span>Wed</span><span /><span>Fri</span><span /><span /></div>
-        <div className="heatmap-weeks">{weeks.map((week, weekIndex) => <div className="heatmap-week" key={weekIndex}>
-          {week.map((date, dayIndex) => {
-            if (!date) return <span className="heatmap-day-placeholder" key={`pad-${dayIndex}`} aria-hidden="true" />;
-            const score = byDate.get(date);
-            const level = score ? performance(score) : "empty";
-            const label = score ? `${dateLabel(date)}: ${formatScore(score.score, game.scoreFormat)}, ${level}` : `${dateLabel(date)}: no score`;
-            return <span className={`heatmap-day ${level}`} key={date} title={label} aria-label={label} tabIndex={score ? 0 : undefined} />;
-          })}
-        </div>)}</div>
-      </div>
-      <div className="heatmap-legend"><span>Less</span><i className="heatmap-day empty" /><i className="heatmap-day worse" /><i className="heatmap-day typical" /><i className="heatmap-day better" /><span>Better</span></div>
-      <p className="subtle">Color compares each result with your median over these 30 days. Assistance is considered first.</p>
+    <div className="heatmap-summary"><strong>{scores.length} of 30 days played</strong><span>{scores.length ? `${betterDays} ${betterDays === 1 ? "day" : "days"} above your median result` : "Add a result to start filling your calendar."}</span></div>
+    <div className="heatmap-calendars" role="group" aria-label={`Daily results from ${dateLabel(data.from)} to ${dateLabel(data.to)}`}>
+      {calendarMonths(data.from, data.to).map(month => <section className="heatmap-month" key={month.key} aria-label={month.label}>
+        <h3>{month.label}</h3>
+        <div className="heatmap-weekday-row" aria-hidden="true">{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => <span key={day}>{day}</span>)}</div>
+        <div className="heatmap-date-grid">{month.days.map((date, index) => {
+          if (!date) return <span className="heatmap-day-placeholder" key={`pad-${index}`} aria-hidden="true" />;
+          const inRange = date >= data.from && date <= data.to;
+          const score = inRange ? byDate.get(date) : undefined;
+          const level = !inRange ? "outside" : score ? performance(score) : "empty";
+          const label = !inRange ? `${dateLabel(date)}: outside the last 30 days` : score
+            ? `${dateLabel(date)}: ${formatScore(score.score, game.scoreFormat)}, ${level}` : `${dateLabel(date)}: no score`;
+          return <span className={`heatmap-day ${level}`} key={date} title={label} aria-label={label} tabIndex={score ? 0 : undefined}>{Number(date.slice(-2))}</span>;
+        })}</div>
+      </section>)}
     </div>
+    <div className="heatmap-legend"><span><i className="heatmap-day empty" />No score</span><span><i className="heatmap-day worse" />Below median</span><span><i className="heatmap-day typical" />Median</span><span><i className="heatmap-day better" />Above median</span></div>
+    <p className="subtle">Colors compare results with your median over the last 30 days. Assistance is considered first.</p>
   </div>;
 }
