@@ -98,9 +98,8 @@ export function DiscordCard() {
         {working ? "Generating…" : code && expired ? "Generate a new code" : "Generate link code"}
       </button>
     </>}
-    {status?.configured && status.installUrl && billingResult.data?.tier !== "FREE" && billingResult.data ? <a className="button" href={status.installUrl} rel="noopener noreferrer" target="_blank">
-      Add to Discord
-    </a> : status?.configured && billingResult.data?.tier === "FREE" ? <p className="subtle">A paid tier is required to add Daily Tracker to a server. You can still link your account and use commands in a paid owner&apos;s connected channel.</p> : null}
+    {status?.configured && billingResult.data?.tier !== "FREE" && billingResult.data ? <p className="subtle">Open a leaderboard you own to add it to a Discord channel.</p>
+      : status?.configured && billingResult.data?.tier === "FREE" ? <p className="subtle">A paid tier is required to add Daily Tracker to a server. You can still link your account and use commands in a paid owner&apos;s connected channel.</p> : null}
     {message ? <div className={`form-message ${message.includes("unlinked") ? "success" : "error"}`} role="status">{message}</div> : null}
   </section>;
 }

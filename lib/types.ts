@@ -51,3 +51,4 @@ export type BillingTier = "FREE" | "STANDARD" | "PREMIUM";
 export type BillingStatus = { tier: BillingTier; singleGameCount: number; singleGameLimit: number; allGameCount: number; allGameLimit: number; status: string | null; cancelAtPeriodEnd: boolean; currentPeriodEnd: string | null; graceUntil: string | null };
 export type DiscordStatus = { configured: boolean; linked: boolean; linkedAt: string | null; installUrl: string | null };
 export type DiscordLinkCode = { code: string; expiresAt: string };
+export type DiscordChannel = { guildId: string; channelId: string; name: string | null; leaderboardId: string | null; url: string };

@@ -16,12 +16,12 @@ vi.mock("@/lib/client-cache", () => ({
 
 const installUrl = "https://discord.com/oauth2/authorize?client_id=123&scope=applications.commands&integration_type=0";
 
-test("shows Add to Discord for linked and unlinked viewers when configured", () => {
+test("points linked and unlinked paid viewers to their leaderboard", () => {
   for (const linked of [false, true]) {
     state.status = { configured: true, linked, linkedAt: null, installUrl };
     const html = renderToStaticMarkup(createElement(DiscordCard));
-    expect(html).toContain("Add to Discord");
-    expect(html).toContain("href=\"" + installUrl.replaceAll("&", "&amp;") + "\"");
+    expect(html).toContain("Open a leaderboard you own");
+    expect(html).not.toContain("href=\"" + installUrl.replaceAll("&", "&amp;") + "\"");
   }
 });
 

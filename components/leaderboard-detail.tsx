@@ -6,6 +6,7 @@ import { useAppData } from "@/components/app-data-provider";
 import { CopyLeaderboard } from "@/components/copy-leaderboard";
 import { LeaderboardInsightsView } from "@/components/leaderboard-insights";
 import { LeaderboardHighlights } from "@/components/leaderboard-highlights";
+import { LeaderboardDiscord } from "@/components/leaderboard-discord";
 import { MemberManager, RemoveMemberButton } from "@/components/member-manager";
 import { ManageBillingButton, SubscriptionChoices } from "@/components/billing-actions";
 import { invalidateClientCachePrefix, leaderboardCachePath, useCachedApi } from "@/lib/client-cache";
@@ -15,17 +16,17 @@ import type { BillingStatus, BoardSummary, Leaderboard } from "@/lib/types";
 const ranges = [{ key: "today", label: "Today" }, { key: "7d", label: "Last 7 days" }, { key: "30d", label: "Last 30 days" }, { key: "all", label: "All time" }] as const;
 const backToBoards = <AppLink className="button button-ghost" href="/leaderboards">Back to all leaderboards</AppLink>;
 
-export function LeaderboardDetail({ id, requestedGame, requestedRange }: { id: string; requestedGame?: string; requestedRange?: string }) {
+export function LeaderboardDetail({ id, requestedGame, requestedRange, discordStatus, setupToken }: { id: string; requestedGame?: string; requestedRange?: string; discordStatus?: string; setupToken?: string }) {
   const summaries = useCachedApi<BoardSummary[]>("/leaderboards");
   const summary = summaries.data?.find((candidate) => candidate.id === id);
   const games = summary?.games?.length ? summary.games : summary?.game ? [summary.game] : [];
   const game = games.find((candidate) => candidate.slug === requestedGame) ?? games[0];
   const range = ranges.find((candidate) => candidate.key === requestedRange)?.key ?? "today";
   const path = game && !summary?.locked ? leaderboardCachePath(id, game.slug, range) : "";
-  return <Content key={path || id} id={id} path={path} range={range} summary={summary} summaries={summaries} />;
+  return <Content key={path || id} id={id} path={path} range={range} summary={summary} summaries={summaries} discordStatus={discordStatus} setupToken={setupToken} />;
 }
 
-function Content({ id, path, range, summary, summaries }: { id: string; path: string; range: string; summary?: BoardSummary; summaries: ReturnType<typeof useCachedApi<BoardSummary[]>> }) {
+function Content({ id, path, range, summary, summaries, discordStatus, setupToken }: { id: string; path: string; range: string; summary?: BoardSummary; summaries: ReturnType<typeof useCachedApi<BoardSummary[]>>; discordStatus?: string; setupToken?: string }) {
   const { userId } = useAppData();
   const result = useCachedApi<Leaderboard>(path, { storage: "memory", enabled: !!path });
   const [refreshing, setRefreshing] = useState(false);
@@ -57,6 +58,7 @@ function Content({ id, path, range, summary, summaries }: { id: string; path: st
       <LeaderboardHighlights board={board} userId={userId} />
       {board.rankings.length ? <div className="list">{board.rankings.map((row) => <AppLink className="list-row" href={`/profile/${row.shareId}`} key={row.userId}><span className="rank">{String(row.rank).padStart(2, "0")}</span><span>{row.displayName}<small>{row.gamesPlayed} score{row.gamesPlayed === 1 ? "" : "s"} in this range{range !== "today" && row.assistedResults ? ` · ${row.assistedResults} assisted (${row.hints ?? 0} hints, ${row.mistakes ?? 0} mistakes, ${row.beginnerAssists ?? 0} beginner assists)` : ""}{range !== "today" && row.unknownAssistanceResults ? ` · ${row.unknownAssistanceResults} with assistance details unavailable` : ""}</small></span><strong>{formatScore(row.average, board.game.scoreFormat)}</strong></AppLink>)}{board.absent.map((member) => <div className="list-row" key={member.userId}><span className="rank">--</span><span>{member.displayName}<small>Not played</small></span><strong>--</strong></div>)}</div> : <div className="empty">Nobody has posted a score for this range yet.</div>}
     </section><aside className="card" id="leaderboard-roster-management">{board.owner ? <><h2>Manage players</h2><p className="subtle">Add an existing account using its exact UUID.</p><MemberManager leaderboardId={id} onChanged={() => void result.refresh()} /><div className="spacer" /><div className="list">{board.members.map((member) => <div className="list-row" key={member.userId}><span className="avatar small" style={{ background: member.avatarColor }}>{member.displayName[0].toUpperCase()}</span><span>{member.displayName}<small>{member.owner ? "Owner" : "Member"}</small></span>{!member.owner ? <RemoveMemberButton leaderboardId={id} userId={member.userId} onChanged={() => void result.refresh()} /> : <strong>★</strong>}</div>)}</div></> : <><h2>Club roster</h2><div className="list">{board.members.map((member) => <div className="list-row" key={member.userId}><span className="avatar small" style={{ background: member.avatarColor }}>{member.displayName[0].toUpperCase()}</span><span>{member.displayName}</span><strong>{member.owner ? "Owner" : ""}</strong></div>)}</div></>}</aside></div>
+    <div className="spacer" /><LeaderboardDiscord boardId={id} owner={board.owner} discordStatus={discordStatus} setupToken={setupToken} />
     <div className="spacer" /><section className="card" id="leaderboard-roster-copy"><h2>Use this group for another game</h2><p className="subtle">Create a new leaderboard with the same players. You will own the new board.</p><CopyLeaderboard leaderboardId={id} sourceName={board.name} sourceGameSlug={board.game.slug} /></section>
   </section>;
 }
