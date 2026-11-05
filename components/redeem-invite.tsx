@@ -20,7 +20,7 @@ export function RedeemInvite({ invite, boardId, userId }: { invite: string; boar
         }
         if (!cancelled) {
           invalidateClientCachePrefix(userId, "/leaderboards");
-          router.replace(`/leaderboards/${boardId}`);
+          router.replace(`/leaderboards/${boardId}?joined=1`);
           router.refresh();
         }
       } catch (cause) {

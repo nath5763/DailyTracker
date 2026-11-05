@@ -43,3 +43,23 @@ test("shows a back button while loading and when a leaderboard is unavailable", 
   state.summaries = [];
   expectBackLink(render());
 });
+
+test("shows position, full rankings, then progress", () => {
+  state.summaries = [summary];
+  state.board = { ...summary, members: [{ userId: "viewer", displayName: "Viewer", avatarColor: "#dfff4f", owner: false }],
+    rankings: [{ rank: 1, userId: "viewer", shareId: "viewer-share", displayName: "Viewer", average: 10, gamesPlayed: 1 }],
+    absent: [], range: "today" };
+  const html = render();
+  expect(html.indexOf("YOUR POSITION")).toBeLessThan(html.indexOf("<h2>Leaderboard</h2>"));
+  expect(html.indexOf("<h2>Leaderboard</h2>")).toBeLessThan(html.indexOf('href="/profile/viewer-share"'));
+  expect(html.indexOf('href="/profile/viewer-share"')).toBeLessThan(html.indexOf("<h2>Progress</h2>"));
+});
+
+test("keeps the leaderboard section visible when no one has scored", () => {
+  state.summaries = [summary];
+  state.board = { ...summary, members: [], rankings: [], absent: [], range: "today" };
+  const html = render();
+  expect(html.indexOf("YOUR POSITION")).toBeLessThan(html.indexOf("<h2>Leaderboard</h2>"));
+  expect(html.indexOf("<h2>Leaderboard</h2>")).toBeLessThan(html.indexOf("Nobody has posted a score"));
+  expect(html.indexOf("Nobody has posted a score")).toBeLessThan(html.indexOf("<h2>Progress</h2>"));
+});

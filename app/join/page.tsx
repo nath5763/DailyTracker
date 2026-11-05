@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { RedeemInvite } from "@/components/redeem-invite";
+import { DiscordLinkInstructions } from "@/components/discord-link-instructions";
 import { ApiError, apiFetch } from "@/lib/api";
 import { getViewer } from "@/lib/auth";
 import { leaderboardInviteNext } from "@/lib/leaderboard-invite";
@@ -36,5 +37,6 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
       {board && profile ? <RedeemInvite invite={invite!} boardId={board.leaderboardId} userId={profile.userId} /> : null}
       {!board && user ? <Link href="/dashboard">Go to dashboard</Link> : null}
     </div>
+    {board ? <><div className="spacer" /><DiscordLinkInstructions /></> : null}
   </section></main>;
 }
