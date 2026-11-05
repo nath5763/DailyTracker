@@ -1,4 +1,4 @@
-import type { Score, ScoreFormat } from "@/lib/types";
+import type { Game, Ranking, Score, ScoreFormat } from "@/lib/types";
 
 const defaultScoreFormat: ScoreFormat = { prefix: "", suffix: "×", minimumDecimalPlaces: 2, maximumDecimalPlaces: 2 };
 
@@ -19,4 +19,8 @@ export function formatScore(value: number | null, format: ScoreFormat = defaultS
 export function formatResultScore(score: Score): string {
   const display = score.metrics?.displayScore;
   return typeof display === "string" ? display : formatScore(score.primaryScore, score.game.scoreFormat);
+}
+
+export function formatRankingScore(ranking: Ranking, game: Game): string {
+  return ranking.displayScore || formatScore(ranking.average, game.scoreFormat);
 }

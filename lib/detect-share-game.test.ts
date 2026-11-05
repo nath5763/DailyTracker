@@ -14,3 +14,12 @@ test("leaves unknown, ambiguous, and unavailable games for manual selection", ()
   expect(detectShareGame("Krillion #82", ["fermi"])).toBeNull();
   expect(detectShareGame("notfermish #1", games)).toBeNull();
 });
+
+test("distinguishes Worldle from Wordle by name", () => {
+  expect(detectShareGame("#Worldle #1103 (28.01.2025) 1/6 (100%)", ["wordle", "worldle"])).toBe("worldle");
+});
+
+test("detects normalized multi-metric games by their signed header", () => {
+  expect(detectShareGame("Daily Quordle 1746\n5️⃣9️⃣\n8️⃣", ["quordle"])).toBe("quordle");
+  expect(detectShareGame("TimeGuessr #807 — 40,693/50,000", ["timeguessr"])).toBe("timeguessr");
+});

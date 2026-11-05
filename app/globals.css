@@ -190,6 +190,9 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 .my-position .section-number { color: var(--lime); margin: 0 0 6px; }.my-position strong { font-family: var(--font-display); font-size: 24px; }.my-position p:last-child { margin: 6px 0 0; font-size: 13px; }
 .tab { border: 1px solid var(--ink); padding: 8px 13px; font-size: 12px; font-weight: 800; background: transparent; }
 .tab.active { background: var(--ink); color: white; }
+.entry-mode-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.checkbox-field label { display: flex; align-items: center; gap: 8px; }
+.checkbox-field input { width: auto; }
 .leaderboard-game-selector { position: relative; width: min(100%, 310px); margin-bottom: 20px; }
 .leaderboard-game-selector .field-label { display: block; margin-bottom: 7px; }
 .leaderboard-game-trigger { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 14px; border: 1px solid var(--ink); background: white; text-align: left; font-weight: 800; cursor: pointer; }

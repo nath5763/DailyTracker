@@ -28,6 +28,23 @@ export type SubmissionConfig = {
   scoreStep: number;
   editableFields: string[];
 };
+export type ManualEntryField = {
+  key: string;
+  label: string;
+  type: "INTEGER" | "DECIMAL" | "DURATION" | "BOOLEAN" | "ENUM";
+  required: boolean;
+  min: number | null;
+  max: number | null;
+  step: number | null;
+  options: string[];
+  helpText: string | null;
+};
+export type ManualEntryConfig = {
+  supported: boolean;
+  puzzleIdRequired: boolean;
+  completionStatuses: string[];
+  fields: ManualEntryField[];
+};
 export type Game = {
   id: string;
   slug: string;
@@ -36,15 +53,16 @@ export type Game = {
   rankingDirection: "lower" | "higher";
   scoreFormat: ScoreFormat;
   submission: SubmissionConfig;
+  manualEntry: ManualEntryConfig;
 };
 export type CatalogGame = { slug: string; name: string; description: string; category: string; sourceUrl: string; scoreTrackingAvailable: boolean };
-export type Score = { id: string; puzzleKey: string; playedOn: string; primaryScore: number; gameName: string; gameSlug: string; game: Game; metrics?: Record<string, unknown> };
+export type Score = { id: string; puzzleKey: string; playedOn: string; primaryScore: number; gameName: string; gameSlug: string; game: Game; metrics?: Record<string, unknown>; submissionMethod?: "SHARE_TEXT" | "MANUAL" };
 export type BoardSummary = { id: string; name: string; ownerId: string; owner: boolean; game: Game | null; boardType: "SINGLE_GAME" | "MULTI_GAME"; games: Game[]; locked: boolean; createdAt: string };
 export type GameStats = Stats & { game: Game };
 export type Dashboard = { profile: Profile; stats: Stats; statsByGame: GameStats[]; recentScores: Score[]; leaderboards: BoardSummary[] };
 export type Member = { userId: string; shareId: string; displayName: string; avatarColor: string; owner: boolean };
-export type Ranking = { rank: number; userId: string; shareId: string; displayName: string; average: number; gamesPlayed: number; assistedResults?: number; unknownAssistanceResults?: number; hints?: number; mistakes?: number; beginnerAssists?: number };
-export type Leaderboard = { id: string; name: string; ownerId: string; game: Game; boardType: "SINGLE_GAME" | "MULTI_GAME"; games: Game[]; range: string; owner: boolean; members: Member[]; rankings: Ranking[]; absent: Member[] };
+export type Ranking = { rank: number; userId: string; shareId: string; displayName: string; average: number; gamesPlayed: number; assistedResults?: number; unknownAssistanceResults?: number; hints?: number; mistakes?: number; beginnerAssists?: number; displayScore?: string | null; leaderboardPoints?: number | null; participationPoints?: number; manualResults?: number };
+export type Leaderboard = { id: string; name: string; ownerId: string; game: Game; boardType: "SINGLE_GAME" | "MULTI_GAME"; games: Game[]; range: string; owner: boolean; members: Member[]; rankings: Ranking[]; absent: Member[]; combinedRankings?: Ranking[] };
 export type LeaderboardInsights = { from: string; to: string; ranks: { userId: string; displayName: string; avatarColor: string; points: { date: string; rank: number | null }[] }[]; personalScores: { date: string; score: number; assistanceTier: number }[] };
 export type PlayerProfile = { profile: Profile; self: boolean; stats: Stats; statsByGame: GameStats[]; scores: Score[] };
 export type BillingTier = "FREE" | "STANDARD" | "PREMIUM";

@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import { SubscriptionChoices } from "@/components/billing-actions";
 import { useCachedApi } from "@/lib/client-cache";
+import { readDiscordResponse, type DiscordErrorBody } from "@/lib/discord-api-response";
 import type { BillingStatus, DiscordChannel } from "@/lib/types";
-
-type ErrorBody = { error?: string; code?: string };
 
 export function LeaderboardDiscord({ boardId, owner, setupToken, discordStatus }: {
   boardId: string; owner: boolean; setupToken?: string; discordStatus?: string;
@@ -31,7 +30,7 @@ export function LeaderboardDiscord({ boardId, owner, setupToken, discordStatus }
     fetch(`/api/v1/discord/leaderboards/${boardId}/setup/channels?setupToken=${encodeURIComponent(setupToken)}`,
       { cache: "no-store" })
       .then(async response => {
-        const body = await response.json() as DiscordChannel[] & ErrorBody;
+        const body = await readDiscordResponse<DiscordChannel[]>(response, "Could not load Discord channels.");
         if (!response.ok) throw new Error(body.error ?? "Could not load Discord channels.");
         return body;
       })
@@ -45,7 +44,7 @@ export function LeaderboardDiscord({ boardId, owner, setupToken, discordStatus }
     setLoading(true); setMessage("");
     try {
       const response = await fetch(`/api/v1/discord/leaderboards/${boardId}/authorization`, { method: "POST" });
-      const body = await response.json() as { url?: string } & ErrorBody;
+      const body = await readDiscordResponse<{ url?: string }>(response, "Could not start Discord setup.");
       if (!response.ok || !body.url) throw new Error(body.error ?? "Could not start Discord setup.");
       window.location.assign(body.url);
     } catch (error) {
@@ -62,7 +61,7 @@ export function LeaderboardDiscord({ boardId, owner, setupToken, discordStatus }
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ setupToken, channelId: chosen, replace: confirmed }),
       });
-      const body = await response.json() as DiscordChannel & ErrorBody;
+      const body = await readDiscordResponse<DiscordChannel>(response, "Could not connect this channel.");
       if (response.status === 409 && body.code === "CHANNEL_REPLACEMENT_REQUIRED") {
         setReplace(true); return;
       }
@@ -84,7 +83,7 @@ export function LeaderboardDiscord({ boardId, owner, setupToken, discordStatus }
       const response = await fetch(`/api/v1/discord/leaderboards/${boardId}/channels/${channel.guildId}/${channel.channelId}`,
         { method: "DELETE" });
       if (!response.ok) {
-        const body = await response.json() as ErrorBody;
+        const body = await readDiscordResponse<DiscordErrorBody>(response, "Could not disconnect this channel.");
         throw new Error(body.error ?? "Could not disconnect this channel.");
       }
       setConfirmDisconnect("");
