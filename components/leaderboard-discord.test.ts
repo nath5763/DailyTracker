@@ -18,10 +18,13 @@ test("only a paid owner with configured backend can start setup", () => {
   const render = (owner: boolean) => renderToStaticMarkup(createElement(LeaderboardDiscord, { boardId: "board", owner }));
   expect(render(true)).toContain("Add leaderboard to Discord");
   expect(render(true)).toContain("Open channel in Discord");
+  expect(render(true)).toContain("Remove</button>");
   expect(render(false)).not.toContain("Add leaderboard to Discord");
+  expect(render(false)).not.toContain("Remove</button>");
   state.tier = "FREE";
   expect(render(true)).toContain("Paid plans");
   expect(render(true)).not.toContain("Add leaderboard to Discord");
+  expect(render(true)).toContain("Remove</button>");
   state.tier = "STANDARD";
   state.configured = false;
   expect(render(true)).not.toContain("Add leaderboard to Discord");

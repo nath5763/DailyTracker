@@ -142,6 +142,10 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 .list-row .rank { font-family: monospace; color: var(--muted); }
 .list-row strong { font-family: var(--font-display); font-size: 20px; }
 .list-row small { display: block; color: var(--muted); margin-top: 3px; }
+.discord-channel-row { grid-template-columns: minmax(0, 1fr) auto auto; }
+.discord-channel-confirm { grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.discord-channel-confirm p { flex-basis: 100%; margin: 0; }
+@media (max-width: 520px) { .discord-channel-row { grid-template-columns: 1fr auto; } .discord-channel-row .secondary-link { grid-column: 1 / -1; } }
 .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
 .insights-panel { border-block: 1px solid var(--line); padding: 22px 0; margin-bottom: 26px; }
 .insights-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
