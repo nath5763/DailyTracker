@@ -210,6 +210,10 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 .subtle { color: var(--muted); }
 .spacer { height: 20px; }
 .leaderboard-layout { grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr); align-items: start; }
+.leaderboard-collections { display: grid; gap: 20px; min-width: 0; }
+.all-games-card { background: #f0ebff; border-color: var(--purple); }
+.all-games-card .section-number { color: #5736ce; }
+.all-games-card h2 { margin-bottom: 8px; }
 .game-groups { display: grid; gap: 30px; }
 .game-group-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; }
 .game-group-heading h3 { margin-bottom: 10px; }
