@@ -2,14 +2,14 @@ import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { OnboardingForm } from "@/components/onboarding-form";
 import { getViewer } from "@/lib/auth";
-import { discordSignupNext } from "@/lib/discord-signup";
+import { authNext } from "@/lib/auth-next";
 
 export const metadata = { title: "Set up your profile" };
 export const dynamic = "force-dynamic";
 
 export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const requested = (await searchParams).next;
-  const next = discordSignupNext(requested) ?? (requested === "/pricing" ? "/pricing" : "/dashboard");
+  const next = authNext(requested);
   const { user, profile } = await getViewer();
   if (!user) redirect("/auth?next=" + encodeURIComponent(next));
   if (profile) redirect(next);

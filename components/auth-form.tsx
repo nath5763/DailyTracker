@@ -5,6 +5,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PASSWORD_HELP, passwordIsValid } from "@/lib/auth-validation";
 import { discordSignupNext } from "@/lib/discord-signup";
+import { leaderboardInviteNext } from "@/lib/leaderboard-invite";
+
+function verificationQuery(next: string) {
+  const signupIntent = discordSignupNext(next)?.split("intent=")[1];
+  const joinInvite = leaderboardInviteNext(next)?.split("invite=")[1];
+  return signupIntent ? "?signupIntent=" + signupIntent : joinInvite ? "?joinInvite=" + joinInvite : "";
+}
 
 type ApiError = { error?: string; code?: string };
 type AuthResponse = { onboarded: boolean };
@@ -38,8 +45,7 @@ export function AuthForm({ next = "/dashboard" }: { next?: string }) {
 
   async function resend() {
     setStatus("sending");
-    const signupIntent = discordSignupNext(next)?.split("intent=")[1];
-    const response = await post("/api/v1/auth/verification/resend" + (signupIntent ? "?signupIntent=" + signupIntent : ""), { email });
+    const response = await post("/api/v1/auth/verification/resend" + verificationQuery(next), { email });
     const data = await response.json().catch(() => ({})) as ApiError & { message?: string };
     setStatus(response.ok ? "idle" : "error");
     setMessage(response.ok ? (data.message ?? "Verification email sent.") : (data.error ?? "Could not resend verification."));
@@ -69,8 +75,7 @@ export function RegisterForm({ next = "/dashboard" }: { next?: string }) {
     if (password !== confirmation) { setMessage("Passwords do not match."); return; }
     if (!passwordIsValid(password)) { setMessage(PASSWORD_HELP); return; }
     setLoading(true);
-    const signupIntent = discordSignupNext(next)?.split("intent=")[1];
-    const response = await post("/api/v1/auth/register" + (signupIntent ? "?signupIntent=" + signupIntent : ""), { email, password });
+    const response = await post("/api/v1/auth/register" + verificationQuery(next), { email, password });
     const data = await response.json().catch(() => ({})) as ApiError & { message?: string };
     setLoading(false);
     if (!response.ok) { setMessage(data.error ?? "Could not create your account."); return; }
@@ -79,8 +84,7 @@ export function RegisterForm({ next = "/dashboard" }: { next?: string }) {
 
   async function resend() {
     setLoading(true);
-    const signupIntent = discordSignupNext(next)?.split("intent=")[1];
-    const response = await post("/api/v1/auth/verification/resend" + (signupIntent ? "?signupIntent=" + signupIntent : ""), { email });
+    const response = await post("/api/v1/auth/verification/resend" + verificationQuery(next), { email });
     const data = await response.json().catch(() => ({})) as ApiError & { message?: string };
     setLoading(false); setMessage(response.ok ? (data.message ?? "Verification email sent.") : (data.error ?? "Could not resend verification."));
   }
