@@ -3,14 +3,18 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test, vi } from "vitest";
 import { LeaderboardDetail } from "./leaderboard-detail";
 
-const state = vi.hoisted(() => ({ summaries: null as unknown, board: null as unknown }));
+const state = vi.hoisted(() => ({ summaries: null as unknown, board: null as unknown,
+  cachePathArgs: null as [string, string | undefined, string] | null }));
 
 vi.mock("@/components/app-data-provider", () => ({ useAppData: () => ({ userId: "viewer" }) }));
 vi.mock("@/components/copy-leaderboard", () => ({ CopyLeaderboard: () => null }));
 vi.mock("@/components/member-manager", () => ({ MemberManager: () => null, RemoveMemberButton: () => null }));
 vi.mock("@/components/billing-actions", () => ({ ManageBillingButton: () => null, SubscribeButton: () => null }));
 vi.mock("@/lib/client-cache", () => ({
-  leaderboardCachePath: () => "/board-detail",
+  leaderboardCachePath: (...args: [string, string | undefined, string]) => {
+    state.cachePathArgs = args;
+    return "/board-detail";
+  },
   invalidateClientCachePrefix: vi.fn(),
   useCachedApi: (path: string) => ({
     data: path === "/leaderboards" ? state.summaries : path === "/board-detail" ? state.board : null,
@@ -19,8 +23,9 @@ vi.mock("@/lib/client-cache", () => ({
 }));
 
 const game = { id: "game", slug: "fermi", name: "Fermi", sourceUrl: "https://fermi.gg",
-  rankingDirection: "higher", scoreFormat: { prefix: "", suffix: "×", minimumDecimalPlaces: 2, maximumDecimalPlaces: 2 } };
-const summary = { id: "board", name: "Friends", ownerId: "owner", owner: false, game, games: [game], locked: false };
+  rankingDirection: "lower", scoreFormat: { prefix: "", suffix: "×", minimumDecimalPlaces: 2, maximumDecimalPlaces: 2 } };
+const summary = { id: "board", name: "Friends", ownerId: "owner", owner: false, game, games: [game],
+  boardType: "SINGLE_GAME", locked: false };
 
 function render() { return renderToStaticMarkup(createElement(LeaderboardDetail, { id: "board" })); }
 function expectBackLink(html: string) {
@@ -62,4 +67,12 @@ test("keeps the leaderboard section visible when no one has scored", () => {
   expect(html.indexOf("YOUR POSITION")).toBeLessThan(html.indexOf("<h2>Leaderboard</h2>"));
   expect(html.indexOf("<h2>Leaderboard</h2>")).toBeLessThan(html.indexOf("Nobody has posted a score"));
   expect(html.indexOf("Nobody has posted a score")).toBeLessThan(html.indexOf("<h2>Progress</h2>"));
+});
+
+test("lets the API choose the most recently played game for an all-game board", () => {
+  const krillion = { ...game, id: "krillion", slug: "krillion", name: "Krillion", rankingDirection: "higher" };
+  state.summaries = [{ ...summary, boardType: "MULTI_GAME", games: [game, krillion] }];
+  state.board = { ...summary, boardType: "MULTI_GAME", members: [], rankings: [], absent: [], range: "today" };
+  render();
+  expect(state.cachePathArgs).toEqual(["board", undefined, "today"]);
 });

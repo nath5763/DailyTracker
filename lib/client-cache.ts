@@ -72,8 +72,8 @@ export function invalidateLeaderboardCacheForGame(userId: string, gameSlug: stri
   const userPrefix = prefix(userId);
   const leaderboardPrefix = userPrefix + "/leaderboards/";
   const keys = new Set<string>();
-  for (const key of pending.keys()) if (key.startsWith(leaderboardPrefix) && cachedGame(key) === gameSlug) keys.add(key);
-  for (const key of memory.keys()) if (key.startsWith(leaderboardPrefix) && cachedGame(key) === gameSlug) keys.add(key);
+  for (const key of pending.keys()) if (key.startsWith(leaderboardPrefix) && [null, gameSlug].includes(cachedGame(key))) keys.add(key);
+  for (const key of memory.keys()) if (key.startsWith(leaderboardPrefix) && [null, gameSlug].includes(cachedGame(key))) keys.add(key);
   for (const key of keys) invalidateKey(key);
 }
 
@@ -82,8 +82,9 @@ function cachedGame(key: string) {
   return query ? new URLSearchParams(query).get("game") : null;
 }
 
-export function leaderboardCachePath(id: string, gameSlug: string, range: string) {
-  return `/leaderboards/${encodeURIComponent(id)}?game=${encodeURIComponent(gameSlug)}&range=${encodeURIComponent(range)}`;
+export function leaderboardCachePath(id: string, gameSlug: string | undefined, range: string) {
+  const game = gameSlug ? `game=${encodeURIComponent(gameSlug)}&` : "";
+  return `/leaderboards/${encodeURIComponent(id)}?${game}range=${encodeURIComponent(range)}`;
 }
 
 export function clearClientCache(userId: string) {

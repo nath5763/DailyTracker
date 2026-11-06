@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { cachedApiGet, invalidateClientCache } from "./client-cache";
+import { cachedApiGet, invalidateClientCache, leaderboardCachePath } from "./client-cache";
 
 function browserStorage() {
   const values = new Map<string, string>();
@@ -48,4 +48,11 @@ test("manual refresh and a mutation both bypass cached leaderboard data", async 
   invalidateClientCache("cache-test-user-2", ["/leaderboards"]);
   expect(await cachedApiGet<string[]>("cache-test-user-2", "/leaderboards")).toEqual(["changed"]);
   expect(fetcher).toHaveBeenCalledTimes(3);
+});
+
+test("builds explicit and automatic game leaderboard paths", () => {
+  expect(leaderboardCachePath("board 1", "fermi", "7d"))
+    .toBe("/leaderboards/board%201?game=fermi&range=7d");
+  expect(leaderboardCachePath("board 1", undefined, "today"))
+    .toBe("/leaderboards/board%201?range=today");
 });

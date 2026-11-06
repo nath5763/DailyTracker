@@ -23,9 +23,11 @@ export function LeaderboardDetail({ id, requestedGame, requestedRange, discordSt
   const summaries = useCachedApi<BoardSummary[]>("/leaderboards");
   const summary = summaries.data?.find((candidate) => candidate.id === id);
   const games = summary?.games?.length ? summary.games : summary?.game ? [summary.game] : [];
-  const game = games.find((candidate) => candidate.slug === requestedGame) ?? games[0];
+  const requested = games.find((candidate) => candidate.slug === requestedGame);
+  const gameSlug = requestedGame ? (requested ?? games[0])?.slug :
+    summary?.boardType === "MULTI_GAME" ? undefined : games[0]?.slug;
   const range = ranges.find((candidate) => candidate.key === requestedRange)?.key ?? "today";
-  const path = game && !summary?.locked ? leaderboardCachePath(id, game.slug, range) : "";
+  const path = games.length && !summary?.locked ? leaderboardCachePath(id, gameSlug, range) : "";
   return <Content key={path || id} id={id} path={path} range={range} summary={summary} summaries={summaries} discordStatus={discordStatus} setupToken={setupToken} joinedFromInvite={joinedFromInvite} />;
 }
 
