@@ -10,6 +10,7 @@ type ErrorBody = { error?: string; code?: string };
 
 export function DiscordCard() {
   const { userId } = useAppData();
+  const userInstallUrl = process.env.NEXT_PUBLIC_DISCORD_USER_INSTALL_URL?.trim();
   const statusResult = useCachedApi<DiscordStatus>("/discord/status");
   const billingResult = useCachedApi<BillingStatus>("/billing/status");
   const status = statusResult.data;
@@ -83,13 +84,13 @@ export function DiscordCard() {
       <p>Discord linking is not available yet. Your dashboard and scores still work normally.</p>
     </> : status.linked ? <>
       <h2>Connected</h2>
-      <p>Your Discord identity is linked. You can submit with <code>/daily</code> in a configured server channel.</p>
+      <p>Your Discord identity is linked. You can submit with <code>/daily</code> in a configured server channel, DM, or Group DM.</p>
       <button className="button button-ghost" disabled={working} onClick={unlink} type="button">
         {working ? "Unlinking…" : "Unlink Discord"}
       </button>
     </> : <>
       <h2>Submit from Discord</h2>
-      <p>Create a one-time code, then run <code>/link code:&lt;code&gt;</code> in a server where Daily Tracker is installed.</p>
+      <p>Create a one-time code, then run <code>/link code:&lt;code&gt;</code> from your Discord account.</p>
       {code ? <div className="discord-code" aria-live="polite">
         <div className="uuid-box">{code.code}</div>
         <CopyButton value={code.code} label="Copy link code" />
@@ -99,6 +100,12 @@ export function DiscordCard() {
         {working ? "Generating…" : code && expired ? "Generate a new code" : "Generate link code"}
       </button>
     </>}
+    {status?.configured && userInstallUrl ? <>
+      <p className="subtle">Install Daily Tracker to your Discord account to use its commands in DMs and Group DMs.</p>
+      <a className="button button-ghost" href={userInstallUrl} target="_blank" rel="noopener noreferrer">
+        Add to my Discord apps <span aria-hidden="true">↗</span>
+      </a>
+    </> : null}
     {status?.configured && billingResult.data?.tier !== "FREE" && billingResult.data ? <p className="subtle">Open a leaderboard you own to add it to a Discord channel.</p>
       : status?.configured && billingResult.data?.tier === "FREE" ? <p className="subtle">A paid tier is required to add Daily Tracker to a server. You can still link your account and use commands in a paid owner&apos;s connected channel.</p> : null}
     {message ? <div className={`form-message ${message.includes("unlinked") ? "success" : "error"}`} role="status">{message}</div> : null}

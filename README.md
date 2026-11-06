@@ -65,6 +65,8 @@ The `.do/app.yaml` spec defines two App Platform services under one origin: `/ap
 
 Deploy the backend Discord signup migration and command changes before this frontend. The backend requires `DISCORD_APPLICATION_ID`, `DISCORD_PUBLIC_KEY`, `DISCORD_CLIENT_SECRET`, `DISCORD_BOT_TOKEN`, and the registered OAuth callback URL. After the frontend is deployed, test `/signup` in connected and unconnected channels, email verification in another browser, Discord identity mismatch, automatic membership, `/my-id`, `/add-member`, and live game autocomplete. The backend registers global commands automatically; the backend repository's script remains available for troubleshooting.
 
+Set `NEXT_PUBLIC_DISCORD_USER_INSTALL_URL` to the application's **Discord Provided Link** from the Discord Developer Portal before running `next build`. The dashboard shows this public link as **Add to my Discord apps**, allowing each user to install the user app and invoke commands in DMs and Group DMs. This value is embedded into the browser bundle at build time and must never contain the bot token or client secret.
+
 App Platform automatically deploys pushes to `main`, provides HTTPS, checks `/api/health`, and alerts on deployment or domain failures. Keep the old Render and Supabase resources until this smoke test passes, then remove them manually to avoid continued billing.
 
 ## Google AdSense
