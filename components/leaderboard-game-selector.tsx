@@ -15,7 +15,7 @@ export function filterLeaderboardGames(games: Game[], query: string) {
 export function quickPickLeaderboardGames(games: Game[], recentGameSlugs: string[], selectedSlug: string,
                                           limit = QUICK_PICK_LIMIT) {
   const bySlug = new Map(games.map(game => [game.slug, game]));
-  const ordered = [...recentGameSlugs.map(slug => bySlug.get(slug)), ...games]
+  const ordered = recentGameSlugs.map(slug => bySlug.get(slug))
       .filter((game): game is Game => Boolean(game));
   const unique = ordered.filter((game, index) => ordered.findIndex(candidate => candidate.slug === game.slug) === index);
   const picks = unique.slice(0, limit);

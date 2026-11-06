@@ -29,11 +29,11 @@ test("preserves the chosen range when selecting a game", () => {
     .toBe("/leaderboards/board%201?game=wordle&range=30d");
 });
 
-test("orders up to five quick picks by recent activity and fills from available games", () => {
+test("orders quick picks by recent activity without padding with unplayed games", () => {
   expect(quickPickLeaderboardGames(games, ["wordle", "krillion"], "wordle").map(game => game.slug))
-    .toEqual(["wordle", "krillion", "fermi", "connections", "globle"]);
+    .toEqual(["wordle", "krillion"]);
   expect(quickPickLeaderboardGames(games, [], "fermi").map(game => game.slug))
-    .toEqual(["fermi", "krillion", "wordle", "connections", "globle"]);
+    .toEqual(["fermi"]);
 });
 
 test("promotes a More games selection into the quick-pick row for the session", () => {
@@ -53,7 +53,7 @@ test("renders quick-pick tabs and a closed searchable More games selector", () =
   const html = renderToStaticMarkup(createElement(LeaderboardGameSelector,
     { boardId: "board", games, selected: games[1], range: "7d", recentGameSlugs: ["wordle", "krillion"] }));
   expect(html).toContain('role="tablist"');
-  expect((html.match(/role="tab"/g) ?? []).length).toBe(5);
+  expect((html.match(/role="tab"/g) ?? []).length).toBe(2);
   expect(html).toContain("Krillion");
   expect(html).toContain("leaderboard-game-tab active");
   expect(html).toContain("More games");

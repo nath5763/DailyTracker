@@ -25,6 +25,18 @@ describe("leaderboard memory cache", () => {
     expect(fetcher).toHaveBeenCalledTimes(5);
   });
 
+  it("reuses each cached game when switching around an all-game leaderboard", async () => {
+    const fetcher = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ call: fetcher.mock.calls.length }) }));
+    vi.stubGlobal("fetch", fetcher);
+    const fermi = path("all-games", "fermi", "today");
+    const krillion = path("all-games", "krillion", "today");
+    const firstFermi = await cachedApiGet<{ call: number }>(user, fermi, false, "memory");
+    await cachedApiGet(user, krillion, false, "memory");
+    const restoredFermi = await cachedApiGet<{ call: number }>(user, fermi, false, "memory");
+    expect(restoredFermi).toEqual(firstFermi);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
   it("invalidates one game across boards and one board across games", async () => {
     const fetcher = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ call: fetcher.mock.calls.length }) }));
     vi.stubGlobal("fetch", fetcher);
