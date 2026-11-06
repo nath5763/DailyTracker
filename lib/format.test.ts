@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatRankingScore, formatScore } from "./format";
+import { formatRankingScore, formatResultDetails, formatScore } from "./format";
 
 describe("score formatting", () => {
   it("formats backend numeric values consistently", () => {
@@ -12,6 +12,12 @@ describe("score formatting", () => {
     expect(formatScore(180, points)).toBe("180 pts");
     expect(formatScore(182.5, points)).toBe("182.5 pts");
   });
+});
+
+it("formats verified per-guess result details", () => {
+  expect(formatResultDetails([{ label: "Q1", value: "1.20×" }, { label: "Q2", value: "1.40×" }]))
+    .toBe("Q1 1.20× · Q2 1.40×");
+  expect(formatResultDetails()).toBe("");
 });
 
 it("prefers a game-specific leaderboard display score", () => {

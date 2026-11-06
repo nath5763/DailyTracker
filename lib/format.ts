@@ -1,4 +1,4 @@
-import type { Game, Ranking, Score, ScoreFormat } from "@/lib/types";
+import type { Game, Ranking, ResultDetail, Score, ScoreFormat } from "@/lib/types";
 
 const defaultScoreFormat: ScoreFormat = { prefix: "", suffix: "×", minimumDecimalPlaces: 2, maximumDecimalPlaces: 2 };
 
@@ -23,4 +23,8 @@ export function formatResultScore(score: Score): string {
 
 export function formatRankingScore(ranking: Ranking, game: Game): string {
   return ranking.displayScore || formatScore(ranking.average, game.scoreFormat);
+}
+
+export function formatResultDetails(details?: ResultDetail[]): string {
+  return details?.map(detail => `${detail.label} ${detail.value}`).join(" · ") ?? "";
 }

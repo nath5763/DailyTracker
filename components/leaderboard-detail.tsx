@@ -14,7 +14,7 @@ import { LeaderboardGameSelector } from "@/components/leaderboard-game-selector"
 import { MemberManager, RemoveMemberButton } from "@/components/member-manager";
 import { ManageBillingButton, SubscriptionChoices } from "@/components/billing-actions";
 import { invalidateClientCachePrefix, leaderboardCachePath, useCachedApi } from "@/lib/client-cache";
-import { formatRankingScore } from "@/lib/format";
+import { formatRankingScore, formatResultDetails } from "@/lib/format";
 import type { BillingStatus, BoardSummary, Leaderboard } from "@/lib/types";
 
 const ranges = [{ key: "today", label: "Today" }, { key: "7d", label: "Last 7 days" }, { key: "30d", label: "Last 30 days" }, { key: "all", label: "All time" }] as const;
@@ -70,7 +70,8 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
         {board.rankings.length || board.absent.length ? <div className="list">{board.rankings.map((row) => {
           const panelId = memberScoresPanelId(row.userId, "ranking");
           const open = expanded?.userId === row.userId && expanded.location === "ranking";
-          return <Fragment key={row.userId}><button className="list-row leaderboard-player-toggle" type="button" aria-expanded={open} aria-controls={panelId} onClick={() => togglePlayer(row.userId, "ranking")}><span className="rank">{String(row.rank).padStart(2, "0")}</span><span>{row.displayName}<small>{row.gamesPlayed} score{row.gamesPlayed === 1 ? "" : "s"} in this range{row.manualResults ? ` · ${row.manualResults} manual · unverified` : ""}{range !== "today" && row.assistedResults ? ` · ${row.assistedResults} assisted (${row.hints ?? 0} hints, ${row.mistakes ?? 0} mistakes, ${row.beginnerAssists ?? 0} beginner assists)` : ""}{range !== "today" && row.unknownAssistanceResults ? ` · ${row.unknownAssistanceResults} with assistance details unavailable` : ""}</small></span><strong>{formatRankingScore(row, board.game)}</strong></button>{open ? <LeaderboardMemberScoresPanel boardId={board.id} userId={row.userId} shareId={row.shareId} game={board.game} range={range} panelId={panelId} /> : null}</Fragment>;
+          const resultDetails = range === "today" ? formatResultDetails(board.dailyResults?.find(result => result.userId === row.userId)?.details) : "";
+          return <Fragment key={row.userId}><button className="list-row leaderboard-player-toggle" type="button" aria-expanded={open} aria-controls={panelId} onClick={() => togglePlayer(row.userId, "ranking")}><span className="rank">{String(row.rank).padStart(2, "0")}</span><span>{row.displayName}<small>{row.gamesPlayed} score{row.gamesPlayed === 1 ? "" : "s"} in this range{row.manualResults ? ` · ${row.manualResults} manual · unverified` : ""}{range !== "today" && row.assistedResults ? ` · ${row.assistedResults} assisted (${row.hints ?? 0} hints, ${row.mistakes ?? 0} mistakes, ${row.beginnerAssists ?? 0} beginner assists)` : ""}{range !== "today" && row.unknownAssistanceResults ? ` · ${row.unknownAssistanceResults} with assistance details unavailable` : ""}</small>{resultDetails ? <small className="daily-result-details">{resultDetails}</small> : null}</span><strong>{formatRankingScore(row, board.game)}</strong></button>{open ? <LeaderboardMemberScoresPanel boardId={board.id} userId={row.userId} shareId={row.shareId} game={board.game} range={range} panelId={panelId} /> : null}</Fragment>;
         })}{board.absent.map((member) => <div className="list-row" key={member.userId}><span className="rank">--</span><span>{member.displayName}<small>Not played</small></span><strong>--</strong></div>)}</div> : null}
         <LeaderboardPodium board={board} expanded={expanded} onToggle={togglePlayer} />
       </section>

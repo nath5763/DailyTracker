@@ -63,6 +63,16 @@ test("shows position, full rankings, then progress", () => {
   expect(html).not.toContain('href="/profile/viewer-share"');
 });
 
+test("shows verified per-guess details on today's leaderboard", () => {
+  state.summaries = [summary];
+  state.board = { ...summary, members: [{ userId: "viewer", displayName: "Viewer", avatarColor: "#dfff4f", owner: false }],
+    rankings: [{ rank: 1, userId: "viewer", shareId: "viewer-share", displayName: "Viewer", average: 1.5, gamesPlayed: 1 }],
+    absent: [], range: "today", dailyResults: [{ userId: "viewer", puzzleKey: "7", details: [
+      { label: "Q1", value: "1.20×" }, { label: "Q2", value: "1.40×" }, { label: "Q3", value: "2.10×" },
+    ] }] };
+  expect(render()).toContain("Q1 1.20× · Q2 1.40× · Q3 2.10×");
+});
+
 test("keeps the leaderboard section visible when no one has scored", () => {
   state.summaries = [summary];
   state.board = { ...summary, members: [], rankings: [], absent: [], range: "today" };
