@@ -10,7 +10,7 @@ import { LeaderboardMemberScoresPanel, memberScoresPanelId, nextExpandedPlayer, 
 import { LeaderboardDiscord } from "@/components/leaderboard-discord";
 import { LeaderboardInvite } from "@/components/leaderboard-invite";
 import { DiscordLinkInstructions } from "@/components/discord-link-instructions";
-import { LeaderboardGameSelector } from "@/components/leaderboard-game-selector";
+import { LeaderboardGameSelector, readLastSelectedLeaderboardGame } from "@/components/leaderboard-game-selector";
 import { MemberManager, RemoveMemberButton } from "@/components/member-manager";
 import { ManageBillingButton, SubscriptionChoices } from "@/components/billing-actions";
 import { invalidateClientCachePrefix, leaderboardCachePath, useCachedApi } from "@/lib/client-cache";
@@ -24,9 +24,10 @@ export function LeaderboardDetail({ id, requestedGame, requestedRange, discordSt
   const summaries = useCachedApi<BoardSummary[]>("/leaderboards");
   const summary = summaries.data?.find((candidate) => candidate.id === id);
   const games = summary?.games?.length ? summary.games : summary?.game ? [summary.game] : [];
+  const savedGame = !requestedGame ? games.find(candidate => candidate.slug === readLastSelectedLeaderboardGame(id)) : undefined;
   const requested = games.find((candidate) => candidate.slug === requestedGame);
   const gameSlug = requestedGame ? (requested ?? games[0])?.slug :
-    summary?.boardType === "MULTI_GAME" ? undefined : games[0]?.slug;
+    savedGame?.slug ?? (summary?.boardType === "MULTI_GAME" ? undefined : games[0]?.slug);
   const range = ranges.find((candidate) => candidate.key === requestedRange)?.key ?? "today";
   const path = games.length && !summary?.locked ? leaderboardCachePath(id, gameSlug, range) : "";
   return <Content key={path || id} id={id} path={path} range={range} summary={summary} summaries={summaries} discordStatus={discordStatus} setupToken={setupToken} joinedFromInvite={joinedFromInvite} />;
@@ -62,10 +63,10 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
     <div className="page-heading"><div><p className="section-number">{board.game.name.toUpperCase()} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions"><p>{board.members.length} player{board.members.length === 1 ? "" : "s"} · {scoring} <a className="secondary-link" href={board.game.sourceUrl} rel="noreferrer" target="_blank">Play {board.game.name}</a></p>{backToBoards}<button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div>
     {refreshError ? <div className="form-message error">{refreshError}</div> : null}
     <div className="grid score-layout"><section className="card">
-      {games.length > 1 ? <LeaderboardGameSelector boardId={id} games={games} selected={board.game} range={range} /> : null}
-      <div className="tabs">{ranges.map((tab) => <AppLink className={`tab ${range === tab.key ? "active" : ""}`} href={`/leaderboards/${id}?game=${encodeURIComponent(board.game.slug)}&range=${tab.key}`} key={tab.key}>{tab.label}</AppLink>)}</div>
+      {games.length > 1 ? <LeaderboardGameSelector boardId={id} games={games} selected={board.game} range={range} recentGameSlugs={board.recentGameSlugs} /> : null}
+      <nav className="tabs leaderboard-range-tabs" aria-label="Leaderboard date range">{ranges.map((tab) => <AppLink className={`tab ${range === tab.key ? "active" : ""}`} aria-current={range === tab.key ? "page" : undefined} href={`/leaderboards/${id}?game=${encodeURIComponent(board.game.slug)}&range=${tab.key}`} key={tab.key}>{tab.label}</AppLink>)}</nav>
       <LeaderboardPosition board={board} userId={userId} />
-      <section className="leaderboard-rankings" aria-label="Leaderboard rankings"><h2>Leaderboard</h2>
+      <section className="leaderboard-rankings" id="leaderboard-game-results" aria-label="Leaderboard rankings"><h2>Leaderboard</h2>
         {!board.rankings.length ? <div className="empty">Nobody has posted a score for this range yet.</div> : null}
         {board.rankings.length || board.absent.length ? <div className="list">{board.rankings.map((row) => {
           const panelId = memberScoresPanelId(row.userId, "ranking");

@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { expect, test, vi } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import { LeaderboardDetail } from "./leaderboard-detail";
 
 const state = vi.hoisted(() => ({ summaries: null as unknown, board: null as unknown,
@@ -29,6 +29,7 @@ const summary = { id: "board", name: "Friends", ownerId: "owner", owner: false, 
   boardType: "SINGLE_GAME", locked: false };
 
 function render() { return renderToStaticMarkup(createElement(LeaderboardDetail, { id: "board" })); }
+afterEach(() => vi.unstubAllGlobals());
 function expectBackLink(html: string) {
   expect(html).toContain('href="/leaderboards"');
   expect(html).toContain("Back to all leaderboards");
@@ -105,6 +106,15 @@ test("lets the API choose the most recently played game for an all-game board", 
   state.board = { ...summary, boardType: "MULTI_GAME", members: [], rankings: [], absent: [], range: "today" };
   render();
   expect(state.cachePathArgs).toEqual(["board", undefined, "today"]);
+});
+
+test("restores the last selected game for each leaderboard", () => {
+  const krillion = { ...game, id: "krillion", slug: "krillion", name: "Krillion", rankingDirection: "higher" };
+  state.summaries = [{ ...summary, boardType: "MULTI_GAME", games: [game, krillion] }];
+  state.board = { ...summary, boardType: "MULTI_GAME", game: krillion, games: [game, krillion], members: [], rankings: [], absent: [], range: "today" };
+  vi.stubGlobal("window", { localStorage: { getItem: () => "krillion", setItem: vi.fn() } });
+  render();
+  expect(state.cachePathArgs).toEqual(["board", "krillion", "today"]);
 });
 
 test("renders ranked, podium, and combined names as score toggles", () => {

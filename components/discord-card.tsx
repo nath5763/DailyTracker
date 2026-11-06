@@ -102,7 +102,7 @@ export function DiscordCard() {
       </button>
     </>}
     {status?.configured && userInstallUrl ? <>
-      <p className="subtle">Install Daily Tracker to your Discord account to use its commands in DMs and Group DMs.</p>
+      <p className="subtle">Install Daily Tracker to your Discord account to use its commands in DMs and Group DMs. No paid plan is required.</p>
       <a className="button button-ghost" href={userInstallUrl} target="_blank" rel="noopener noreferrer">
         Add to my Discord apps <span aria-hidden="true">↗</span>
       </a>
