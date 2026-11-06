@@ -82,6 +82,23 @@ test("keeps the leaderboard section visible when no one has scored", () => {
   expect(html.indexOf("Nobody has posted a score")).toBeLessThan(html.indexOf("<h2>Progress</h2>"));
 });
 
+test("keeps member roster management owner-only", () => {
+  state.summaries = [summary];
+  state.board = { ...summary, members: [{ userId: "viewer", displayName: "Viewer", avatarColor: "#dfff4f", owner: false }], rankings: [], absent: [], range: "today" };
+  const memberHtml = render();
+  expect(memberHtml).toContain("Club roster");
+  expect(memberHtml).not.toContain("Manage players");
+  expect(memberHtml).not.toContain("Invite players");
+  expect(memberHtml).not.toContain("Add an existing account");
+
+  state.summaries = [{ ...summary, owner: true }];
+  state.board = { ...state.board as object, owner: true };
+  const ownerHtml = render();
+  expect(ownerHtml).toContain("Manage players");
+  expect(ownerHtml).toContain("Invite players");
+  expect(ownerHtml).toContain("Add an existing account");
+});
+
 test("lets the API choose the most recently played game for an all-game board", () => {
   const krillion = { ...game, id: "krillion", slug: "krillion", name: "Krillion", rankingDirection: "higher" };
   state.summaries = [{ ...summary, boardType: "MULTI_GAME", games: [game, krillion] }];

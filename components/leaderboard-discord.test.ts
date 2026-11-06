@@ -29,3 +29,15 @@ test("only a paid owner with configured backend can start setup", () => {
   state.configured = false;
   expect(render(true)).not.toContain("Add leaderboard to Discord");
 });
+
+test("shows every member the leaderboard UUID and Discord guide without owner controls", () => {
+  state.tier = "STANDARD";
+  state.configured = true;
+  const html = renderToStaticMarkup(createElement(LeaderboardDiscord, { boardId: "board-uuid", owner: false }));
+  expect(html).toContain('value="board-uuid"');
+  expect(html).toContain("Copy leaderboard UUID");
+  expect(html).toContain("/set-leaderboard");
+  expect(html).toContain('href="/discord"');
+  expect(html).not.toContain("Add leaderboard to Discord");
+  expect(html).not.toContain("Remove</button>");
+});

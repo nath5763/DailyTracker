@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AppLink } from "@/components/app-link";
 import { SubscriptionChoices } from "@/components/billing-actions";
+import { CopyButton } from "@/components/copy-button";
 import { useCachedApi } from "@/lib/client-cache";
 import { readDiscordResponse, type DiscordErrorBody } from "@/lib/discord-api-response";
 import type { BillingStatus, DiscordChannel } from "@/lib/types";
@@ -99,6 +101,12 @@ export function LeaderboardDiscord({ boardId, owner, setupToken, discordStatus }
   const selected = available.find(channel => channel.channelId === chosen);
   return <section className="card" id="leaderboard-discord">
     <h2>Discord channels</h2>
+    <div className="leaderboard-discord-uuid">
+      <div className="field"><label htmlFor="leaderboard-discord-uuid">Leaderboard UUID</label><input id="leaderboard-discord-uuid" readOnly value={boardId} onFocus={event => event.currentTarget.select()} /></div>
+      <CopyButton value={boardId} label="Copy leaderboard UUID" />
+      <p className="subtle">The leaderboard owner can use this UUID with <code>/set-leaderboard</code> once in a Discord Group DM.</p>
+      <AppLink className="secondary-link" href="/discord">Read the Discord setup guide</AppLink>
+    </div>
     {connected.data?.length ? <div className="list">{connected.data.map(channel => {
       const key = `${channel.guildId}:${channel.channelId}`;
       const label = channel.name ? `#${channel.name}` : channel.channelId;

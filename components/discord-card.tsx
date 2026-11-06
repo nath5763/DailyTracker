@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AppLink } from "@/components/app-link";
 import { CopyButton } from "@/components/copy-button";
 import type { BillingStatus, DiscordLinkCode, DiscordStatus } from "@/lib/types";
 import { invalidateClientCache, invalidateClientCachePrefix, useCachedApi } from "@/lib/client-cache";
@@ -108,6 +109,7 @@ export function DiscordCard() {
     </> : null}
     {status?.configured && billingResult.data?.tier !== "FREE" && billingResult.data ? <p className="subtle">Open a leaderboard you own to add it to a Discord channel.</p>
       : status?.configured && billingResult.data?.tier === "FREE" ? <p className="subtle">A paid tier is required to add Daily Tracker to a server. You can still link your account and use commands in a paid owner&apos;s connected channel.</p> : null}
+    <AppLink className="secondary-link discord-guide-link" href="/discord">Read the Discord setup guide</AppLink>
     {message ? <div className={`form-message ${message.includes("unlinked") ? "success" : "error"}`} role="status">{message}</div> : null}
   </section>;
 }

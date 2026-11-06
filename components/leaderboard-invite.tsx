@@ -4,6 +4,15 @@ import { useEffect, useState } from "react";
 
 type LinkState = { active: boolean; url: string | null };
 
+export function LeaderboardInviteActions({ url, locked, busy, onCopy, onRegenerate, onRevoke }: {
+  url: string; locked: boolean; busy: boolean; onCopy: () => void; onRegenerate: () => void; onRevoke: () => void;
+}) {
+  return <><input aria-label="Invite link" readOnly value={url} onFocus={event => event.currentTarget.select()} />
+    <div className="invite-primary-actions"><button className="button" type="button" onClick={onCopy}>Copy invite link</button>
+      {!locked ? <button className="button button-ghost" type="button" disabled={busy} onClick={onRegenerate}>Regenerate link</button> : null}</div>
+    <div className="invite-destructive-action"><button className="text-button" type="button" disabled={busy} onClick={onRevoke}>Revoke link</button></div></>;
+}
+
 export function LeaderboardInvite({ boardId, locked = false }: { boardId: string; locked?: boolean }) {
   const [link, setLink] = useState<LinkState | null>(null);
   const [busy, setBusy] = useState(false);
@@ -38,10 +47,7 @@ export function LeaderboardInvite({ boardId, locked = false }: { boardId: string
   }
 
   return <div className="form-stack"><h3>Invite players</h3><p className="subtle">Anyone with this link can create an account or sign in and join this leaderboard.</p>
-    {link?.url ? <><input aria-label="Invite link" readOnly value={link.url} onFocus={event => event.currentTarget.select()} />
-      <div className="heading-actions"><button className="button" type="button" onClick={() => void copy()}>Copy invite link</button>
-        {!locked ? <button className="button button-ghost" type="button" disabled={busy} onClick={() => void change("POST", "/regenerate")}>Regenerate link</button> : null}
-        <button className="text-button" type="button" disabled={busy} onClick={() => void change("DELETE")}>Revoke link</button></div></>
+    {link?.url ? <LeaderboardInviteActions url={link.url} locked={locked} busy={busy} onCopy={() => void copy()} onRegenerate={() => void change("POST", "/regenerate")} onRevoke={() => void change("DELETE")} />
       : link && !locked ? <button className="button" type="button" disabled={busy} onClick={() => void change("POST")}>Create invite link</button> : null}
     {message ? <p role="status">{message}</p> : null}
   </div>;
