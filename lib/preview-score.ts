@@ -2,13 +2,17 @@ import type { ParsedSubmission } from "./types";
 import { extendedPreviewScore } from "./extended-preview-score";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const multiplier = /(\d+(?:[.,]\d+)?)\s*[×x]/gi;
+const multiplier = /(\d+(?:[.,]\d+)*)\s*[×x]/gi;
 
 function puzzleDate(first: string, puzzle: number) {
   return new Date(Date.parse(`${first}T00:00:00Z`) + (puzzle - 1) * DAY_MS).toISOString().slice(0, 10);
 }
 
-function decimal(value: string) { return Number(value.replace(",", ".")); }
+function decimal(value: string) {
+  const normalized = /^[0-9]{1,3}(,[0-9]{3})+(?:\.[0-9]+)?$/.test(value)
+    ? value.replaceAll(",", "") : value.replace(",", ".");
+  return Number(normalized);
+}
 
 function fermi(rawText: string): ParsedSubmission {
   const text = rawText.trim();
@@ -19,24 +23,35 @@ function fermi(rawText: string): ParsedSubmission {
   const puzzleMatch = /(?:fermi\s*)?#\s*(\d+)/i.exec(text) ?? /\bNo\.?\s*(\d+)/i.exec(text);
   const puzzle = puzzleMatch ? Number(puzzleMatch[1]) : NaN;
   if (!Number.isSafeInteger(puzzle) || puzzle < 1 || puzzle > 2_147_483_647) errors.push("Could not find a valid Fermi puzzle number.");
-  const scoreMatch = /(\d+(?:[.,]\d+)?)\s*[×x]\s*score\b/i.exec(text);
+  const scoreMatch = /(\d+(?:[.,]\d+)*)\s*[×x]\s*score\b/i.exec(text);
+  let scoreToken = scoreMatch?.[1];
   let score = scoreMatch ? decimal(scoreMatch[1]) : NaN;
   if (!Number.isFinite(score)) {
-    const scoreLine = text.split(/\r\n|\n|\r/).find((line) => line.toLowerCase().includes("score") && /(\d+(?:[.,]\d+)?)\s*[×x]/i.test(line));
-    const fallback = scoreLine ? /(\d+(?:[.,]\d+)?)\s*[×x]/i.exec(scoreLine) : null;
+    const scoreLine = text.split(/\r\n|\n|\r/).find((line) => line.toLowerCase().includes("score") && /(\d+(?:[.,]\d+)*)\s*[×x]/i.test(line));
+    const fallback = scoreLine ? /(\d+(?:[.,]\d+)*)\s*[×x]/i.exec(scoreLine) : null;
+    scoreToken = fallback?.[1];
     score = fallback ? decimal(fallback[1]) : NaN;
   }
   if (!Number.isFinite(score) || score < 1) errors.push("Could not find a valid final score of 1× or greater.");
   if (errors.length) throw new Error(errors.join(" "));
 
   const metrics: Record<string, unknown> = {};
+  if (scoreToken) {
+    const display = /^[0-9]{1,3}(,[0-9]{3})+(?:\.[0-9]+)?$/.test(scoreToken)
+      ? scoreToken : scoreToken.replace(",", ".");
+    metrics.displayScore = `${display}×`;
+  }
   const percentile = /top\s*(\d+(?:\.\d+)?)\s*%/i.exec(text);
   if (percentile) metrics.percentile = Number(percentile[1]);
   const components: number[] = [];
+  let skippedFallbackScore = false;
   for (const match of text.matchAll(multiplier)) {
     if (components.length === 3) break;
     const value = decimal(match[1]);
-    if (value !== score) components.push(value);
+    const inFinalScore = scoreMatch?.index !== undefined && match.index >= scoreMatch.index &&
+      match.index + match[0].length <= scoreMatch.index + scoreMatch[0].length;
+    if (inFinalScore || !scoreMatch && !skippedFallbackScore && value === score) skippedFallbackScore = true;
+    else components.push(value);
   }
   if (components.length) metrics.components = components;
   return { puzzleKey: String(puzzle), puzzleNumber: puzzle, playedOn: puzzleDate("2026-07-27", puzzle), primaryScore: score, metrics, parserVersion: 1 };

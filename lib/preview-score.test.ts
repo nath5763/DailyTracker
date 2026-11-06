@@ -4,10 +4,17 @@ import { previewScore } from "./preview-score";
 test("previews a Fermi result with date, percentile, and component scores", () => {
   expect(previewScore("fermi", "Fermi #92\n1.31× score\ntop 8%")).toEqual({
     puzzleKey: "92", puzzleNumber: 92, playedOn: "2026-10-26", primaryScore: 1.31,
-    metrics: { percentile: 8 }, parserVersion: 1,
+    metrics: { displayScore: "1.31×", percentile: 8 }, parserVersion: 1,
   });
   expect(previewScore("fermi", "Fermi #7\n1,50x score\nQ1 1.20x\nQ2 1.40x\nQ3 2.10x").metrics)
-    .toEqual({ components: [1.2, 1.4, 2.1] });
+    .toEqual({ displayScore: "1.50×", components: [1.2, 1.4, 2.1] });
+});
+
+test("treats grouped Fermi multipliers as thousands", () => {
+  const preview = previewScore("fermi", "Fermi #103\n1,960x score\nQ1 1,200x\nQ2 2.50x\nQ3 4,000x");
+  expect(preview.primaryScore).toBe(1960);
+  expect(preview.metrics.displayScore).toBe("1,960×");
+  expect(preview.metrics.components).toEqual([1200, 2.5, 4000]);
 });
 
 test("rejects invalid Fermi text before saving", () => {
