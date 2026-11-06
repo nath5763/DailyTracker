@@ -87,6 +87,10 @@ export function leaderboardCachePath(id: string, gameSlug: string | undefined, r
   return `/leaderboards/${encodeURIComponent(id)}?${game}range=${encodeURIComponent(range)}`;
 }
 
+export function leaderboardMemberScoresCachePath(id: string, userId: string, gameSlug: string, range: string) {
+  return `/leaderboards/${encodeURIComponent(id)}/members/${encodeURIComponent(userId)}/scores?game=${encodeURIComponent(gameSlug)}&range=${encodeURIComponent(range)}`;
+}
+
 export function clearClientCache(userId: string) {
   sessionEpoch += 1;
   const userPrefix = prefix(userId);

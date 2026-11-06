@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { cachedApiGet, invalidateClientCache, leaderboardCachePath } from "./client-cache";
+import { cachedApiGet, invalidateClientCache, leaderboardCachePath, leaderboardMemberScoresCachePath } from "./client-cache";
 
 function browserStorage() {
   const values = new Map<string, string>();
@@ -55,4 +55,6 @@ test("builds explicit and automatic game leaderboard paths", () => {
     .toBe("/leaderboards/board%201?game=fermi&range=7d");
   expect(leaderboardCachePath("board 1", undefined, "today"))
     .toBe("/leaderboards/board%201?range=today");
+  expect(leaderboardMemberScoresCachePath("board 1", "player/2", "word game", "30d"))
+    .toBe("/leaderboards/board%201/members/player%2F2/scores?game=word%20game&range=30d");
 });

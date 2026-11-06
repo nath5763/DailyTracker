@@ -15,6 +15,7 @@ vi.mock("@/lib/client-cache", () => ({
     state.cachePathArgs = args;
     return "/board-detail";
   },
+  leaderboardMemberScoresCachePath: vi.fn(),
   invalidateClientCachePrefix: vi.fn(),
   useCachedApi: (path: string) => ({
     data: path === "/leaderboards" ? state.summaries : path === "/board-detail" ? state.board : null,
@@ -56,8 +57,10 @@ test("shows position, full rankings, then progress", () => {
     absent: [], range: "today" };
   const html = render();
   expect(html.indexOf("YOUR POSITION")).toBeLessThan(html.indexOf("<h2>Leaderboard</h2>"));
-  expect(html.indexOf("<h2>Leaderboard</h2>")).toBeLessThan(html.indexOf('href="/profile/viewer-share"'));
-  expect(html.indexOf('href="/profile/viewer-share"')).toBeLessThan(html.indexOf("<h2>Progress</h2>"));
+  expect(html.indexOf("<h2>Leaderboard</h2>")).toBeLessThan(html.indexOf("Viewer"));
+  expect(html.indexOf("Viewer")).toBeLessThan(html.indexOf("<h2>Progress</h2>"));
+  expect(html).toContain('aria-expanded="false"');
+  expect(html).not.toContain('href="/profile/viewer-share"');
 });
 
 test("keeps the leaderboard section visible when no one has scored", () => {
@@ -75,4 +78,14 @@ test("lets the API choose the most recently played game for an all-game board", 
   state.board = { ...summary, boardType: "MULTI_GAME", members: [], rankings: [], absent: [], range: "today" };
   render();
   expect(state.cachePathArgs).toEqual(["board", undefined, "today"]);
+});
+
+test("renders ranked, podium, and combined names as score toggles", () => {
+  state.summaries = [{ ...summary, boardType: "MULTI_GAME" }];
+  const player = { rank: 1, userId: "player", shareId: "player-share", displayName: "Player", average: 10, gamesPlayed: 1 };
+  state.board = { ...summary, boardType: "MULTI_GAME", members: [], rankings: [player], combinedRankings: [player], absent: [], range: "today" };
+  const html = render();
+  expect((html.match(/<button/g) ?? []).length).toBeGreaterThanOrEqual(3);
+  expect((html.match(/aria-controls="player-scores-/g) ?? []).length).toBe(3);
+  expect(html).not.toContain('href="/profile/player-share"');
 });

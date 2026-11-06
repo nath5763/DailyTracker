@@ -64,6 +64,7 @@ export type Dashboard = { profile: Profile; stats: Stats; statsByGame: GameStats
 export type Member = { userId: string; shareId: string; displayName: string; avatarColor: string; owner: boolean };
 export type Ranking = { rank: number; userId: string; shareId: string; displayName: string; average: number; gamesPlayed: number; assistedResults?: number; unknownAssistanceResults?: number; hints?: number; mistakes?: number; beginnerAssists?: number; displayScore?: string | null; leaderboardPoints?: number | null; participationPoints?: number; manualResults?: number };
 export type Leaderboard = { id: string; name: string; ownerId: string; game: Game; boardType: "SINGLE_GAME" | "MULTI_GAME"; games: Game[]; range: string; owner: boolean; members: Member[]; rankings: Ranking[]; absent: Member[]; combinedRankings?: Ranking[] };
+export type LeaderboardMemberScores = { member: Member; game: Game; period: string; ranking: Ranking | null; rankedPlayerCount: number; scores: Score[] };
 export type LeaderboardInsights = { from: string; to: string; ranks: { userId: string; displayName: string; avatarColor: string; points: { date: string; rank: number | null }[] }[]; personalScores: { date: string; score: number; assistanceTier: number }[] };
 export type PlayerProfile = { profile: Profile; self: boolean; stats: Stats; statsByGame: GameStats[]; scores: Score[] };
 export type BillingTier = "FREE" | "STANDARD" | "PREMIUM";
