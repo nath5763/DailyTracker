@@ -14,6 +14,7 @@ import { DiscordLinkInstructions } from "@/components/discord-link-instructions"
 import { DeleteLeaderboard } from "@/components/delete-leaderboard";
 import { LeaderboardGameSelector, readLastSelectedLeaderboardGame } from "@/components/leaderboard-game-selector";
 import { MemberManager, RemoveMemberButton } from "@/components/member-manager";
+import { ShareLeaderboardModal } from "@/components/share-leaderboard-modal";
 import { ManageBillingButton, SubscriptionChoices } from "@/components/billing-actions";
 import { invalidateClientCachePrefix, leaderboardCachePath, useCachedApi } from "@/lib/client-cache";
 import { formatRankingScore, formatResultDetails } from "@/lib/format";
@@ -42,6 +43,7 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
   const [refreshError, setRefreshError] = useState("");
   const [insightsVersion, setInsightsVersion] = useState(0);
   const [expanded, setExpanded] = useState<ExpandedPlayer>(null);
+  const [sharing, setSharing] = useState(false);
   function togglePlayer(playerId: string, location: NonNullable<ExpandedPlayer>["location"]) {
     setExpanded(current => nextExpandedPlayer(current, playerId, location));
   }
@@ -62,7 +64,8 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
   const scoring = board.game.rankingDirection === "lower" ? "Lower average wins." : "Higher average wins.";
   const games = board.games?.length ? board.games : [board.game];
   return <section className="page shell">
-    <div className="page-heading"><div><p className="section-number">{board.game.name.toUpperCase()} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions"><p>{board.members.length} player{board.members.length === 1 ? "" : "s"} · {scoring} <a className="secondary-link" href={board.game.sourceUrl} rel="noreferrer" target="_blank">Play {board.game.name}</a></p>{backToBoards}<button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div>
+    <div className="page-heading"><div><p className="section-number">{board.game.name.toUpperCase()} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions"><p>{board.members.length} player{board.members.length === 1 ? "" : "s"} · {scoring} <a className="secondary-link" href={board.game.sourceUrl} rel="noreferrer" target="_blank">Play {board.game.name}</a></p>{backToBoards}<button className="button button-small" type="button" onClick={() => setSharing(true)}>Share Results</button><button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div>
+    {sharing ? <ShareLeaderboardModal board={board} onClose={() => setSharing(false)} /> : null}
     {refreshError ? <div className="form-message error">{refreshError}</div> : null}
     <div className="grid score-layout"><section className="card">
       {games.length > 1 ? <LeaderboardGameSelector boardId={id} games={games} selected={board.game} range={range} recentGameSlugs={board.recentGameSlugs} /> : null}

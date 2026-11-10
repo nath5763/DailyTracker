@@ -79,6 +79,7 @@ test("shows position, full rankings, then progress", () => {
   expect(html.indexOf("<h2>Leaderboard</h2>")).toBeLessThan(html.indexOf("Viewer"));
   expect(html.indexOf("Viewer")).toBeLessThan(html.indexOf("<h2>Progress</h2>"));
   expect(html).toContain('aria-expanded="false"');
+  expect(html).toContain("Share Results");
   expect(html).not.toContain('href="/profile/viewer-share"');
 });
 
