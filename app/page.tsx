@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
+import { apiFetch } from "@/lib/api";
+import type { CatalogGame } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +11,9 @@ const sampleRows = [
   { rank: "03", name: "You", score: "1.67×", meta: "7 day avg", color: "#a8c7ff" },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supportedGames = (await apiFetch<CatalogGame[]>("/catalog/games"))
+    .filter((game) => game.scoreTrackingAvailable);
   return (
     <main>
       <SiteHeader />
@@ -40,6 +44,15 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="home-games shell" aria-labelledby="home-games-title">
+        <div className="home-games-heading">
+          <div><p className="section-number">GAMES WE TRACK</p><h2 id="home-games-title">Your favorites, on one scoreboard.</h2></div>
+          <Link className="secondary-link" href="/games">Explore every game →</Link>
+        </div>
+        <p>Track results for {supportedGames.length} daily game{supportedGames.length === 1 ? "" : "s"}, including:</p>
+        <ul className="home-games-list">{supportedGames.map((game) => <li key={game.slug}>{game.name}</li>)}</ul>
+      </section>
+
       <section className="marquee" aria-hidden="true">
         <span>PASTE SCORE ✦ COMPARE ✦ TALK TRASH ✦ REPEAT ✦ PASTE SCORE ✦ COMPARE ✦ TALK TRASH ✦ REPEAT ✦</span>
       </section>
@@ -58,7 +71,7 @@ export default function HomePage() {
 
       <section className="discord-feature shell" aria-labelledby="discord-title">
         <div><p className="section-number">PLAY TOGETHER, WHERE YOU CHAT</p><h2 id="discord-title">Your daily games club belongs in Discord, too.</h2></div>
-        <div><p>Link your Daily Club account, submit Fermi and Krillion results with <code>/daily</code>, and see your group&apos;s rankings with <code>/leaderboard</code> in a connected channel.</p><p>Paid board owners can connect server channels. Friends on the free plan can join in.</p><Link className="button" href="/pricing">See plans <span aria-hidden="true">→</span></Link></div>
+        <div><p>Link your Daily Tracker account, submit supported game share results with <code>/daily</code>, and see your multi-game leaderboard rankings with <code>/leaderboard</code>. Choose a game for each command.</p><p>Paid board owners can connect server channels. Friends on the free plan can join in, and the user app works in DMs and Group DMs.</p><Link className="button" href="/discord">Set up Discord <span aria-hidden="true">→</span></Link></div>
       </section>
 
       <section className="closing shell">

@@ -1,17 +1,7 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { publicInviteUrl } from "@/components/share-leaderboard-modal";
 import { copyPngOrDownload } from "./share-image";
 
 afterEach(() => vi.unstubAllGlobals());
-
-test("only public invite URLs may appear on a card", () => {
-  expect(publicInviteUrl("https://dailytracker.cc/join?invite=abc")).toBe("https://dailytracker.cc/join?invite=abc");
-  for (const value of ["/leaderboards/private", "https://dailytracker.cc/leaderboards/private",
-    "http://dailytracker.cc/join?invite=abc", "https://other.example/join?invite=abc",
-    "https://dailytracker.cc/join?invite=abc&token=private", "not a url"]) {
-    expect(publicInviteUrl(value)).toBeNull();
-  }
-});
 
 test("copying a PNG uses the clipboard when supported", async () => {
   const write = vi.fn().mockResolvedValue(undefined);

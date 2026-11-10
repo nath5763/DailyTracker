@@ -29,7 +29,7 @@ export function ThemeToggle() {
   }
 
   return <section className="card theme-setting">
-    <div><h2>Appearance</h2><p className="subtle">Use darker backgrounds and lighter text across Daily Club.</p></div>
+    <div><h2>Appearance</h2><p className="subtle">Use darker backgrounds and lighter text across Daily Tracker.</p></div>
     <label className="theme-switch"><input type="checkbox" checked={darkMode} disabled={saving} onChange={() => void toggle()} /><span>Dark mode</span></label>
     {error && <p role="alert" className="form-message error">{error}</p>}
   </section>;

@@ -3,7 +3,7 @@ import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "How Daily Club collects, uses, and shares information.",
+  description: "How Daily Tracker collects, uses, and shares information.",
 };
 export const dynamic = "force-dynamic";
 
@@ -14,8 +14,8 @@ export default function PrivacyPage() {
       <div className="privacy-page shell">
         <article className="privacy-content">
           <p className="section-number">PRIVACY POLICY</p>
-          <h1>Your data at Daily Club.</h1>
-          <p>Last updated November 3, 2026. This policy explains what Daily Club collects, why it is used, and when it is shared. It applies when you visit the site, sign in, submit scores, join a leaderboard, link Discord, or manage a subscription.</p>
+          <h1>Your data at Daily Tracker.</h1>
+          <p>Last updated November 3, 2026. This policy explains what Daily Tracker collects, why it is used, and when it is shared. It applies when you visit the site, sign in, submit scores, join a leaderboard, link Discord, or manage a subscription.</p>
 
           <section>
             <h2>Information we collect</h2>
@@ -24,7 +24,7 @@ export default function PrivacyPage() {
               <li><strong>Profile data:</strong> your display name, avatar color, and shareable account UUID.</li>
               <li><strong>Game and leaderboard data:</strong> the scores and result text you submit, puzzle and play dates, leaderboard names, memberships, rankings, and ownership.</li>
               <li><strong>Discord integration data:</strong> a linked Discord user ID, server and channel IDs connected to leaderboards, link and configuration timestamps, and short-lived one-time link-code and interaction records. Link codes are stored only as hashes.</li>
-              <li><strong>Billing data:</strong> subscription status and Stripe customer or subscription identifiers. Payment card details are collected and handled by Stripe, not stored by Daily Club.</li>
+              <li><strong>Billing data:</strong> subscription status and Stripe customer or subscription identifiers. Payment card details are collected and handled by Stripe, not stored by Daily Tracker.</li>
               <li><strong>Technical and advertising data:</strong> IP address, browser or device details, cookie identifiers, and information about visits and ad interactions collected through hosting logs and Google advertising services.</li>
             </ul>
           </section>
@@ -36,12 +36,12 @@ export default function PrivacyPage() {
 
           <section>
             <h2>When information is shared</h2>
-            <p>Daily Club shares information only as needed to run the service, comply with law, or protect the service and its users:</p>
+            <p>Daily Tracker shares information only as needed to run the service, comply with law, or protect the service and its users:</p>
             <ul>
               <li><strong>Other leaderboard members</strong> can see the profile, scores, rankings, and account UUIDs made available within leaderboards they share with you. Leaderboard owners can manage membership.</li>
               <li><strong>Brevo</strong> processes your email address and message-delivery data to send verification and password-reset emails.</li>
               <li><strong>Stripe</strong> processes payment and billing data for subscriptions and the customer billing portal.</li>
-              <li><strong>Discord</strong> processes slash-command content and identifiers when you use the Discord integration. Daily Club returns private command responses through Discord.</li>
+              <li><strong>Discord</strong> processes slash-command content and identifiers when you use the Discord integration. Daily Tracker returns private command responses through Discord.</li>
               <li><strong>DigitalOcean</strong> hosts the application and database and may process stored data and technical request logs on our behalf.</li>
               <li><strong>Google</strong> uses cookies and similar technologies to deliver, personalize, and measure advertising through Google AdSense. Depending on your settings and consent choices, Google may use activity from this site and other sites for personalized ads.</li>
             </ul>

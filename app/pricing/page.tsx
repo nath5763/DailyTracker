@@ -4,7 +4,7 @@ import { getViewer } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import type { BillingStatus } from "@/lib/types";
 
-export const metadata = { title: "Pricing · Daily Club", description: "Compare Daily Club's free and paid plans for private daily game leaderboards and Discord integration." };
+export const metadata = { title: "Pricing · Daily Tracker", description: "Compare Daily Tracker's free and paid plans for private daily game leaderboards and Discord integration." };
 export const dynamic = "force-dynamic";
 
 const plans = [
@@ -23,6 +23,6 @@ export default async function PricingPage() {
       <ul>{plan.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
       <PricingActions tier={plan.tier} billing={billing} shareId={viewer.profile?.shareId} needsSetup={Boolean(viewer.user && !viewer.profile)} />
     </article>)}</div>
-    <p className="pricing-note">Discord commands currently support Fermi and Krillion. Linked free members can use supported commands in a paid owner&apos;s connected channel. You can change or cancel a paid plan in Stripe billing settings.</p>
+    <p className="pricing-note">Discord commands support share-text games on multi-game leaderboards. Choose a game when you use <code>/daily</code> or <code>/leaderboard</code>. Linked free members can use supported commands in a paid owner&apos;s connected channel or use the user app in DMs and Group DMs. You can change or cancel a paid plan in Stripe billing settings.</p>
   </section></main>;
 }

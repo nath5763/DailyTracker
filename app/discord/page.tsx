@@ -4,7 +4,7 @@ import { getViewer } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Discord Setup Guide",
-  description: "Connect Daily Club leaderboards to Discord server channels, DMs, and Group DMs.",
+  description: "Connect Daily Tracker leaderboards to Discord server channels, DMs, and Group DMs.",
 };
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,7 @@ export default async function DiscordGuidePage() {
       <div className="discord-guide-grid">
         <article className="card discord-guide-card"><p className="section-number">SERVER CHANNELS</p><h2>Connect an existing channel</h2><p className="discord-access-note"><strong>Paid owner feature.</strong> The leaderboard owner needs an active paid plan; other members do not.</p><ol>
           <li>The leaderboard owner links their Discord identity from their Profile.</li>
-          <li>The owner needs a paid Daily Club plan and <strong>Manage Server</strong> permission in Discord.</li>
+          <li>The owner needs a paid Daily Tracker plan and <strong>Manage Server</strong> permission in Discord.</li>
           <li>Open a multi-game leaderboard you own and select <strong>Add leaderboard to Discord</strong>.</li>
           <li>Authorize the Daily Tracker app and bot for the server.</li>
           <li>Select an existing text channel to connect it to the leaderboard.</li>
@@ -42,7 +42,7 @@ export default async function DiscordGuidePage() {
         <li>In an unconfigured DM or Group DM, provide the leaderboard UUID when the command asks for the <code>leaderboard</code> option.</li>
       </ul></section>
 
-      <section className="discord-guide-section"><h2>Permissions and membership</h2><p>If setup says you lack permission, confirm that the Discord account linked to your Profile has Manage Server permission and that you are the Daily Club leaderboard owner. If a command says you are not a member, link the Discord account you are currently using and ask the owner to add your Daily Club account to the leaderboard first.</p></section>
+      <section className="discord-guide-section"><h2>Permissions and membership</h2><p>If setup says you lack permission, confirm that the Discord account linked to your Profile has Manage Server permission and that you are the Daily Tracker leaderboard owner. If a command says you are not a member, link the Discord account you are currently using and ask the owner to add your Daily Tracker account to the leaderboard first.</p></section>
 
       <section className="card discord-guide-section"><h2>Group DM privacy</h2><p>Daily Tracker is not a permanent participant in a Group DM. It responds only when someone explicitly uses an app command, and it does not passively read or parse the chat&apos;s messages.</p></section>
     </section>

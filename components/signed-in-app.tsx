@@ -19,7 +19,7 @@ function CurrentView() {
   useEffect(() => {
     const name = pathname === "/dashboard" ? "Overview" : pathname === "/submit" ? "Add score" :
       pathname.startsWith("/leaderboards") ? "Leaderboards" : "Profile";
-    document.title = `${name} · Daily Club`;
+    document.title = `${name} · Daily Tracker`;
   }, [pathname]);
   if (pathname === "/dashboard") return <DashboardView />;
   if (pathname === "/submit") return <SubmitView />;

@@ -2,29 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ShareableLeaderboardCard } from "@/components/shareable-leaderboard-card";
-import type { Leaderboard } from "@/lib/types";
+import { leaderboardMemberScoresCachePath } from "@/lib/client-cache";
+import type { Leaderboard, LeaderboardMemberScores } from "@/lib/types";
 import { copyPngOrDownload } from "@/lib/share-image";
-
-type InviteResponse = { active: boolean; url: string | null };
-
-export function publicInviteUrl(value: string | null | undefined): string | null {
-  if (!value) return null;
-  try {
-    const url = new URL(value);
-    if (url.protocol !== "https:" || url.hostname !== "dailytracker.cc" || url.username || url.password ||
-        url.pathname !== "/join" || url.searchParams.size !== 1 || !url.searchParams.get("invite") || url.hash) return null;
-    return url.toString();
-  } catch { return null; }
-}
 
 export function ShareLeaderboardModal({ board, onClose }: { board: Leaderboard; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
-  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
-  const [inviteLoading, setInviteLoading] = useState(board.owner);
-  const [inviteError, setInviteError] = useState("");
+  const [resultsByPlayer, setResultsByPlayer] = useState<Record<string, LeaderboardMemberScores>>({});
+  const [resultsLoading, setResultsLoading] = useState(board.rankings.length > 0);
+  const [resultsError, setResultsError] = useState("");
   const [retry, setRetry] = useState(0);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -46,20 +35,22 @@ export function ShareLeaderboardModal({ board, onClose }: { board: Leaderboard; 
   }, []);
 
   useEffect(() => {
-    if (!board.owner) return;
+    const topPlayers = board.rankings.slice(0, 3);
+    if (!topPlayers.length) return;
     const controller = new AbortController();
-    fetch(`/api/v1/leaderboards/${encodeURIComponent(board.id)}/invite`, {
-      cache: "no-store", credentials: "same-origin", signal: controller.signal,
-    }).then(async response => {
-      if (!response.ok) throw new Error("Could not check the invite link.");
-      const invite = await response.json() as InviteResponse;
-      setInviteUrl(invite.active ? publicInviteUrl(invite.url) : null);
-      setInviteError("");
+    Promise.all(topPlayers.map(async (player) => {
+      const path = leaderboardMemberScoresCachePath(board.id, player.userId, board.game.slug, board.range);
+      const response = await fetch(`/api/v1${path}`, { cache: "no-store", credentials: "same-origin", signal: controller.signal });
+      if (!response.ok) throw new Error("Could not load the game results.");
+      return [player.userId, await response.json() as LeaderboardMemberScores] as const;
+    })).then((entries) => {
+      setResultsByPlayer(Object.fromEntries(entries));
+      setResultsError("");
     }).catch(() => {
-      if (!controller.signal.aborted) setInviteError("Could not check the invite link. Retry before sharing.");
-    }).finally(() => { if (!controller.signal.aborted) setInviteLoading(false); });
+      if (!controller.signal.aborted) setResultsError("Could not load the game results. Retry before sharing.");
+    }).finally(() => { if (!controller.signal.aborted) setResultsLoading(false); });
     return () => controller.abort();
-  }, [board.id, board.owner, retry]);
+  }, [board, retry]);
 
   async function generate(): Promise<Blob> {
     if (!cardRef.current) throw new Error("The card is not ready yet.");
@@ -99,11 +90,11 @@ export function ShareLeaderboardModal({ board, onClose }: { board: Leaderboard; 
 
   return <dialog ref={dialogRef} className="share-dialog" onClose={onClose} aria-labelledby="share-dialog-title">
     <div className="share-dialog-header"><div><p className="section-number">SHARE RESULTS</p><h2 id="share-dialog-title">Preview your card</h2></div><button className="text-button" type="button" onClick={() => dialogRef.current?.close()} aria-label="Close share card">Close</button></div>
-    <div className="share-card-preview" ref={previewRef}><div className="share-card-scale" style={{ transform: `scale(${scale})` }}><ShareableLeaderboardCard board={board} inviteUrl={inviteUrl} ref={cardRef} /></div></div>
-    {inviteLoading ? <p role="status">Checking invite permissions…</p> : null}
-    {inviteError ? <p className="form-message error" role="alert">{inviteError} <button className="text-button" type="button" onClick={() => { setInviteLoading(true); setInviteError(""); setRetry(value => value + 1); }}>Retry</button></p> : null}
+    <div className="share-card-preview" ref={previewRef}><div className="share-card-scale" style={{ transform: `scale(${scale})` }}><ShareableLeaderboardCard board={board} resultsByPlayer={resultsByPlayer} ref={cardRef} /></div></div>
+    {resultsLoading ? <p role="status">Loading game results…</p> : null}
+    {resultsError ? <p className="form-message error" role="alert">{resultsError} <button className="text-button" type="button" onClick={() => { setResultsLoading(true); setResultsError(""); setRetry(value => value + 1); }}>Retry</button></p> : null}
     {error ? <p className="form-message error" role="alert">{error}</p> : null}
     {message ? <p className="form-message success" role="status">{message}</p> : null}
-    <div className="share-dialog-actions"><button className="button" type="button" disabled={busy || inviteLoading || Boolean(inviteError)} onClick={() => void exportImage("download")}>{busy ? "Generating image…" : "Download as PNG"}</button><button className="button button-ghost" type="button" disabled={busy || inviteLoading || Boolean(inviteError)} onClick={() => void exportImage("copy")}>Copy image to clipboard</button></div>
+    <div className="share-dialog-actions"><button className="button" type="button" disabled={busy || resultsLoading || Boolean(resultsError)} onClick={() => void exportImage("download")}>{busy ? "Generating image…" : "Download as PNG"}</button><button className="button button-ghost" type="button" disabled={busy || resultsLoading || Boolean(resultsError)} onClick={() => void exportImage("copy")}>Copy image to clipboard</button></div>
   </dialog>;
 }

@@ -4,7 +4,7 @@ export function Logo() {
   return (
     <AppLink className="logo" href="/">
       <span className="logo-mark" aria-hidden="true">D</span>
-      <span>DAILY CLUB</span>
+      <span>DAILY TRACKER</span>
     </AppLink>
   );
 }

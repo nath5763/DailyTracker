@@ -64,6 +64,12 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .discord-feature p { line-height: 1.6; }
 .discord-feature code { background: var(--paper); padding: 2px 5px; }
 .discord-feature .button { margin-top: 12px; }
+.home-games { padding: 72px 0 86px; }
+.home-games-heading { display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: 18px; }
+.home-games-heading h2 { max-width: 760px; margin: 14px 0 0; font-family: var(--font-display); font-size: clamp(38px, 5vw, 66px); line-height: 1; letter-spacing: -.055em; }
+.home-games > p { margin: 22px 0; color: var(--muted); }
+.home-games-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.home-games-list li { padding: 9px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--cream); font-size: 14px; font-weight: 800; }
 .pricing-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 .pricing-card { display: flex; flex-direction: column; }
 .pricing-card h2 { font-size: 48px; margin: 10px 0; }
@@ -330,25 +336,28 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 .share-card-kicker { color: #c4b7ff; font-size: 18px; font-weight: 900; letter-spacing: .14em; }
 .share-card-kicker span { color: #c7d68c; }
 .share-card-period { padding: 11px 19px; border: 1px solid #696878; border-radius: 999px; color: #e7e4f2; font-size: 17px; font-weight: 800; }
-.share-card-title { margin: 24px 0 22px; min-width: 0; }
-.share-card-title h2 { max-width: 100%; overflow: hidden; margin: 0; color: #fff; font-family: var(--font-display); font-size: 53px; line-height: 1.12; text-overflow: ellipsis; white-space: nowrap; }
-.share-card-title p { margin: 8px 0 0; color: #c8c5d1; font-size: 24px; }
+.share-card-title { margin: 20px 0 18px; min-width: 0; }
+.share-card-title h2 { max-width: 100%; overflow: hidden; margin: 0; color: #c8c5d1; font-size: 25px; font-weight: 800; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.share-card-title p { max-width: 100%; overflow: hidden; margin: 7px 0 0; color: #fff; font-family: var(--font-display); font-size: 60px; font-weight: 900; line-height: 1.05; letter-spacing: -.045em; text-overflow: ellipsis; white-space: nowrap; }
 .share-card-players { display: grid; gap: 12px; flex: 1; align-content: start; }
 .share-card-player { display: flex; align-items: center; gap: 20px; min-width: 0; height: 88px; padding: 0 24px; border: 1px solid #4c4e5b; border-radius: 17px; background: #292b36; }
 .share-card-first { border-color: #d8bc69; background: #3a342a; box-shadow: inset 5px 0 0 #d8bc69; }
 .share-card-rank { width: 58px; flex: none; color: #c8c5d1; font-family: var(--font-display); font-size: 29px; }
 .share-card-first .share-card-rank { color: #f3d787; }
 .share-card-name { min-width: 0; flex: 1; overflow: hidden; font-size: 28px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
-.share-card-score { max-width: 35%; overflow: hidden; color: #e4e1ee; font-family: var(--font-display); font-size: 26px; text-overflow: ellipsis; white-space: nowrap; }
+.share-card-result { display: grid; justify-items: end; min-width: 0; max-width: 42%; }
+.share-card-result-label { max-width: 100%; overflow: hidden; color: #bbb8c9; font-size: 13px; font-weight: 900; letter-spacing: .08em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.share-card-score { max-width: 100%; overflow: hidden; color: #e4e1ee; font-family: var(--font-display); font-size: 28px; text-overflow: ellipsis; white-space: nowrap; }
+.share-card-result-count { color: #bbb8c9; font-size: 13px; }
 .share-card-first .share-card-score { color: #f3d787; }
 .share-card-empty { padding: 34px; border: 1px dashed #696878; border-radius: 17px; color: #d3d0dc; font-size: 25px; }
 .share-card-footer { min-height: 76px; margin-top: auto; padding-top: 12px; border-top: 1px solid #4c4e5b; }
 .share-card-brand { display: flex; align-items: center; gap: 14px; font-family: var(--font-display); font-size: 21px; }
 .share-card-mark { display: grid; width: 45px; height: 45px; place-items: center; border-radius: 50%; background: #c7d68c; color: #171722; font-size: 24px; transform: rotate(-8deg); }
 .share-card-brand small { display: block; margin-top: 3px; color: #aaa7b7; font-family: var(--font-body); font-size: 15px; }
-.share-card-invite { display: grid; justify-items: end; gap: 5px; max-width: 720px; overflow: hidden; color: #e8e5f1; font-size: 16px; }
-.share-card-invite span:first-child { color: #c7d68c; font-size: 12px; font-weight: 900; letter-spacing: .12em; }
-.share-card-invite span:last-child { max-width: 100%; overflow-wrap: anywhere; text-align: right; line-height: 1.2; }
+.share-card-join { display: grid; justify-items: end; gap: 5px; max-width: 720px; overflow: hidden; color: #e8e5f1; font-size: 16px; }
+.share-card-join span:first-child { color: #c7d68c; font-size: 12px; font-weight: 900; letter-spacing: .12em; }
+.share-card-join span:last-child { max-width: 100%; overflow-wrap: anywhere; text-align: right; line-height: 1.2; }
 @media (max-width: 620px) { .share-dialog { padding: 14px; } .share-dialog-actions { justify-content: stretch; } .share-dialog-actions .button { width: 100%; } }
 
 html[data-theme="dark"] { color-scheme: dark; --ink: #efedf7; --paper: #191a23; --cream: #292b36; --lime: #c7d68c; --avatar-lime: #c7d68c; --purple: #a998ff; --muted: #c2c0cb; --line: #5d5e6b; --shadow: 0 18px 60px rgba(0, 0, 0, .28); }

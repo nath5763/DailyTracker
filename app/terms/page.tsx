@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
-  description: "Terms for using Daily Club leaderboards, scores, Discord integration, and subscriptions.",
+  description: "Terms for using Daily Tracker leaderboards, scores, Discord integration, and subscriptions.",
 };
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ export default function TermsPage() {
       <article className="privacy-content">
         <p className="section-number">TERMS OF SERVICE</p>
         <h1>Play fair. Keep it friendly.</h1>
-        <p>Last updated November 4, 2026. These terms govern your use of Daily Club, operated by SNSH Solutions. By creating an account or using the service, you agree to these terms.</p>
+        <p>Last updated November 4, 2026. These terms govern your use of Daily Tracker, operated by SNSH Solutions. By creating an account or using the service, you agree to these terms.</p>
 
         <section>
           <h2>Your account</h2>
@@ -24,13 +24,13 @@ export default function TermsPage() {
 
         <section>
           <h2>Scores and leaderboards</h2>
-          <p>Scores are self-reported. Submit only your own genuine game results and check the preview carefully: an individual saved result cannot currently be edited or removed. Rankings reflect submitted results and are not independently verified by Daily Club.</p>
+          <p>Scores are self-reported. Submit only your own genuine game results and check the preview carefully: an individual saved result cannot currently be edited or removed. Rankings reflect submitted results and are not independently verified by Daily Tracker.</p>
           <p>Leaderboards are shared with their members. Owners choose whom to invite and manage membership. Treat other players respectfully; do not use names, result text, or leaderboard features to harass others, impersonate someone, or disrupt the service.</p>
         </section>
 
         <section>
           <h2>Subscriptions and billing</h2>
-          <p>Daily Club offers a free tier and monthly paid tiers. The current price and included features are shown before checkout. Stripe handles payment details and provides the billing portal, where you can change tiers or cancel your subscription.</p>
+          <p>Daily Tracker offers a free tier and monthly paid tiers. The current price and included features are shown before checkout. Stripe handles payment details and provides the billing portal, where you can change tiers or cancel your subscription.</p>
           <p>Cancelling a subscription normally leaves paid access available through the current billing period. If paid access ends, existing all-game leaderboards become locked and connected Discord channels stop working until the board owner regains a paid entitlement. Existing boards are kept when a tier limit decreases, but creation remains subject to the current limit.</p>
         </section>
 
