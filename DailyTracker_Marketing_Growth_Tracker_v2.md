@@ -12,14 +12,14 @@
 | Status | Priority | Idea / task | Definition of done | Notes |
 |---|---|---|---|---|
 | ⬜ | P0 | Test first-time onboarding with unfamiliar users | 5 users create/join a group without guidance; record friction | |
-| ⬜ | P0 | Put **Add to Discord** prominently on homepage | Clear Discord CTA with working install flow | |
-| ⬜ | P0 | Show a public demo leaderboard | Visitors can see a realistic group ranking without signing up | |
-| ⬜ | P0 | Simplify group creation and invitations | Users can create a group and invite friends with one shareable link | |
-| ⬜ | P0 | Audit score submission/parsing accuracy | Most-used games tested with valid and malformed result formats | |
-| ⬜ | P0 | Expand Discord support for popular games | Clearly identify supported Discord games; prioritize requested games | |
+| ✅ | P0 | Put **Add to Discord** prominently on homepage | Clear Discord CTA with working install flow | Homepage hero links to the Discord section and setup guide; the guide offers server setup and a configured user-app install link. |
+| ✅ | P0 | Show a public demo leaderboard | Visitors can see a realistic group ranking without signing up | Homepage hero shows a sample group ranking. |
+| ✅ | P0 | Simplify group creation and invitations | Users can create a group and invite friends with one shareable link | Board creation and reusable invite links are available. |
+| 🟡 | P0 | Audit score submission/parsing accuracy | Most-used games tested with valid and malformed result formats | Parser tests cover valid and malformed shares; usage data is still needed to identify the most-used games, and Quordle production behavior needs confirmation. |
+| 🟡 | P0 | Expand Discord support for popular games | Clearly identify supported Discord games; prioritize requested games | `/daily` offers game autocomplete and `/loldle` handles five modes; a clear Discord-supported game list and demand-based prioritization remain. |
 | ⬜ | P0 | Set up product analytics | Track visitor → signup → group → 3 players → weekly active group | |
-| ⬜ | P1 | Rewrite landing-page value proposition | Headline emphasizes friendly competition, not just score tracking | |
-| ⬜ | P1 | Make pricing and free-tier limits obvious | Users understand what works free vs. paid | |
+| ✅ | P1 | Rewrite landing-page value proposition | Headline emphasizes friendly competition, not just score tracking | Homepage leads with “Friendly stakes” and private competition among friends. |
+| ✅ | P1 | Make pricing and free-tier limits obvious | Users understand what works free vs. paid | Pricing page lists free and paid limits and Discord server access. |
 
 ## Priority 1 — First community acquisitions (Days 15–30)
 
@@ -38,9 +38,9 @@
 
 | Status | Priority | Idea / task | Definition of done | Notes |
 |---|---|---|---|---|
-| ⬜ | P0 | Add shareable weekly leaderboard cards | Attractive result image/link with discreet DailyTracker branding | |
+| ✅ | P0 | Add shareable weekly leaderboard cards | Attractive result image/link with discreet DailyTracker branding | Last-7-days results can be copied or downloaded as a branded PNG. |
 | ⬜ | P0 | Add auto-posted Discord weekly recaps | Configurable recap with rankings and a link back to the group | |
-| ⬜ | P0 | Support easy invite-to-join flow | New friend joins from a link with minimal account steps | |
+| 🟡 | P0 | Support easy invite-to-join flow | New friend joins from a link with minimal account steps | Invite links preserve the destination through signup and auto-redeem after profile setup; the account and profile steps still need simplification. |
 | ⬜ | P1 | Test automatic parsing of native game shares | Where permissions allow, users need fewer manual slash commands | |
 | ⬜ | P1 | List bot in Discord App Directory | Meets current verification, listing, and policy requirements | |
 | ⬜ | P1 | List bot on top.gg and relevant directories | Complete listing, screenshots, category/tags, and support URL | |
@@ -55,8 +55,8 @@
 
 | Status | Priority | Idea / task | Definition of done | Notes |
 |---|---|---|---|---|
-| ⬜ | P0 | Test free basic Discord integration | Compare activation/retention vs. paywalled Discord setup | |
-| ⬜ | P1 | Define premium group features | E.g., more groups, extended stats, custom rankings, advanced automation | |
+| 🟡 | P0 | Test free basic Discord integration | Compare activation/retention vs. paywalled Discord setup | Free members can use the user app in DMs and Group DMs; the activation and retention comparison has not been recorded. |
+| ✅ | P1 | Define premium group features | E.g., more groups, extended stats, custom rankings, advanced automation | Standard and Premium define one or five all-game boards and Discord server-channel access. |
 | ⬜ | P1 | Measure free-to-paid conversion | Track upgrade rate by cohort and acquisition source | |
 | ⬜ | P1 | Double down on top acquisition channel | Reallocate effort using **retained groups**, not traffic | |
 | ⬜ | P1 | Test small community sponsorships | Track cost per activated and retained group | |

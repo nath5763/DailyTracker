@@ -101,19 +101,19 @@ export function LeaderboardDiscord({ boardId, owner, setupToken, discordStatus }
 
   const selected = available.find(channel => channel.channelId === chosen);
   return <section className="card" id="leaderboard-discord">
-    <h2 className="discord-label"><DiscordSymbol />Discord channels</h2>
-    <div className="leaderboard-discord-uuid">
+    <h2>Discord channels</h2>
+    <div className={`leaderboard-discord-uuid${connected.data?.length ? " with-connected-channels" : ""}`}>
       <div className="field"><label htmlFor="leaderboard-discord-uuid">Leaderboard UUID</label><input id="leaderboard-discord-uuid" readOnly value={boardId} onFocus={event => event.currentTarget.select()} /></div>
       <CopyButton value={boardId} label="Copy leaderboard UUID" />
       <p className="subtle">The leaderboard owner can use this UUID with <code>/set-leaderboard</code> once in a Discord Group DM.</p>
-      <AppLink className="secondary-link discord-label" href="/discord"><DiscordSymbol />Read the Discord setup guide</AppLink>
+      <AppLink className="secondary-link" href="/discord">Read the Discord setup guide</AppLink>
     </div>
-    {connected.data?.length ? <div className="list">{connected.data.map(channel => {
+    {connected.data?.length ? <div className="list discord-channel-list">{connected.data.map(channel => {
       const key = `${channel.guildId}:${channel.channelId}`;
       const label = channel.name ? `#${channel.name}` : channel.channelId;
       return <div className="list-row discord-channel-row" key={key}>
         <span>Connected channel <small>{label}</small></span>
-        <a className="secondary-link discord-label" href={channel.url} target="_blank" rel="noopener noreferrer"><DiscordSymbol />Open channel in Discord</a>
+        <a className="secondary-link" href={channel.url} target="_blank" rel="noopener noreferrer">Open channel in Discord</a>
         {owner && confirmDisconnect !== key ? <button className="text-button" type="button" disabled={Boolean(disconnecting)} onClick={() => { setConfirmDisconnect(key); setMessage(""); setNotice(""); }}>Remove</button> : null}
         {owner && confirmDisconnect === key ? <div className="discord-channel-confirm">
           <p>Disconnect {label} from this leaderboard? You can add it again later.</p>
@@ -144,7 +144,7 @@ export function LeaderboardDiscord({ boardId, owner, setupToken, discordStatus }
         {replace ? <div><p>Replace the leaderboard connected to this channel?</p><button className="button" disabled={loading} onClick={() => void save(true)} type="button">Confirm replacement</button></div>
           : <button className="button" disabled={loading || !chosen} onClick={() => void save(false)} type="button">Connect channel</button>}
       </div> : null}
-      {saved ? <p className="form-message success">Channel connected. <a className="discord-label" href={saved.url} target="_blank" rel="noopener noreferrer"><DiscordSymbol />Open channel in Discord</a></p> : null}
+      {saved ? <p className="form-message success">Channel connected. <a href={saved.url} target="_blank" rel="noopener noreferrer">Open channel in Discord</a></p> : null}
     </> : null}
     {message ? <p className="form-message error" role="alert">{message}</p> : null}
     {notice ? <p className="form-message success" role="status">{notice}</p> : null}

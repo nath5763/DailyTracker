@@ -22,12 +22,16 @@ export default async function HomePage() {
       <section className="hero shell">
         <div className="eyebrow"><span /> Built for the group chat</div>
         <h1>Daily games<br /><em>Friendly stakes</em></h1>
-        <p className="hero-copy">One private scoreboard for every tiny game your friends refuse to stop talking about.</p>
+        <p className="hero-copy">Turn the daily games your friends play into a private, friendly competition.</p>
         <div className="hero-actions">
-          <Link className="button" href="/auth">Start your club <span>→</span></Link>
-          <a className="secondary-link" href="#how">See how it works</a>
-          <Link className="secondary-link" href="/games">Browse games</Link>
-          <a className="secondary-link hero-discord-link" href="#discord"><DiscordSymbol />Integrate with Discord</a>
+          <div className="hero-primary-actions">
+            <Link className="button" href="/auth">Start your club <span aria-hidden="true">→</span></Link>
+            <a className="secondary-link" href="#how">How it works <span aria-hidden="true">↓</span></a>
+          </div>
+          <div className="hero-explore-actions">
+            <Link href="/games">Browse games <span aria-hidden="true">↗</span></Link>
+            <a href="#discord"><DiscordSymbol />Connect with Discord <span aria-hidden="true">↓</span></a>
+          </div>
         </div>
 
         <div className="hero-board" aria-label="Example leaderboard">
@@ -73,7 +77,7 @@ export default async function HomePage() {
       </section>
 
       <section className="discord-feature shell" id="discord" aria-labelledby="discord-title">
-        <div><p className="section-number">PLAY TOGETHER, WHERE YOU CHAT</p><h2 className="discord-label" id="discord-title"><DiscordSymbol />Your daily games club belongs in Discord, too</h2></div>
+        <div><p className="section-number">PLAY TOGETHER, WHERE YOU CHAT</p><h2 id="discord-title">Your daily games club belongs in Discord, too</h2></div>
         <div><p>Link your Daily Tracker account, submit supported game share results with <code>/daily</code>, and see your multi-game leaderboard rankings with <code>/leaderboard</code>. Choose a game for each command.</p><p>Paid board owners can connect server channels. Friends on the free plan can join in, and the user app works in DMs and Group DMs.</p><Link className="button discord-label" href="/discord"><DiscordSymbol />Set up Discord <span aria-hidden="true">→</span></Link></div>
       </section>
 
