@@ -85,7 +85,7 @@ export function DiscordCard() {
       <p>Discord linking is not available yet. Your dashboard and scores still work normally.</p>
     </> : status.linked ? <>
       <h2>Connected</h2>
-      <p>Your Discord identity is linked. You can submit with <code>/daily</code> in a configured server channel, DM, or Group DM.</p>
+      <p>Your Discord identity is linked. You can submit to a multi-game leaderboard with <code>/daily</code> in a configured server channel, DM, or Group DM. Choose a game each time.</p>
       <button className="button button-ghost" disabled={working} onClick={unlink} type="button">
         {working ? "Unlinking…" : "Unlink Discord"}
       </button>
@@ -107,7 +107,7 @@ export function DiscordCard() {
         Add to my Discord apps <span aria-hidden="true">↗</span>
       </a>
     </> : null}
-    {status?.configured && billingResult.data?.tier !== "FREE" && billingResult.data ? <p className="subtle">Open a leaderboard you own to add it to a Discord channel.</p>
+    {status?.configured && billingResult.data?.tier !== "FREE" && billingResult.data ? <p className="subtle">Open a multi-game leaderboard you own to add it to a Discord channel.</p>
       : status?.configured && billingResult.data?.tier === "FREE" ? <p className="subtle">A paid tier is required to add Daily Tracker to a server. You can still link your account and use commands in a paid owner&apos;s connected channel.</p> : null}
     <AppLink className="secondary-link discord-guide-link" href="/discord">Read the Discord setup guide</AppLink>
     {message ? <div className={`form-message ${message.includes("unlinked") ? "success" : "error"}`} role="status">{message}</div> : null}

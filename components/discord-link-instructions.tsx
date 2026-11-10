@@ -8,6 +8,6 @@ export function DiscordLinkInstructions({ afterJoin = false }: { afterJoin?: boo
       <li>{afterJoin ? "Open" : "After joining, open"} the <strong>Discord</strong> section on your {afterJoin ? <Link href="/dashboard">dashboard</Link> : "dashboard"} and select <strong>Generate link code</strong>.</li>
       <li>Within 10 minutes, run <code>/link code:&lt;code&gt;</code> from your Discord account in a server where Daily Tracker is installed.</li>
     </ol>
-    <p>Once linked, you can use <code>/daily</code> in a channel connected to this leaderboard.</p>
+    <p>Once linked, you can use <code>/daily</code> with a required game selection in a channel connected to a multi-game leaderboard.</p>
   </section>;
 }

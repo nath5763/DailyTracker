@@ -44,6 +44,23 @@ test("shows a back button on normal and locked leaderboards", () => {
   expectBackLink(render());
 });
 
+test("explains that Discord connections require a multi-game leaderboard", () => {
+  state.summaries = [summary];
+  state.board = { ...summary, members: [], rankings: [], absent: [], range: "today" };
+  const html = render();
+  expect(html).toContain("Discord requires a multi-game leaderboard");
+  expect(html).not.toContain("Add leaderboard to Discord");
+});
+
+test("shows Discord connection controls on multi-game leaderboards", () => {
+  const multi = { ...summary, boardType: "MULTI_GAME", owner: true };
+  state.summaries = [multi];
+  state.board = { ...multi, members: [], rankings: [], absent: [], range: "today" };
+  const html = render();
+  expect(html).toContain("Discord channels");
+  expect(html).not.toContain("Discord requires a multi-game leaderboard");
+});
+
 test("shows a back button while loading and when a leaderboard is unavailable", () => {
   state.summaries = null;
   state.board = null;

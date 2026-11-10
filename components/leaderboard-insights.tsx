@@ -46,7 +46,7 @@ function RankGraph({ data }: { data: LeaderboardInsights }) {
       <text x="42" y="225" fontSize="12">{dateLabel(data.from)}</text><text x="592" y="225" fontSize="12" textAnchor="end">{dateLabel(data.to)}</text>
     </svg></div>
     <div className="rank-legend">{active.map((series, index) => <span key={series.userId}><i style={{ background: lineColor(index) }} />{series.displayName}</span>)}</div>
-    <p className="subtle">Each day shows the standing among current members using scores from the preceding 30 days. A gap means no score in that window.</p>
+    <p className="subtle">Each day shows placement among current members who played that game on that date. A gap means no result that day.</p>
   </div>;
 }
 

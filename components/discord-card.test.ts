@@ -26,7 +26,7 @@ test("points linked and unlinked paid viewers to their leaderboard", () => {
   for (const linked of [false, true]) {
     state.status = { configured: true, linked, linkedAt: null, installUrl };
     const html = renderToStaticMarkup(createElement(DiscordCard));
-    expect(html).toContain("Open a leaderboard you own");
+    expect(html).toContain("Open a multi-game leaderboard you own");
     expect(html).not.toContain("href=\"" + installUrl.replaceAll("&", "&amp;") + "\"");
   }
 });
