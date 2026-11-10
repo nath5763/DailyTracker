@@ -11,6 +11,7 @@
   --shadow: 0 18px 60px rgba(35, 30, 20, .10);
   --font-body: "Trebuchet MS", Arial, sans-serif;
   --font-display: "Arial Black", "Trebuchet MS", sans-serif;
+  --chart-line-lightness: 36%;
 }
 
 * { box-sizing: border-box; }
@@ -177,6 +178,7 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 .insights-heading .tabs { margin: 0 0 12px; }
 .rank-chart-scroll { overflow-x: auto; }
 .rank-chart-scroll svg { display: block; min-width: 510px; width: 100%; }
+.rank-chart-scroll svg text { fill: currentColor; }
 .rank-legend { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 12px 0; font-size: 12px; }
 .rank-legend span { display: inline-flex; gap: 5px; align-items: center; }
 .rank-legend i { width: 10px; height: 10px; border-radius: 50%; }
@@ -237,6 +239,13 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 .checkbox-field label { display: flex; align-items: center; gap: 8px; }
 .checkbox-field input { width: auto; }
 .leaderboard-game-selector { width: 100%; margin-bottom: 20px; }
+.leaderboard-game-toolbar { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.leaderboard-game-toolbar .leaderboard-game-selector { flex: 1 1 320px; width: auto; min-width: 0; margin-bottom: 0; }
+.leaderboard-game-toolbar > .button { flex: none; min-height: 40px; }
+.leaderboard-game-toolbar > .field-label { flex: 1; }
+.combined-standings { margin-top: 30px; border-color: var(--purple); }
+.combined-standings > .section-number { color: var(--purple); }
+.combined-standings > .subtle { max-width: 800px; line-height: 1.5; }
 .leaderboard-game-selector .field-label { display: block; margin-bottom: 7px; }
 .leaderboard-game-controls { min-height: 43px; display: flex; align-items: stretch; gap: 8px; min-width: 0; }
 .leaderboard-game-quick-picks { min-width: 0; display: flex; flex: 1 1 auto; gap: 8px; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; padding-bottom: 3px; }
@@ -331,24 +340,31 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 .share-dialog-actions .button { gap: 8px; }
 .share-card-preview { width: 100%; aspect-ratio: 1200 / 630; overflow: hidden; border-radius: 14px; }
 .share-card-scale { width: 1200px; height: 630px; transform-origin: top left; }
-.share-card { width: 1200px; height: 630px; display: flex; flex-direction: column; overflow: hidden; padding: 45px 55px 38px; border: 1px solid #505465; border-radius: 26px; background: #191a23; color: #f3f1f8; font-family: var(--font-body); }
+.share-card { width: 1200px; height: 630px; display: flex; flex-direction: column; overflow: hidden; padding: 32px 48px 28px; border: 1px solid #505465; border-radius: 26px; background: #191a23; color: #f3f1f8; font-family: var(--font-body); }
 .share-card-header, .share-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
 .share-card-kicker { color: #c4b7ff; font-size: 18px; font-weight: 900; letter-spacing: .14em; }
 .share-card-kicker span { color: #c7d68c; }
 .share-card-period { padding: 11px 19px; border: 1px solid #696878; border-radius: 999px; color: #e7e4f2; font-size: 17px; font-weight: 800; }
-.share-card-title { margin: 20px 0 18px; min-width: 0; }
+.share-card-title { margin: 14px 0 12px; min-width: 0; }
 .share-card-title h2 { max-width: 100%; overflow: hidden; margin: 0; color: #c8c5d1; font-size: 25px; font-weight: 800; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
 .share-card-title p { max-width: 100%; overflow: hidden; margin: 7px 0 0; color: #fff; font-family: var(--font-display); font-size: 60px; font-weight: 900; line-height: 1.05; letter-spacing: -.045em; text-overflow: ellipsis; white-space: nowrap; }
-.share-card-players { display: grid; gap: 12px; flex: 1; align-content: start; }
-.share-card-player { display: flex; align-items: center; gap: 20px; min-width: 0; height: 88px; padding: 0 24px; border: 1px solid #4c4e5b; border-radius: 17px; background: #292b36; }
+.share-card-players { display: grid; gap: 8px; flex: 1; align-content: start; }
+.share-card-player { display: flex; align-items: center; gap: 14px; min-width: 0; height: 72px; padding: 0 18px; border: 1px solid #4c4e5b; border-radius: 14px; background: #292b36; }
 .share-card-first { border-color: #d8bc69; background: #3a342a; box-shadow: inset 5px 0 0 #d8bc69; }
-.share-card-rank { width: 58px; flex: none; color: #c8c5d1; font-family: var(--font-display); font-size: 29px; }
+.share-card-own:not(.share-card-first) { border-color: #a998ff; background: #302e42; }
+.share-card-rank { width: 54px; flex: none; color: #c8c5d1; font-family: var(--font-display); font-size: 26px; }
 .share-card-first .share-card-rank { color: #f3d787; }
-.share-card-name { min-width: 0; flex: 1; overflow: hidden; font-size: 28px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.share-card-name { min-width: 0; flex: 1; overflow: hidden; font-size: 22px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.share-card-name small { margin-left: 10px; color: #c4b7ff; font-size: 12px; letter-spacing: .08em; vertical-align: middle; }
 .share-card-result { display: grid; justify-items: end; min-width: 0; max-width: 42%; }
 .share-card-result-label { max-width: 100%; overflow: hidden; color: #bbb8c9; font-size: 13px; font-weight: 900; letter-spacing: .08em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 .share-card-score { max-width: 100%; overflow: hidden; color: #e4e1ee; font-family: var(--font-display); font-size: 28px; text-overflow: ellipsis; white-space: nowrap; }
-.share-card-result-count { color: #bbb8c9; font-size: 13px; }
+.share-card-stats { display: flex; justify-content: flex-end; gap: 22px; min-width: 0; max-width: 64%; }
+.share-card-stats > span { display: grid; justify-items: end; min-width: 76px; }
+.share-card-stats small { color: #bbb8c9; font-size: 11px; font-weight: 900; letter-spacing: .08em; }
+.share-card-stats strong { max-width: 190px; overflow: hidden; color: #e4e1ee; font-family: var(--font-display); font-size: 21px; text-overflow: ellipsis; white-space: nowrap; }
+.share-card-first .share-card-stats strong { color: #f3d787; }
+.share-card-unranked { color: #bbb8c9; font-size: 18px; font-weight: 800; }
 .share-card-first .share-card-score { color: #f3d787; }
 .share-card-empty { padding: 34px; border: 1px dashed #696878; border-radius: 17px; color: #d3d0dc; font-size: 25px; }
 .share-card-footer { min-height: 76px; margin-top: auto; padding-top: 12px; border-top: 1px solid #4c4e5b; }
@@ -360,7 +376,7 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 .share-card-join span:last-child { max-width: 100%; overflow-wrap: anywhere; text-align: right; line-height: 1.2; }
 @media (max-width: 620px) { .share-dialog { padding: 14px; } .share-dialog-actions { justify-content: stretch; } .share-dialog-actions .button { width: 100%; } }
 
-html[data-theme="dark"] { color-scheme: dark; --ink: #efedf7; --paper: #191a23; --cream: #292b36; --lime: #c7d68c; --avatar-lime: #c7d68c; --purple: #a998ff; --muted: #c2c0cb; --line: #5d5e6b; --shadow: 0 18px 60px rgba(0, 0, 0, .28); }
+html[data-theme="dark"] { color-scheme: dark; --ink: #efedf7; --paper: #191a23; --cream: #292b36; --lime: #c7d68c; --avatar-lime: #c7d68c; --purple: #a998ff; --muted: #c2c0cb; --line: #5d5e6b; --chart-line-lightness: 72%; --shadow: 0 18px 60px rgba(0, 0, 0, .28); }
 html[data-theme="dark"] .button:not(.button-ghost), html[data-theme="dark"] .card-lime, html[data-theme="dark"] .result-chip, html[data-theme="dark"] .podium-place-1 { color: #171722; }
 html[data-theme="dark"] .button-ghost { color: var(--ink); }
 html[data-theme="dark"] .avatar, html[data-theme="dark"] .closing { color: #171722; }

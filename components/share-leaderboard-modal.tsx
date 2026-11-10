@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ShareableLeaderboardCard } from "@/components/shareable-leaderboard-card";
+import { useAppData } from "@/components/app-data-provider";
 import { leaderboardMemberScoresCachePath } from "@/lib/client-cache";
 import type { Leaderboard, LeaderboardMemberScores } from "@/lib/types";
 import { copyPngOrDownload } from "@/lib/share-image";
 
 export function ShareLeaderboardModal({ board, onClose }: { board: Leaderboard; onClose: () => void }) {
+  const { userId } = useAppData();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -36,9 +38,12 @@ export function ShareLeaderboardModal({ board, onClose }: { board: Leaderboard; 
 
   useEffect(() => {
     const topPlayers = board.rankings.slice(0, 3);
-    if (!topPlayers.length) return;
+    const ownRanking = board.rankings.find((player) => player.userId === userId);
+    const players = ownRanking && !topPlayers.some((player) => player.userId === userId)
+      ? [...topPlayers, ownRanking] : topPlayers;
+    if (!players.length) return;
     const controller = new AbortController();
-    Promise.all(topPlayers.map(async (player) => {
+    Promise.all(players.map(async (player) => {
       const path = leaderboardMemberScoresCachePath(board.id, player.userId, board.game.slug, board.range);
       const response = await fetch(`/api/v1${path}`, { cache: "no-store", credentials: "same-origin", signal: controller.signal });
       if (!response.ok) throw new Error("Could not load the game results.");
@@ -50,7 +55,7 @@ export function ShareLeaderboardModal({ board, onClose }: { board: Leaderboard; 
       if (!controller.signal.aborted) setResultsError("Could not load the game results. Retry before sharing.");
     }).finally(() => { if (!controller.signal.aborted) setResultsLoading(false); });
     return () => controller.abort();
-  }, [board, retry]);
+  }, [board, userId, retry]);
 
   async function generate(): Promise<Blob> {
     if (!cardRef.current) throw new Error("The card is not ready yet.");
@@ -90,7 +95,7 @@ export function ShareLeaderboardModal({ board, onClose }: { board: Leaderboard; 
 
   return <dialog ref={dialogRef} className="share-dialog" onClose={onClose} aria-labelledby="share-dialog-title">
     <div className="share-dialog-header"><div><p className="section-number">SHARE RESULTS</p><h2 id="share-dialog-title">Preview your card</h2></div><button className="text-button" type="button" onClick={() => dialogRef.current?.close()} aria-label="Close share card">Close</button></div>
-    <div className="share-card-preview" ref={previewRef}><div className="share-card-scale" style={{ transform: `scale(${scale})` }}><ShareableLeaderboardCard board={board} resultsByPlayer={resultsByPlayer} ref={cardRef} /></div></div>
+    <div className="share-card-preview" ref={previewRef}><div className="share-card-scale" style={{ transform: `scale(${scale})` }}><ShareableLeaderboardCard board={board} currentUserId={userId} resultsByPlayer={resultsByPlayer} ref={cardRef} /></div></div>
     {resultsLoading ? <p role="status">Loading game results…</p> : null}
     {resultsError ? <p className="form-message error" role="alert">{resultsError} <button className="text-button" type="button" onClick={() => { setResultsLoading(true); setResultsError(""); setRetry(value => value + 1); }}>Retry</button></p> : null}
     {error ? <p className="form-message error" role="alert">{error}</p> : null}

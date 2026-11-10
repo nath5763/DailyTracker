@@ -64,11 +64,14 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
   const scoring = board.game.rankingDirection === "lower" ? "Lower average wins." : "Higher average wins.";
   const games = board.games?.length ? board.games : [board.game];
   return <section className="page shell">
-    <div className="page-heading"><div><p className="section-number">{board.game.name.toUpperCase()} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions"><p>{board.members.length} player{board.members.length === 1 ? "" : "s"} · {scoring} <a className="secondary-link" href={board.game.sourceUrl} rel="noreferrer" target="_blank">Play {board.game.name}</a></p>{backToBoards}<button className="button button-small" type="button" onClick={() => setSharing(true)}>Share Results</button><button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div>
+    <div className="page-heading"><div><p className="section-number">{board.game.name.toUpperCase()} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions"><p>{board.members.length} player{board.members.length === 1 ? "" : "s"} · {scoring} <a className="secondary-link" href={board.game.sourceUrl} rel="noreferrer" target="_blank">Play {board.game.name}</a></p>{backToBoards}<button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div>
     {sharing ? <ShareLeaderboardModal board={board} onClose={() => setSharing(false)} /> : null}
     {refreshError ? <div className="form-message error">{refreshError}</div> : null}
     <div className="grid score-layout"><section className="card">
-      {games.length > 1 ? <LeaderboardGameSelector boardId={id} games={games} selected={board.game} range={range} recentGameSlugs={board.recentGameSlugs} /> : null}
+      <div className="leaderboard-game-toolbar">
+        {games.length > 1 ? <LeaderboardGameSelector boardId={id} games={games} selected={board.game} range={range} recentGameSlugs={board.recentGameSlugs} /> : <span className="field-label">{board.game.name} results</span>}
+        <button className="button button-small" type="button" aria-label={`Share ${board.game.name} results`} onClick={() => setSharing(true)}>Share Results</button>
+      </div>
       <nav className="tabs leaderboard-range-tabs" aria-label="Leaderboard date range">{ranges.map((tab) => <AppLink className={`tab ${range === tab.key ? "active" : ""}`} aria-current={range === tab.key ? "page" : undefined} href={`/leaderboards/${id}?game=${encodeURIComponent(board.game.slug)}&range=${tab.key}`} key={tab.key}>{tab.label}</AppLink>)}</nav>
       <LeaderboardPosition board={board} userId={userId} />
       <section className="leaderboard-rankings" id="leaderboard-game-results" aria-label="Leaderboard rankings"><h2>Leaderboard</h2>
@@ -81,13 +84,18 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
         })}{board.absent.map((member) => <div className="list-row" key={member.userId}><span className="rank">--</span><span>{member.displayName}<small>Not played</small></span><strong>--</strong></div>)}</div> : null}
         <LeaderboardPodium board={board} expanded={expanded} onToggle={togglePlayer} />
       </section>
-      {board.boardType === "MULTI_GAME" && board.combinedRankings?.length ? <section className="leaderboard-rankings" aria-label="Combined leaderboard rankings"><h2>Combined standings</h2><p className="subtle">Placement points compare players only within the same game and puzzle. First place earns 100 points; each subsequent place earns 20% less than the previous place, rounded down. Failed results earn no performance points; participation remains separate.</p><div className="list">{board.combinedRankings.map((row) => {
-        const panelId = memberScoresPanelId(row.userId, "combined");
-        const open = expanded?.userId === row.userId && expanded.location === "combined";
-        return <Fragment key={row.userId}><button className="list-row leaderboard-player-toggle" type="button" aria-expanded={open} aria-controls={panelId} onClick={() => togglePlayer(row.userId, "combined")}><span className="rank">{String(row.rank).padStart(2, "0")}</span><span>{row.displayName}<small>{row.participationPoints ?? row.gamesPlayed} participation point{(row.participationPoints ?? row.gamesPlayed) === 1 ? "" : "s"}{row.manualResults ? ` · ${row.manualResults} manual · unverified` : ""}</small></span><strong>{row.displayScore ?? `${row.leaderboardPoints ?? row.average} leaderboard pts`}</strong></button>{open ? <LeaderboardMemberScoresPanel boardId={board.id} userId={row.userId} shareId={row.shareId} game={board.game} range={range} panelId={panelId} /> : null}</Fragment>;
-      })}</div></section> : null}
       <LeaderboardInsightsView key={`${board.game.slug}-${insightsVersion}-${board.members.map(member => member.userId).join(",")}`} boardId={id} game={board.game} />
     </section><aside className="card" id="leaderboard-roster-management">{board.owner ? <><h2>Manage players</h2><LeaderboardInvite boardId={id} /><div className="spacer" /><p className="subtle">Add an existing account using its exact UUID.</p><MemberManager leaderboardId={id} onChanged={() => void result.refresh()} /><div className="spacer" /><div className="list">{board.members.map((member) => <div className="list-row" key={member.userId}><span className="avatar small" style={{ background: avatarBackground(member.avatarColor) }}>{member.displayName[0].toUpperCase()}</span><span>{member.displayName}<small>{member.owner ? "Owner" : "Member"}</small></span>{!member.owner ? <RemoveMemberButton leaderboardId={id} userId={member.userId} onChanged={() => void result.refresh()} /> : <strong>★</strong>}</div>)}</div></> : <><h2>Club roster</h2><div className="list">{board.members.map((member) => <div className="list-row" key={member.userId}><span className="avatar small" style={{ background: avatarBackground(member.avatarColor) }}>{member.displayName[0].toUpperCase()}</span><span>{member.displayName}</span><strong>{member.owner ? "Owner" : ""}</strong></div>)}</div></>}</aside></div>
+    {board.boardType === "MULTI_GAME" && board.combinedRankings?.length ? <section className="card combined-standings" aria-label="Combined leaderboard rankings">
+      <p className="section-number">ACROSS ALL GAMES · {ranges.find((tab) => tab.key === range)?.label.toUpperCase()}</p>
+      <h2>Combined standings</h2>
+      <p className="subtle">These standings combine every game in this leaderboard. Placement points compare players within each game and puzzle: first place earns 100 points, and each subsequent place earns 20% less, rounded down. Failed results earn no performance points; participation remains separate.</p>
+      <div className="list">{board.combinedRankings.map((row) => <div className="list-row" key={row.userId}>
+        <span className="rank">{String(row.rank).padStart(2, "0")}</span>
+        <span>{row.displayName}<small>{row.participationPoints ?? row.gamesPlayed} participation point{(row.participationPoints ?? row.gamesPlayed) === 1 ? "" : "s"}{row.manualResults ? ` · ${row.manualResults} manual · unverified` : ""}</small></span>
+        <strong>{row.displayScore ?? `${row.leaderboardPoints ?? row.average} leaderboard pts`}</strong>
+      </div>)}</div>
+    </section> : null}
     {joinedFromInvite ? <><div className="spacer" /><DiscordLinkInstructions afterJoin /></> : null}
     <div className="spacer" />{board.boardType === "MULTI_GAME"
       ? <LeaderboardDiscord boardId={id} owner={board.owner} discordStatus={discordStatus} setupToken={setupToken} />

@@ -146,12 +146,25 @@ test("restores the last selected game for each leaderboard", () => {
   expect(state.cachePathArgs).toEqual(["board", "krillion", "today"]);
 });
 
-test("renders ranked, podium, and combined names as score toggles", () => {
+test("keeps combined standings separate from selected-game score details", () => {
   state.summaries = [{ ...summary, boardType: "MULTI_GAME" }];
   const player = { rank: 1, userId: "player", shareId: "player-share", displayName: "Player", average: 10, gamesPlayed: 1 };
   state.board = { ...summary, boardType: "MULTI_GAME", members: [], rankings: [player], combinedRankings: [player], absent: [], range: "today" };
   const html = render();
   expect((html.match(/<button/g) ?? []).length).toBeGreaterThanOrEqual(3);
-  expect((html.match(/aria-controls="player-scores-/g) ?? []).length).toBe(3);
+  expect((html.match(/aria-controls="player-scores-/g) ?? []).length).toBe(2);
+  expect(html).toContain("ACROSS ALL GAMES");
+  expect(html.indexOf("<h2>Progress</h2>")).toBeLessThan(html.indexOf("<h2>Combined standings</h2>"));
+  expect(html).not.toContain("player-scores-combined");
   expect(html).not.toContain('href="/profile/player-share"');
+});
+
+test("places sharing beside the selected game controls", () => {
+  state.summaries = [summary];
+  state.board = { ...summary, members: [], rankings: [], absent: [], range: "today" };
+  const html = render();
+  expect(html).toContain('class="leaderboard-game-toolbar"');
+  expect(html).toContain('aria-label="Share Fermi results"');
+  expect(html.indexOf("leaderboard-game-toolbar")).toBeLessThan(html.indexOf("Share Results"));
+  expect(html.indexOf("Share Results")).toBeLessThan(html.indexOf("leaderboard-range-tabs"));
 });

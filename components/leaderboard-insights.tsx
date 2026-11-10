@@ -5,7 +5,7 @@ import { useCachedApi } from "@/lib/client-cache";
 import { formatScore } from "@/lib/format";
 import type { Game, LeaderboardInsights } from "@/lib/types";
 
-const lineColor = (index: number) => `hsl(${Math.round((index * 137.5 + 260) % 360)} 65% 36%)`;
+const lineColor = (index: number) => `hsl(${Math.round((index * 137.5 + 260) % 360)} 65% var(--chart-line-lightness))`;
 const localDate = (date: string) => {
   const [year, month, day] = date.split("-").map(Number);
   return new Date(year, month - 1, day, 12);
@@ -41,7 +41,7 @@ function RankGraph({ data }: { data: LeaderboardInsights }) {
   };
   return <div>
     <div className="rank-chart-scroll"><svg viewBox="0 0 620 235" role="img" aria-label={`Rank progression from ${dateLabel(data.from)} to ${dateLabel(data.to)}; rank one is best`}>
-      {[1, maxRank].filter((value, index, values) => values.indexOf(value) === index).map(rank => <g key={rank}><line x1="42" x2="592" y1={y(rank)} y2={y(rank)} stroke="#d6d1c6" /><text x="4" y={y(rank) + 4} fontSize="12">#{rank}</text></g>)}
+      {[1, maxRank].filter((value, index, values) => values.indexOf(value) === index).map(rank => <g key={rank}><line x1="42" x2="592" y1={y(rank)} y2={y(rank)} stroke="var(--line)" /><text x="4" y={y(rank) + 4} fontSize="12">#{rank}</text></g>)}
       {active.map((series, index) => { const color = lineColor(index); return <g key={series.userId}><title>{series.displayName}: {series.points.filter(point => point.rank !== null).length} ranked days</title>{segments(series.points).map((segment, segmentIndex) => <polyline key={segmentIndex} points={segment} fill="none" stroke={color} strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />)}{series.points.map((point, day) => point.rank === null ? null : <circle key={point.date} cx={x(day)} cy={y(point.rank)} r="3.5" fill={color}><title>{series.displayName}, {dateLabel(point.date)}: rank {point.rank}</title></circle>)}</g>; })}
       <text x="42" y="225" fontSize="12">{dateLabel(data.from)}</text><text x="592" y="225" fontSize="12" textAnchor="end">{dateLabel(data.to)}</text>
     </svg></div>
