@@ -3,7 +3,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, expect, test, vi } from "vitest";
 import type { Game } from "@/lib/types";
 import { filterLeaderboardGames, leaderboardGameHref, LeaderboardGameSelector, quickPickLeaderboardGames,
-  nextQuickPickIndex, readLastSelectedLeaderboardGame, rememberSelectedLeaderboardGame } from "./leaderboard-game-selector";
+  forgetSelectedLeaderboardGame, nextQuickPickIndex, readLastSelectedLeaderboardGame,
+  rememberSelectedLeaderboardGame } from "./leaderboard-game-selector";
 
 const games = [
   { slug: "fermi", name: "Fermi" },
@@ -66,9 +67,13 @@ test("persists the last selected game per leaderboard", () => {
   vi.stubGlobal("window", { localStorage: {
     getItem: (key: string) => stored.get(key) ?? null,
     setItem: (key: string, value: string) => stored.set(key, value),
+    removeItem: (key: string) => stored.delete(key),
   } });
   rememberSelectedLeaderboardGame("board-a", "wordle");
   rememberSelectedLeaderboardGame("board-b", "fermi");
   expect(readLastSelectedLeaderboardGame("board-a")).toBe("wordle");
+  expect(readLastSelectedLeaderboardGame("board-b")).toBe("fermi");
+  forgetSelectedLeaderboardGame("board-a");
+  expect(readLastSelectedLeaderboardGame("board-a")).toBeNull();
   expect(readLastSelectedLeaderboardGame("board-b")).toBe("fermi");
 });

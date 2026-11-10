@@ -5,9 +5,9 @@ import type { Me, Profile } from "@/lib/types";
 export async function getViewer() {
   try {
     const viewer = await apiFetch<Me>("/me");
-    return { user: viewer.user, profile: viewer.profile };
+    return { user: viewer.user, profile: viewer.profile, darkMode: viewer.darkMode };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) return { user: null, profile: null };
+    if (error instanceof ApiError && error.status === 401) return { user: null, profile: null, darkMode: false };
     throw error;
   }
 }

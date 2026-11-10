@@ -14,7 +14,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: `try { var user = localStorage.getItem('daily-club:theme-user'); var theme = user && localStorage.getItem('daily-club:theme:' + user); document.documentElement.dataset.theme = theme === 'dark' ? 'dark' : 'light'; } catch { document.documentElement.dataset.theme = 'light'; }` }} /></head>
       <body>
         {children}
         <SiteFooter />

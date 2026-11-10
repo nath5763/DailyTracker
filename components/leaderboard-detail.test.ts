@@ -9,7 +9,8 @@ const state = vi.hoisted(() => ({ summaries: null as unknown, board: null as unk
 vi.mock("@/components/app-data-provider", () => ({ useAppData: () => ({ userId: "viewer" }) }));
 vi.mock("@/components/copy-leaderboard", () => ({ CopyLeaderboard: () => null }));
 vi.mock("@/components/member-manager", () => ({ MemberManager: () => null, RemoveMemberButton: () => null }));
-vi.mock("@/components/billing-actions", () => ({ ManageBillingButton: () => null, SubscribeButton: () => null }));
+vi.mock("@/components/billing-actions", () => ({ ManageBillingButton: () => null, SubscribeButton: () => null,
+  SubscriptionChoices: () => null }));
 vi.mock("@/lib/client-cache", () => ({
   leaderboardCachePath: (...args: [string, string | undefined, string]) => {
     state.cachePathArgs = args;
@@ -91,6 +92,7 @@ test("keeps member roster management owner-only", () => {
   expect(memberHtml).not.toContain("Manage players");
   expect(memberHtml).not.toContain("Invite players");
   expect(memberHtml).not.toContain("Add an existing account");
+  expect(memberHtml).not.toContain("Delete leaderboard");
 
   state.summaries = [{ ...summary, owner: true }];
   state.board = { ...state.board as object, owner: true };
@@ -98,6 +100,15 @@ test("keeps member roster management owner-only", () => {
   expect(ownerHtml).toContain("Manage players");
   expect(ownerHtml).toContain("Invite players");
   expect(ownerHtml).toContain("Add an existing account");
+  expect(ownerHtml).toContain("Delete leaderboard");
+});
+
+test("lets only the owner delete a locked leaderboard", () => {
+  state.board = null;
+  state.summaries = [{ ...summary, locked: true, owner: false }];
+  expect(render()).not.toContain("Delete leaderboard");
+  state.summaries = [{ ...summary, locked: true, owner: true }];
+  expect(render()).toContain("Delete leaderboard");
 });
 
 test("lets the API choose the most recently played game for an all-game board", () => {

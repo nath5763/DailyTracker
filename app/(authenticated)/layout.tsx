@@ -9,7 +9,7 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
   const viewer = await requireViewer();
   const games = await apiFetch<Game[]>("/games", { cache: "force-cache", next: { revalidate: 3600 } });
   void children;
-  return <AppDataProvider userId={viewer.user.id} shareId={viewer.profile.shareId} games={games}>
+  return <AppDataProvider userId={viewer.user.id} shareId={viewer.profile.shareId} games={games} darkMode={viewer.darkMode}>
     <SignedInApp header={<SiteHeader viewer={viewer} />} />
   </AppDataProvider>;
 }

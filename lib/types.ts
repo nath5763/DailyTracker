@@ -16,7 +16,7 @@ export type Profile = {
 };
 
 export type User = { id: string; email: string };
-export type Me = { user: User; profile: Profile | null };
+export type Me = { user: User; profile: Profile | null; darkMode: boolean };
 export type Stats = { average: number | null; best: number | null; currentStreak: number; results: number };
 export type ScoreFormat = { prefix: string; suffix: string; minimumDecimalPlaces: number; maximumDecimalPlaces: number; kind?: "number" | "guesses" | "duration" };
 export type SubmissionConfig = {

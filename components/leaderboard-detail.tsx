@@ -10,6 +10,7 @@ import { LeaderboardMemberScoresPanel, memberScoresPanelId, nextExpandedPlayer, 
 import { LeaderboardDiscord } from "@/components/leaderboard-discord";
 import { LeaderboardInvite } from "@/components/leaderboard-invite";
 import { DiscordLinkInstructions } from "@/components/discord-link-instructions";
+import { DeleteLeaderboard } from "@/components/delete-leaderboard";
 import { LeaderboardGameSelector, readLastSelectedLeaderboardGame } from "@/components/leaderboard-game-selector";
 import { MemberManager, RemoveMemberButton } from "@/components/member-manager";
 import { ManageBillingButton, SubscriptionChoices } from "@/components/billing-actions";
@@ -86,12 +87,13 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
     {joinedFromInvite ? <><div className="spacer" /><DiscordLinkInstructions afterJoin /></> : null}
     <div className="spacer" /><LeaderboardDiscord boardId={id} owner={board.owner} discordStatus={discordStatus} setupToken={setupToken} />
     <div className="spacer" /><section className="card" id="leaderboard-roster-copy"><h2>Use this group for another game</h2><p className="subtle">Create a new leaderboard with the same players. You will own the new board.</p><CopyLeaderboard leaderboardId={id} sourceName={board.name} sourceGameSlug={board.game.slug} /></section>
+    {board.owner ? <><div className="spacer" /><DeleteLeaderboard boardId={id} name={board.name} /></> : null}
   </section>;
 }
 
 function Locked({ board, refreshing, refresh }: { board: BoardSummary; refreshing: boolean; refresh: () => Promise<void> }) {
   const billing = useCachedApi<BillingStatus>("/billing/status");
-  return <section className="page shell"><div className="page-heading"><div><p className="section-number">{board.game?.name.toUpperCase() ?? "PRIVATE"} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions">{backToBoards}<button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div><section className="card locked-card"><span className="lock-mark" aria-hidden="true">LOCKED</span><h2>This all-game leaderboard is currently locked.</h2><p>{board.owner ? "Restore a paid tier to reopen its rankings and roster for everyone." : "The owner needs to restore a paid tier before members can view rankings or the roster."}</p>{board.owner ? <div className="billing-buttons" id="locked-board-billing-controls">{!billing.data?.status || billing.data.status === "canceled" || billing.data.status === "incomplete_expired" ? <SubscriptionChoices /> : <ManageBillingButton />}</div> : null}</section>{board.owner ? <section className="card"><LeaderboardInvite boardId={board.id} locked /></section> : null}</section>;
+  return <section className="page shell"><div className="page-heading"><div><p className="section-number">{board.game?.name.toUpperCase() ?? "PRIVATE"} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions">{backToBoards}<button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div><section className="card locked-card"><span className="lock-mark" aria-hidden="true">LOCKED</span><h2>This all-game leaderboard is currently locked.</h2><p>{board.owner ? "Restore a paid tier to reopen its rankings and roster for everyone." : "The owner needs to restore a paid tier before members can view rankings or the roster."}</p>{board.owner ? <div className="billing-buttons" id="locked-board-billing-controls">{!billing.data?.status || billing.data.status === "canceled" || billing.data.status === "incomplete_expired" ? <SubscriptionChoices /> : <ManageBillingButton />}</div> : null}</section>{board.owner ? <><section className="card"><LeaderboardInvite boardId={board.id} locked /></section><div className="spacer" /><DeleteLeaderboard boardId={board.id} name={board.name} /></> : null}</section>;
 }
 
 

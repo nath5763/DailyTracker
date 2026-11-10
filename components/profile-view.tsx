@@ -4,6 +4,7 @@ import { CopyButton } from "@/components/copy-button";
 import { DiscordCard } from "@/components/discord-card";
 import { GameStatsList } from "@/components/game-stats";
 import { SubscriptionPanel } from "@/components/subscription-panel";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useCachedApi } from "@/lib/client-cache";
 import { formatResultScore } from "@/lib/format";
 import type { PlayerProfile } from "@/lib/types";
@@ -15,7 +16,7 @@ export function ProfileView({ shareId, checkout, billingReturn }: { shareId: str
     <div className="page-heading"><div className="profile-top"><span className="avatar" style={{ background: data.profile.avatarColor }}>{data.profile.displayName[0].toUpperCase()}</span><div><p className="section-number">PLAYER PROFILE</p><h1>{data.profile.displayName}</h1></div></div><p>{data.self ? "This is your profile." : "You share a private leaderboard with this player."}</p></div>
     {data.self ? <>
       <div className="grid grid-2 account-grid"><section className="card" id="account-uuid"><h2>Account UUID</h2><p className="subtle">Share this UUID with a leaderboard owner so they can add your account.</p><div className="uuid-box">{data.profile.shareId}</div><CopyButton value={data.profile.shareId} label="Copy account UUID" /></section><DiscordCard /></div>
-      <div className="spacer" /><SubscriptionPanel checkout={checkout} billingReturn={billingReturn} />
+      <div className="spacer" /><ThemeToggle /><div className="spacer" /><SubscriptionPanel checkout={checkout} billingReturn={billingReturn} />
     </> : <>
       <GameStatsList values={data.statsByGame} />
       <div className="spacer" /><div className="grid grid-2"><section className="card"><h2>Score history</h2>{data.scores.length ? <div className="list">{data.scores.map((row) => <div className="list-row" key={row.id}><span className="rank">#{row.puzzleKey}</span><span>{row.gameName}<small>{row.playedOn}{row.submissionMethod === "MANUAL" ? " · Manual · unverified" : ""}</small></span><strong>{formatResultScore(row)}</strong></div>)}</div> : <div className="empty">No submitted games yet.</div>}</section><aside className="card"><h2>Account UUID</h2><p className="subtle">Leaderboard owners use this identifier to add the account.</p><div className="uuid-box">{data.profile.shareId}</div><CopyButton value={data.profile.shareId} /></aside></div>

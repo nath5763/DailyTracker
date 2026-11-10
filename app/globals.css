@@ -114,6 +114,10 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 .form-message { padding: 11px 13px; font-size: 14px; background: #e9e6dd; }
 .form-message.error { color: #8c1d2c; background: #ffe1e5; }
 .form-message.success { color: #145c31; background: #dff6e8; }
+.danger-card { border-width: 2px; box-shadow: 4px 4px 0 var(--pink); }
+.danger-card > p { max-width: 760px; line-height: 1.55; }
+.danger-form { max-width: 620px; margin-top: 22px; }
+.danger-form .button { justify-self: start; }
 .auth-page { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; }
 .auth-art { background: var(--purple); color: white; padding: 45px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
 .auth-art .logo-mark { color: var(--ink); background: var(--lime); }
@@ -301,6 +305,38 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 .discord-guide-section { margin-top: 36px; }
 .discord-guide-section h2 { font-family: var(--font-display); }
 .discord-guide-section p, .discord-guide-section li { line-height: 1.65; }
+
+.theme-setting { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; }
+.theme-setting h2 { margin-bottom: 6px; }
+.theme-setting p { margin: 0; }
+.theme-switch { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; cursor: pointer; }
+.theme-switch input { width: 20px; height: 20px; accent-color: var(--purple); cursor: pointer; }
+.theme-switch input:disabled { cursor: wait; }
+.theme-setting .form-message { flex-basis: 100%; }
+
+html[data-theme="dark"] { color-scheme: dark; --ink: #efedf7; --paper: #191a23; --cream: #292b36; --lime: #e2f86b; --purple: #a998ff; --muted: #c2c0cb; --line: #5d5e6b; --shadow: 0 18px 60px rgba(0, 0, 0, .28); }
+html[data-theme="dark"] .button, html[data-theme="dark"] .card-lime, html[data-theme="dark"] .result-chip, html[data-theme="dark"] .podium-place-1 { color: #171722; }
+html[data-theme="dark"] .card-lime .metric-label { color: #454338; }
+html[data-theme="dark"] .button-dark { background: #494168; color: #fff; }
+html[data-theme="dark"] .logo-mark { color: #171722; }
+html[data-theme="dark"] .hero-copy { color: var(--muted); }
+html[data-theme="dark"] .field input, html[data-theme="dark"] .field textarea, html[data-theme="dark"] .field select,
+html[data-theme="dark"] .leaderboard-game-popover input, html[data-theme="dark"] .member-scores-panel { background: var(--cream); color: var(--ink); }
+html[data-theme="dark"] .uuid-box, html[data-theme="dark"] .form-message { background: #363846; }
+html[data-theme="dark"] .notice { background: #494124; border-color: #c7ad4c; }
+html[data-theme="dark"] .form-message.error, html[data-theme="dark"] .lock-mark { background: #572c38; color: #ffe0e7; border-color: #ef9eaf; }
+html[data-theme="dark"] .form-message.success, html[data-theme="dark"] .success-notice { background: #254535; color: #d6f5e1; border-color: #81d4a0; }
+html[data-theme="dark"] .all-games-card, html[data-theme="dark"] .discord-access-note { background: #34304e; }
+html[data-theme="dark"] .all-games-card .section-number { color: #c2b6ff; }
+html[data-theme="dark"] .locked-row .rank, html[data-theme="dark"] .invite-destructive-action .text-button { color: #ffc1cc; }
+html[data-theme="dark"] .heatmap-day.no-score { background: #424450; border-color: #666875; }
+html[data-theme="dark"] .heatmap-day.worse { background: #526d5d; }
+html[data-theme="dark"] .heatmap-day.typical { background: #6cae87; }
+html[data-theme="dark"] .heatmap-day.better { background: #a9dfb6; }
+html[data-theme="dark"] .podium-place-1 small { color: #454338; }
+html[data-theme="dark"] .tab.active { color: #171722; }
+html[data-theme="dark"] .card-purple, html[data-theme="dark"] .my-position, html[data-theme="dark"] .leaderboard-game-tab.active, html[data-theme="dark"] .marquee, html[data-theme="dark"] .auth-art { background: #5140a2; color: #fff; }
+html[data-theme="dark"] .card-purple .section-number { color: var(--lime); }
 
 @media (max-width: 850px) {
   .site-header nav { gap: 14px; }

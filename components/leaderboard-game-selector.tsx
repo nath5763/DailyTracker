@@ -39,6 +39,12 @@ export function rememberSelectedLeaderboardGame(boardId: string, gameSlug: strin
   catch { /* Selection still works when browser storage is unavailable. */ }
 }
 
+export function forgetSelectedLeaderboardGame(boardId: string) {
+  if (typeof window === "undefined") return;
+  try { window.localStorage.removeItem(selectionKey(boardId)); }
+  catch { /* Deletion still succeeds when browser storage is unavailable. */ }
+}
+
 export function nextQuickPickIndex(index: number, count: number, key: string) {
   if (!count) return null;
   if (key === "ArrowRight") return (index + 1) % count;
