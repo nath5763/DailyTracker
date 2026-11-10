@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { SiteHeader } from "@/components/site-header";
 import { apiFetch } from "@/lib/api";
 import type { CatalogGame } from "@/lib/types";
@@ -14,6 +15,7 @@ const sampleRows = [
 export default async function HomePage() {
   const supportedGames = (await apiFetch<CatalogGame[]>("/catalog/games"))
     .filter((game) => game.scoreTrackingAvailable);
+  const featuredGames = supportedGames.slice(0, 5);
   return (
     <main>
       <SiteHeader />
@@ -25,6 +27,7 @@ export default async function HomePage() {
           <Link className="button" href="/auth">Start your club <span>→</span></Link>
           <a className="secondary-link" href="#how">See how it works</a>
           <Link className="secondary-link" href="/games">Browse games</Link>
+          <a className="secondary-link hero-discord-link" href="#discord"><Image src="/discord-symbol.svg" width={24} height={18} alt="" aria-hidden="true" unoptimized />Integrate with Discord</a>
         </div>
 
         <div className="hero-board" aria-label="Example leaderboard">
@@ -47,10 +50,10 @@ export default async function HomePage() {
       <section className="home-games shell" aria-labelledby="home-games-title">
         <div className="home-games-heading">
           <div><p className="section-number">GAMES WE TRACK</p><h2 id="home-games-title">Your favorites, on one scoreboard</h2></div>
-          <Link className="secondary-link" href="/games">Explore every game →</Link>
+          <Link className="secondary-link" href="/games?tracking=available">View all supported games →</Link>
         </div>
         <p>Track results for {supportedGames.length} daily game{supportedGames.length === 1 ? "" : "s"}, including:</p>
-        <ul className="home-games-list">{supportedGames.map((game) => <li key={game.slug}>{game.name}</li>)}</ul>
+        <ul className="home-games-list">{featuredGames.map((game) => <li key={game.slug}>{game.name}</li>)}</ul>
       </section>
 
       <section className="marquee" aria-hidden="true">
@@ -69,7 +72,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="discord-feature shell" aria-labelledby="discord-title">
+      <section className="discord-feature shell" id="discord" aria-labelledby="discord-title">
         <div><p className="section-number">PLAY TOGETHER, WHERE YOU CHAT</p><h2 id="discord-title">Your daily games club belongs in Discord, too</h2></div>
         <div><p>Link your Daily Tracker account, submit supported game share results with <code>/daily</code>, and see your multi-game leaderboard rankings with <code>/leaderboard</code>. Choose a game for each command.</p><p>Paid board owners can connect server channels. Friends on the free plan can join in, and the user app works in DMs and Group DMs.</p><Link className="button" href="/discord">Set up Discord <span aria-hidden="true">→</span></Link></div>
       </section>
