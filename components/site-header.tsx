@@ -2,6 +2,7 @@ import { AppLink } from "@/components/app-link";
 import { Logo } from "@/components/logo";
 import { getViewer } from "@/lib/auth";
 import { SignOutButton } from "@/components/sign-out-button";
+import { avatarBackground } from "@/lib/avatar-color";
 
 type Viewer = Awaited<ReturnType<typeof getViewer>>;
 
@@ -20,7 +21,7 @@ export async function SiteHeader({ viewer }: { viewer?: Viewer } = {}) {
             <AppLink href="/leaderboards">Leaderboards</AppLink>
             <AppLink className="avatar-link" href={`/profile/${profile.shareId}`} title="Your profile and subscription" aria-label="Your profile and subscription">
               <span>Profile</span>
-              <span className="avatar small" style={{ background: profile.avatarColor }}>
+              <span className="avatar small" style={{ background: avatarBackground(profile.avatarColor) }}>
                 {profile.displayName.slice(0, 1).toUpperCase()}
               </span>
             </AppLink>

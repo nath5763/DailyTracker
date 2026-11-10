@@ -7,13 +7,14 @@ import { SubscriptionPanel } from "@/components/subscription-panel";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useCachedApi } from "@/lib/client-cache";
 import { formatResultScore } from "@/lib/format";
+import { avatarBackground } from "@/lib/avatar-color";
 import type { PlayerProfile } from "@/lib/types";
 
 export function ProfileView({ shareId, checkout, billingReturn }: { shareId: string; checkout?: string; billingReturn?: string }) {
   const { data, error, errorStatus, refresh } = useCachedApi<PlayerProfile>(`/profiles/${encodeURIComponent(shareId)}`, { storage: "memory" });
   if (!data) return <section className="page shell"><div className="card"><p>{errorStatus === 404 ? "Player not found." : error || "Loading profile…"}</p>{error && errorStatus !== 404 ? <button className="button button-ghost" onClick={() => void refresh()}>Retry</button> : null}</div></section>;
   return <section className="page shell">
-    <div className="page-heading"><div className="profile-top"><span className="avatar" style={{ background: data.profile.avatarColor }}>{data.profile.displayName[0].toUpperCase()}</span><div><p className="section-number">PLAYER PROFILE</p><h1>{data.profile.displayName}</h1></div></div><p>{data.self ? "This is your profile." : "You share a private leaderboard with this player."}</p></div>
+    <div className="page-heading"><div className="profile-top"><span className="avatar" style={{ background: avatarBackground(data.profile.avatarColor) }}>{data.profile.displayName[0].toUpperCase()}</span><div><p className="section-number">PLAYER PROFILE</p><h1>{data.profile.displayName}</h1></div></div><p>{data.self ? "This is your profile." : "You share a private leaderboard with this player."}</p></div>
     {data.self ? <>
       <div className="grid grid-2 account-grid"><section className="card" id="account-uuid"><h2>Account UUID</h2><p className="subtle">Share this UUID with a leaderboard owner so they can add your account.</p><div className="uuid-box">{data.profile.shareId}</div><CopyButton value={data.profile.shareId} label="Copy account UUID" /></section><DiscordCard /></div>
       <div className="spacer" /><ThemeToggle /><div className="spacer" /><SubscriptionPanel checkout={checkout} billingReturn={billingReturn} />

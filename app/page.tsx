@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 export const dynamic = "force-dynamic";
 
 const sampleRows = [
-  { rank: "01", name: "Maya", score: "1.18×", meta: "7 day avg", color: "#ddff4f" },
+  { rank: "01", name: "Maya", score: "1.18×", meta: "7 day avg", color: "var(--avatar-lime)" },
   { rank: "02", name: "Theo", score: "1.42×", meta: "7 day avg", color: "#ffb4d2" },
   { rank: "03", name: "You", score: "1.67×", meta: "7 day avg", color: "#a8c7ff" },
 ];
