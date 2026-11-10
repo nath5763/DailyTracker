@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AppLink } from "@/components/app-link";
+import { DiscordSymbol } from "@/components/discord-symbol";
 import { CopyButton } from "@/components/copy-button";
 import type { BillingStatus, DiscordLinkCode, DiscordStatus } from "@/lib/types";
 import { invalidateClientCache, invalidateClientCachePrefix, useCachedApi } from "@/lib/client-cache";
@@ -79,7 +80,7 @@ export function DiscordCard() {
   }
 
   return <section className="card discord-card" id="discord-linking" aria-busy={loading || working}>
-    <p className="field-label">Discord</p>
+    <p className="field-label discord-label"><DiscordSymbol />Discord</p>
     {loading ? <p>Checking Discord linking…</p> : !status?.configured ? <>
       <h2>Not configured</h2>
       <p>Discord linking is not available yet. Your dashboard and scores still work normally.</p>
@@ -103,13 +104,13 @@ export function DiscordCard() {
     </>}
     {status?.configured && userInstallUrl ? <>
       <p className="subtle">Install Daily Tracker to your Discord account to use its commands in DMs and Group DMs. No paid plan is required.</p>
-      <a className="button button-ghost" href={userInstallUrl} target="_blank" rel="noopener noreferrer">
-        Add to my Discord apps <span aria-hidden="true">↗</span>
+      <a className="button button-ghost discord-label" href={userInstallUrl} target="_blank" rel="noopener noreferrer">
+        <DiscordSymbol />Add to my Discord apps <span aria-hidden="true">↗</span>
       </a>
     </> : null}
     {status?.configured && billingResult.data?.tier !== "FREE" && billingResult.data ? <p className="subtle">Open a multi-game leaderboard you own to add it to a Discord channel.</p>
       : status?.configured && billingResult.data?.tier === "FREE" ? <p className="subtle">A paid tier is required to add Daily Tracker to a server. You can still link your account and use commands in a paid owner&apos;s connected channel.</p> : null}
-    <AppLink className="secondary-link discord-guide-link" href="/discord">Read the Discord setup guide</AppLink>
+    <AppLink className="secondary-link discord-guide-link discord-label" href="/discord"><DiscordSymbol />Read the Discord setup guide</AppLink>
     {message ? <div className={`form-message ${message.includes("unlinked") ? "success" : "error"}`} role="status">{message}</div> : null}
   </section>;
 }

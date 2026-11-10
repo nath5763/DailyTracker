@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { DiscordSymbol } from "@/components/discord-symbol";
 
 export function DiscordLinkInstructions({ afterJoin = false }: { afterJoin?: boolean }) {
   return <section className="card" aria-label="Connect Discord">
-    <h2>{afterJoin ? "Joined! Want to use Discord too?" : "Want to use Discord too?"}</h2>
+    <h2 className="discord-label"><DiscordSymbol />{afterJoin ? "Joined! Want to use Discord too?" : "Want to use Discord too?"}</h2>
     <p>Connecting Discord is optional. Your leaderboard membership works without it.</p>
     <ol>
       <li>{afterJoin ? "Open" : "After joining, open"} the <strong>Discord</strong> section on your {afterJoin ? <Link href="/dashboard">dashboard</Link> : "dashboard"} and select <strong>Generate link code</strong>.</li>

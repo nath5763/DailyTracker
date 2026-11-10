@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DiscordSymbol } from "@/components/discord-symbol";
 
 export function DiscordSignupButton({ intent }: { intent: string }) {
   const [loading, setLoading] = useState(false);
@@ -15,7 +16,7 @@ export function DiscordSignupButton({ intent }: { intent: string }) {
     } catch { setError("Could not begin Discord verification."); }
     finally { setLoading(false); }
   }
-  return <><button className="button" type="button" disabled={loading} onClick={authorize}>
-    {loading ? "Opening Discord…" : "Verify Discord identity"}</button>
+  return <><button className="button discord-label" type="button" disabled={loading} onClick={authorize}>
+    <DiscordSymbol />{loading ? "Opening Discord…" : "Verify Discord identity"}</button>
     {error ? <p className="form-message error" role="alert">{error}</p> : null}</>;
 }

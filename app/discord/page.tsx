@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
+import { DiscordSymbol } from "@/components/discord-symbol";
 import { getViewer } from "@/lib/auth";
 
 export const metadata: Metadata = {
@@ -16,7 +17,7 @@ export default async function DiscordGuidePage() {
   return <main className="app-shell">
     <SiteHeader viewer={viewer} />
     <section className="page shell">
-      <div className="page-heading discord-guide-intro"><div><p className="section-number">DISCORD SETUP GUIDE</p><h1>Bring your leaderboard to Discord</h1></div></div>
+      <div className="page-heading discord-guide-intro"><div><p className="section-number discord-label"><DiscordSymbol />DISCORD SETUP GUIDE</p><h1>Bring your leaderboard to Discord</h1></div></div>
       <p className="discord-guide-intro">Daily Tracker supports multi-game leaderboards in server channels, direct messages, and Group DMs. Every participant must link their own Discord account and already belong to the multi-game leaderboard before using commands.</p>
 
       <div className="discord-guide-grid">
@@ -26,12 +27,12 @@ export default async function DiscordGuidePage() {
           <li>On the Daily Tracker website, open a multi-game leaderboard you own and select <strong>Add leaderboard to Discord</strong>.</li>
           <li>Authorize the Daily Tracker app and bot for the server.</li>
           <li>After authorization, return to the Daily Tracker website and select an existing text channel there to connect it to the leaderboard.</li>
-        </ol><div className="discord-guide-actions"><a className="button" href="/leaderboards" target="_blank" rel="noopener noreferrer">Start server setup <span aria-hidden="true">↗</span></a><a className="secondary-link" href="/pricing" target="_blank" rel="noopener noreferrer">Compare paid plans ↗</a></div></article>
+        </ol><div className="discord-guide-actions"><a className="button discord-label" href="/leaderboards" target="_blank" rel="noopener noreferrer"><DiscordSymbol />Start server setup <span aria-hidden="true">↗</span></a><a className="secondary-link" href="/pricing" target="_blank" rel="noopener noreferrer">Compare paid plans ↗</a></div></article>
         <article className="card discord-guide-card"><p className="section-number">GROUP DMS</p><h2>Configure a private chat</h2><p className="discord-access-note"><strong>No subscription required.</strong> Every member can link their profile and install the user app.</p><ol>
           <li>Install the Daily Tracker user app from your Profile.</li>
           <li>Open a multi-game leaderboard and copy its leaderboard UUID from the Discord channels section.</li>
           <li>In the Group DM, the leaderboard owner runs <code>/set-leaderboard leaderboard:&lt;UUID&gt;</code> once.</li>
-        </ol><div className="discord-guide-actions">{userInstallUrl ? <a className="button" href={userInstallUrl} target="_blank" rel="noopener noreferrer">Install the user app <span aria-hidden="true">↗</span></a> : null}<a className={userInstallUrl ? "secondary-link" : "button"} href={profileHref} target="_blank" rel="noopener noreferrer">Open Profile setup ↗</a></div></article>
+        </ol><div className="discord-guide-actions">{userInstallUrl ? <a className="button discord-label" href={userInstallUrl} target="_blank" rel="noopener noreferrer"><DiscordSymbol />Install the user app <span aria-hidden="true">↗</span></a> : null}<a className={userInstallUrl ? "secondary-link" : "button"} href={profileHref} target="_blank" rel="noopener noreferrer">Open Profile setup ↗</a></div></article>
       </div>
 
       <section className="discord-guide-section"><h2>Subscriptions and account controls</h2><p>Discord identity linking, user-app installation, and commands in DMs or Group DMs are available without a paid plan. A subscription is required only for a leaderboard owner who connects that leaderboard to a Discord server channel. View the current plan, subscribe, or open billing controls from your Profile.</p><div className="discord-guide-actions"><a className="button button-ghost" href={profileHref} target="_blank" rel="noopener noreferrer">Open Profile and billing <span aria-hidden="true">↗</span></a></div></section>
