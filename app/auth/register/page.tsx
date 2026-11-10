@@ -13,5 +13,5 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   const { user, profile } = await getViewer();
   if (profile) redirect(next);
   if (user) redirect("/onboarding?next=" + encodeURIComponent(next));
-  return <AuthShell title="Create your account." description="Use your email as your username. We’ll verify it before your first sign-in."><RegisterForm next={next} /></AuthShell>;
+  return <AuthShell title="Create your account" description="Use your email as your username. We’ll verify it before your first sign-in."><RegisterForm next={next} /></AuthShell>;
 }

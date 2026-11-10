@@ -1,7 +1,13 @@
 import { expect, test } from "vitest";
-import { detectShareGame } from "./detect-share-game";
+import { detectShareGame, isLoldleShare } from "./detect-share-game";
 
 const games = ["fermi", "krillion"];
+
+test("routes complete and malformed LoLdle headers to the five-score preview", () => {
+  expect(isLoldleShare("I've completed all the modes of #LoLdle today:\n❓ Classic: 8")).toBe(true);
+  expect(isLoldleShare("I've completed all the modes of #LoLdle\n❓ Classic: 8")).toBe(true);
+  expect(isLoldleShare("Wordle #1\n1/6")).toBe(false);
+});
 
 test("detects either game from mixed-case share text", () => {
   expect(detectShareGame("Fermi #92\n1.31× score", games)).toBe("fermi");

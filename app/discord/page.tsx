@@ -16,16 +16,16 @@ export default async function DiscordGuidePage() {
   return <main className="app-shell">
     <SiteHeader viewer={viewer} />
     <section className="page shell">
-      <div className="page-heading discord-guide-intro"><div><p className="section-number">DISCORD SETUP GUIDE</p><h1>Bring your leaderboard to Discord.</h1></div></div>
+      <div className="page-heading discord-guide-intro"><div><p className="section-number">DISCORD SETUP GUIDE</p><h1>Bring your leaderboard to Discord</h1></div></div>
       <p className="discord-guide-intro">Daily Tracker supports multi-game leaderboards in server channels, direct messages, and Group DMs. Every participant must link their own Discord account and already belong to the multi-game leaderboard before using commands.</p>
 
       <div className="discord-guide-grid">
         <article className="card discord-guide-card"><p className="section-number">SERVER CHANNELS</p><h2>Connect an existing channel</h2><p className="discord-access-note"><strong>Paid owner feature.</strong> The leaderboard owner needs an active paid plan; other members do not.</p><ol>
           <li>The leaderboard owner links their Discord identity from their Profile.</li>
           <li>The owner needs a paid Daily Tracker plan and <strong>Manage Server</strong> permission in Discord.</li>
-          <li>Open a multi-game leaderboard you own and select <strong>Add leaderboard to Discord</strong>.</li>
+          <li>On the Daily Tracker website, open a multi-game leaderboard you own and select <strong>Add leaderboard to Discord</strong>.</li>
           <li>Authorize the Daily Tracker app and bot for the server.</li>
-          <li>Select an existing text channel to connect it to the leaderboard.</li>
+          <li>After authorization, return to the Daily Tracker website and select an existing text channel there to connect it to the leaderboard.</li>
         </ol><div className="discord-guide-actions"><a className="button" href="/leaderboards" target="_blank" rel="noopener noreferrer">Start server setup <span aria-hidden="true">↗</span></a><a className="secondary-link" href="/pricing" target="_blank" rel="noopener noreferrer">Compare paid plans ↗</a></div></article>
         <article className="card discord-guide-card"><p className="section-number">GROUP DMS</p><h2>Configure a private chat</h2><p className="discord-access-note"><strong>No subscription required.</strong> Every member can link their profile and install the user app.</p><ol>
           <li>Install the Daily Tracker user app from your Profile.</li>
@@ -38,6 +38,7 @@ export default async function DiscordGuidePage() {
 
       <section className="discord-guide-section"><h2>Using commands</h2><ul>
         <li>Use <code>/daily</code> to submit a supported result. Choose the required <code>game</code> option.</li>
+        <li>Use <code>/loldle</code> with the complete five-mode LoLdle share and its puzzle date to save Classic, Quote, Ability, Emoji, and Splash together.</li>
         <li>Use <code>/leaderboard</code> to view the current standings for the selected game.</li>
         <li>In an unconfigured DM or Group DM, provide the leaderboard UUID when the command asks for the <code>leaderboard</code> option.</li>
       </ul></section>

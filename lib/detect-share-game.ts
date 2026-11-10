@@ -1,3 +1,7 @@
+export function isLoldleShare(rawText: string): boolean {
+  return /^I've completed all the modes of #LoLdle\b/im.test(rawText.trim());
+}
+
 export function detectShareGame(rawText: string, availableSlugs: readonly string[]): string | null {
   const aliases: Record<string, RegExp> = {
     "nyt-mini-crossword": /New York Times Mini Crossword/i,

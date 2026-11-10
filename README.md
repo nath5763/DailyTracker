@@ -1,6 +1,6 @@
 # Daily Club
 
-Daily Club is a private friends leaderboard for daily games. The public `/games` directory links to original publishers. Website score tracking supports Fermi, Krillion, Wordle, Pinpoint, Queens, Crossclimb, Tango, and Zip: players paste a shared result, confirm the parsed score, and compare daily, 7-day, 30-day, and all-time averages. Discord game choices remain Fermi and Krillion.
+Daily Club is a private friends leaderboard for daily games. The public `/games` directory links to original publishers. Website score tracking supports Fermi, Krillion, Wordle, Pinpoint, Queens, Crossclimb, Tango, Zip, and LoLdle's five modes: players paste a shared result, confirm the parsed score, and compare daily, 7-day, 30-day, and all-time averages. For LoLdle, paste the complete five-mode share and supply the puzzle date to save all five scores together. Discord offers `/loldle` for the same import alongside `/daily` for single-game shares.
 
 ## Architecture
 

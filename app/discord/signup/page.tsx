@@ -29,7 +29,7 @@ export default async function DiscordSignupPage({ searchParams }: {
     ? (await apiFetch<{ valid: boolean }>(`/discord/signup-intents/${intent}`)).valid : false;
   const next = valid ? `/discord/signup?intent=${intent}` : "";
   return <main className="app-shell"><SiteHeader /><section className="page shell">
-    <div className="page-heading"><div><p className="section-number">DISCORD SIGNUP</p><h1>Finish your account.</h1></div></div>
+    <div className="page-heading"><div><p className="section-number">DISCORD SIGNUP</p><h1>Finish your account</h1></div></div>
     <div className="card" style={{ maxWidth: 560 }}>
       {status ? <p role="status">{messages[status] ?? messages.failed}</p> : null}
       {valid && !user ? <div className="form-stack"><p>Create an account or sign in, then verify your Discord identity to finish.</p>

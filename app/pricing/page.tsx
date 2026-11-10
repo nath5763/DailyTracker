@@ -17,7 +17,7 @@ export default async function PricingPage() {
   const viewer = await getViewer();
   const billing = viewer.profile ? await apiFetch<BillingStatus>("/billing/status") : null;
   return <main className="app-shell"><SiteHeader viewer={viewer} /><section className="page shell">
-    <div className="page-heading"><div><p className="section-number">SIMPLE MONTHLY PLANS</p><h1>Pick your club&apos;s plan.</h1></div><p>Every plan lets you share scores with friends. Paid plans give board owners more ways to bring their games together.</p></div>
+    <div className="page-heading"><div><p className="section-number">SIMPLE MONTHLY PLANS</p><h1>Pick your club&apos;s plan</h1></div><p>Every plan lets you share scores with friends. Paid plans give board owners more ways to bring their games together.</p></div>
     <div className="pricing-grid">{plans.map((plan) => <article className={`card pricing-card ${plan.tier === "STANDARD" ? "card-lime" : ""}`} key={plan.tier}>
       <p className="section-number">{plan.name.toUpperCase()}</p><h2>{plan.price}<small>{plan.tier === "FREE" ? " forever" : " / month"}</small></h2><p>{plan.description}</p>
       <ul>{plan.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>

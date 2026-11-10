@@ -13,7 +13,7 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
   const { user, profile } = await getViewer();
   if (profile) redirect(next);
   if (user) redirect("/onboarding?next=" + encodeURIComponent(next));
-  return <AuthShell title="Welcome back." description="Sign in with your email address and password.">
+  return <AuthShell title="Welcome back" description="Sign in with your email address and password.">
     {params.error ? <div className="form-message error">That verification link is invalid or has expired. Request a new one from the sign-in form.</div> : null}
     <AuthForm next={next} />
   </AuthShell>;

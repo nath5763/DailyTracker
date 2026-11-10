@@ -11,7 +11,7 @@ export function DashboardView() {
   if (!data) return <section className="page shell"><div className="card">{loading ? "Loading overview…" : error}</div></section>;
   return <section className="page shell">
     {error ? <div className="form-message error">{error}</div> : null}
-    <div className="page-heading"><div><p className="section-number">YOUR OVERVIEW</p><h1>Hey, {data.profile.displayName}.</h1></div><AppLink className="button" href="/submit">Add today&apos;s score <span>-&gt;</span></AppLink></div>
+    <div className="page-heading"><div><p className="section-number">YOUR OVERVIEW</p><h1>Hey, {data.profile.displayName}</h1></div><AppLink className="button" href="/submit">Add today&apos;s score <span>-&gt;</span></AppLink></div>
     <GameStatsList values={data.statsByGame} />
     <div className="spacer" /><div className="grid grid-2">
       <section className="card"><h2>Recent scores</h2>{data.recentScores.length ? <div className="list">{data.recentScores.map((row) => <div className="list-row" key={row.id}><span className="rank">#{row.puzzleKey}</span><span>{row.gameName}<small>{row.playedOn}{row.submissionMethod === "MANUAL" ? " · Manual · unverified" : ""}</small></span><strong>{formatResultScore(row)}</strong></div>)}</div> : <div className="empty">No scores yet. Add your first daily result.</div>}</section>

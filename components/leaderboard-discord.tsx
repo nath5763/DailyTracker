@@ -133,7 +133,8 @@ export function LeaderboardDiscord({ boardId, owner, setupToken, discordStatus }
       {setupToken && channelLoading ? <p>Loading available channels...</p> : null}
       {setupToken && !setupFinished && !channelLoading && !available.length && !message && !saved ? <p>No existing text channels are visible to the bot in this server.</p> : null}
       {setupToken && available.length ? <div className="form-stack">
-        <label htmlFor="discord-channel">Choose an existing text channel</label>
+        <p className="subtle">You are back on Daily Tracker. Choose the Discord text channel to connect below.</p>
+        <label htmlFor="discord-channel">Choose an existing Discord text channel on Daily Tracker</label>
         <select id="discord-channel" value={chosen} onChange={event => { setChosen(event.target.value); setReplace(false); }}>
           <option value="">Choose a channel</option>
           {available.map(channel => <option key={channel.channelId} value={channel.channelId}>#{channel.name}{channel.leaderboardId ? " (connected)" : ""}</option>)}

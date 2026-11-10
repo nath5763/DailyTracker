@@ -19,7 +19,7 @@ export default async function HomePage() {
       <SiteHeader />
       <section className="hero shell">
         <div className="eyebrow"><span /> Built for the group chat</div>
-        <h1>Daily games.<br /><em>Friendly stakes.</em></h1>
+        <h1>Daily games<br /><em>Friendly stakes</em></h1>
         <p className="hero-copy">One private scoreboard for every tiny game your friends refuse to stop talking about.</p>
         <div className="hero-actions">
           <Link className="button" href="/auth">Start your club <span>→</span></Link>
@@ -46,7 +46,7 @@ export default async function HomePage() {
 
       <section className="home-games shell" aria-labelledby="home-games-title">
         <div className="home-games-heading">
-          <div><p className="section-number">GAMES WE TRACK</p><h2 id="home-games-title">Your favorites, on one scoreboard.</h2></div>
+          <div><p className="section-number">GAMES WE TRACK</p><h2 id="home-games-title">Your favorites, on one scoreboard</h2></div>
           <Link className="secondary-link" href="/games">Explore every game →</Link>
         </div>
         <p>Track results for {supportedGames.length} daily game{supportedGames.length === 1 ? "" : "s"}, including:</p>
@@ -60,7 +60,7 @@ export default async function HomePage() {
       <section className="how shell" id="how">
         <div>
           <p className="section-number">01 — HOW IT WORKS</p>
-          <h2>From result screen<br />to bragging rights.</h2>
+          <h2>From result screen<br />to bragging rights</h2>
         </div>
         <div className="steps">
           <article><span>1</span><h3>Play elsewhere</h3><p>Finish a supported daily puzzle and copy the share text.</p></article>
@@ -70,13 +70,13 @@ export default async function HomePage() {
       </section>
 
       <section className="discord-feature shell" aria-labelledby="discord-title">
-        <div><p className="section-number">PLAY TOGETHER, WHERE YOU CHAT</p><h2 id="discord-title">Your daily games club belongs in Discord, too.</h2></div>
+        <div><p className="section-number">PLAY TOGETHER, WHERE YOU CHAT</p><h2 id="discord-title">Your daily games club belongs in Discord, too</h2></div>
         <div><p>Link your Daily Tracker account, submit supported game share results with <code>/daily</code>, and see your multi-game leaderboard rankings with <code>/leaderboard</code>. Choose a game for each command.</p><p>Paid board owners can connect server channels. Friends on the free plan can join in, and the user app works in DMs and Group DMs.</p><Link className="button" href="/discord">Set up Discord <span aria-hidden="true">→</span></Link></div>
       </section>
 
       <section className="closing shell">
         <div className="closing-mark">↗</div>
-        <h2>Tomorrow’s score<br />starts today.</h2>
+        <h2>Tomorrow’s score<br />starts today</h2>
         <Link className="button button-dark" href="/auth">Create your account <span>→</span></Link>
       </section>
     </main>

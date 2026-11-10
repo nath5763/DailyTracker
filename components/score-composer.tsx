@@ -5,7 +5,7 @@ import { navigateInApp } from "@/components/app-link";
 import { formatScore } from "@/lib/format";
 import { useAppData } from "@/components/app-data-provider";
 import { invalidateClientCache, invalidateLeaderboardCacheForGame } from "@/lib/client-cache";
-import { detectShareGame } from "@/lib/detect-share-game";
+import { detectShareGame, isLoldleShare } from "@/lib/detect-share-game";
 import type { Game, ManualEntryField, ParsedSubmission } from "@/lib/types";
 
 export function ScoreComposer({ games }: { games: Game[] }) {
@@ -26,13 +26,34 @@ function PasteScoreComposer({ games, onManual }: { games: Game[]; onManual: (slu
   const [manualGameSlug, setManualGameSlug] = useState("");
   const [rawText, setRawText] = useState("");
   const [preview, setPreview] = useState<ParsedSubmission | null>(null);
+  const [loldleDate, setLoldleDate] = useState("");
+  const [loldlePreview, setLoldlePreview] = useState<{ game: string; submission: ParsedSubmission }[] | null>(null);
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [message, setMessage] = useState("");
   const detectedGameSlug = detectShareGame(rawText, pasteGames.map((candidate) => candidate.slug));
+  const loldleShare = isLoldleShare(rawText);
   const game = pasteGames.find((candidate) => candidate.slug === (detectedGameSlug ?? manualGameSlug));
   const editable = new Set(game?.submission.editableFields ?? []);
 
   async function parse() {
+    if (loldleShare) {
+      if (!loldleDate) { setStatus("error"); setMessage("Choose the LoLdle puzzle date first."); return; }
+      setMessage("");
+      try {
+        const response = await fetch("/api/v1/submissions/loldle/preview", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rawText, puzzleDate: loldleDate }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "We could not read that LoLdle result.");
+        setLoldlePreview(data.submissions);
+        setPreview(null); setStatus("idle");
+      } catch (cause) {
+        setLoldlePreview(null); setStatus("error");
+        setMessage(cause instanceof Error ? cause.message : "We could not read that LoLdle result.");
+      }
+      return;
+    }
     if (!game) {
       setStatus("error");
       setMessage("Choose the game for this result before previewing it.");
@@ -79,24 +100,47 @@ function PasteScoreComposer({ games, onManual }: { games: Game[]; onManual: (slu
     navigateInApp("/dashboard?added=1");
   }
 
+  async function saveLoldle() {
+    if (!loldlePreview) return;
+    setStatus("saving");
+    try {
+      const response = await fetch("/api/v1/submissions/loldle", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rawText, puzzleDate: loldleDate }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error ?? "Could not save the LoLdle scores.");
+      invalidateClientCache(userId, ["/dashboard", `/profiles/${encodeURIComponent(shareId)}`]);
+      for (const item of loldlePreview) invalidateLeaderboardCacheForGame(userId, item.game);
+      navigateInApp("/dashboard?added=1");
+    } catch (cause) {
+      setStatus("error");
+      setMessage(cause instanceof Error ? cause.message : "Could not save the LoLdle scores.");
+    }
+  }
+
   if (!games.length) return <div className="empty">No games are currently available for score submission.</div>;
 
   return (
     <div className="grid score-layout">
       <section className="card">
         <form className="form-stack" onSubmit={(event) => { event.preventDefault(); void parse(); }}>
+          <p className="subtle">For LoLdle, paste the complete five-mode share and choose its puzzle date to preview all five scores.</p>
           <div className="field">
             <label htmlFor="result">Shared result text</label>
             <textarea id="result" placeholder="Paste a complete game share result" value={rawText} onChange={(event) => {
               setRawText(event.target.value);
               setManualGameSlug("");
               setPreview(null);
+              setLoldlePreview(null);
+              setLoldleDate("");
               setMessage("");
               setStatus("idle");
             }} required />
           </div>
           {detectedGameSlug && game ? <p className="subtle">Detected game: <strong>{game.name}</strong></p> : null}
-          {rawText.trim() && !detectedGameSlug ? <div className="field">
+          {loldleShare ? <><p className="subtle">Detected LoLdle: Classic, Quote, Ability, Emoji, and Splash.</p><div className="field"><label htmlFor="loldle-date">LoLdle puzzle date</label><input id="loldle-date" type="date" value={loldleDate} onChange={event => { setLoldleDate(event.target.value); setLoldlePreview(null); setMessage(""); setStatus("idle"); }} required /></div></> : null}
+          {rawText.trim() && !detectedGameSlug && !loldleShare ? <div className="field">
             <label htmlFor="game">Choose game</label>
             <select id="game" value={manualGameSlug} onChange={(event) => {
               setManualGameSlug(event.target.value);
@@ -108,7 +152,7 @@ function PasteScoreComposer({ games, onManual }: { games: Game[]; onManual: (slu
               {pasteGames.map((option) => <option key={option.id} value={option.slug}>{option.name}</option>)}
             </select>
           </div> : null}
-          {message ? <><div className="form-message error" role="alert">{message}</div><button className="text-button" type="button" onClick={() => onManual(game?.manualEntry.supported ? game.slug : "")}>Enter the score manually instead</button></> : null}
+          {message ? <><div className="form-message error" role="alert">{message}</div>{!loldleShare ? <button className="text-button" type="button" onClick={() => onManual(game?.manualEntry.supported ? game.slug : "")}>Enter the score manually instead</button> : null}</> : null}
           <button className="button" disabled={!rawText.trim()} type="submit">
             Preview score<span>→</span>
           </button>
@@ -116,7 +160,13 @@ function PasteScoreComposer({ games, onManual }: { games: Game[]; onManual: (slu
       </section>
 
       <aside className="card preview-card">
-        {preview && game ? <>
+        {loldlePreview ? <>
+          <span className="result-chip">Five scores ready to confirm</span>
+          <p className="subtle">LoLdle · {loldleDate}</p>
+          <div className="form-stack">{loldlePreview.map(item => <div key={item.game} className="field"><strong>{games.find(game => game.slug === item.game)?.name ?? item.game}</strong><span>{item.submission.primaryScore} {item.submission.primaryScore === 1 ? "guess" : "guesses"}{item.submission.metrics.clueUsed ? " · clue used ✓" : ""}</span></div>)}</div>
+          <p className="privacy-note">Confirm the puzzle date and all five scores. Once saved, these results cannot be changed or removed individually.</p>
+          <button className="button" type="button" disabled={status === "saving"} onClick={() => void saveLoldle()}>{status === "saving" ? "Saving…" : "Confirm five permanent scores"}<span>✓</span></button>
+        </> : preview && game ? <>
           <span className="result-chip">Ready to confirm</span>
           <div className="score-big">{(typeof preview.metrics.displayScore === "string" ? preview.metrics.displayScore : formatScore(preview.primaryScore, game.scoreFormat))}</div>
           <p className="subtle">{game.name} · {game.submission.puzzleLabel} {preview.puzzleKey}</p>

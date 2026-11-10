@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       <div className="privacy-page shell">
         <article className="privacy-content">
           <p className="section-number">PRIVACY POLICY</p>
-          <h1>Your data at Daily Tracker.</h1>
+          <h1>Your data at Daily Tracker</h1>
           <p>Last updated November 3, 2026. This policy explains what Daily Tracker collects, why it is used, and when it is shared. It applies when you visit the site, sign in, submit scores, join a leaderboard, link Discord, or manage a subscription.</p>
 
           <section>

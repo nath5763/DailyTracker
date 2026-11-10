@@ -14,7 +14,7 @@ export default function TermsPage() {
     <div className="privacy-page shell">
       <article className="privacy-content">
         <p className="section-number">TERMS OF SERVICE</p>
-        <h1>Play fair. Keep it friendly.</h1>
+        <h1>Play fair, keep it friendly</h1>
         <p>Last updated November 4, 2026. These terms govern your use of Daily Tracker, operated by SNSH Solutions. By creating an account or using the service, you agree to these terms.</p>
 
         <section>
