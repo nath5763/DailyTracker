@@ -15,7 +15,7 @@ function json(response, status, body, headers = {}) {
 async function fixture({ brokenFirstMessage = false, neverSend = false } = {}) {
   const accounts = new Map();
   let origin;
-  const server = createServer(async (request, response) => {
+  const handler = async (request, response) => {
     const url = new URL(request.url, origin);
     const chunks = [];
     for await (const chunk of request) chunks.push(chunk);
@@ -51,10 +51,14 @@ async function fixture({ brokenFirstMessage = false, neverSend = false } = {}) {
     }
     if (url.pathname === "/api/v1/auth/login") return json(response, 200, { onboarded: accounts.get(body.email)?.onboarded });
     json(response, 404, {});
-  });
+  };
+  const server = createServer(handler);
+  const mailpitServer = createServer(handler);
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+  await new Promise(resolve => mailpitServer.listen(0, "127.0.0.1", resolve));
   origin = `http://127.0.0.1:${server.address().port}`;
-  return { origin, accounts, close: () => new Promise(resolve => server.close(resolve)) };
+  return { origin, mailpitApiUrl: `http://127.0.0.1:${mailpitServer.address().port}/mailpit`, accounts,
+    close: () => Promise.all([server, mailpitServer].map(item => new Promise(resolve => item.close(resolve)))) };
 }
 
 test("accepts only verification links returning to staging", () => {
@@ -66,7 +70,8 @@ test("accepts only verification links returning to staging", () => {
 test("retries a missing link and completes onboarding and login", async () => {
   const app = await fixture({ brokenFirstMessage: true });
   try {
-    await provisionOne({ baseUrl: app.origin, email: "one@load-test.invalid", password: "long-enough-password",
+    await provisionOne({ baseUrl: app.origin, mailpitApiUrl: app.mailpitApiUrl,
+      email: "one@load-test.invalid", password: "long-enough-password",
       displayName: "Load Tester 1", uiAuth: "reader:secret", retries: 1, retryDelayMs: 0 });
     assert.equal(app.accounts.get("one@load-test.invalid").sent, 2);
     assert.equal(app.accounts.get("one@load-test.invalid").onboarded, true);
@@ -89,7 +94,8 @@ test("provisions more than twenty accounts from one client", async () => {
   const output = join(directory, "accounts.json");
   try {
     const child = spawn(process.execPath, ["scripts/provision-load-test-accounts.mjs"], {
-      cwd: process.cwd(), env: { ...process.env, STAGING_BASE_URL: app.origin, MAILPIT_UI_AUTH: "reader:secret",
+      cwd: process.cwd(), env: { ...process.env, STAGING_BASE_URL: app.origin,
+        MAILPIT_API_URL: app.mailpitApiUrl, MAILPIT_UI_AUTH: "reader:secret",
         LOAD_TEST_COUNT: "21", LOAD_TEST_OUTPUT: output }, stdio: ["ignore", "pipe", "pipe"] });
     const stderr = [];
     child.stderr.on("data", chunk => stderr.push(chunk));
