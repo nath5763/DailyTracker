@@ -1,0 +1,127 @@
+name: dailytracker-load-testing
+region: nyc
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+
+ingress:
+  rules:
+    - component:
+        name: mailpit
+        preserve_path_prefix: true
+      match:
+        path:
+          prefix: /mailpit
+    - component:
+        name: backend
+        preserve_path_prefix: true
+      match:
+        path:
+          prefix: /api
+    - component:
+        name: frontend
+        preserve_path_prefix: true
+      match:
+        path:
+          prefix: /
+
+services:
+  - name: frontend
+    github:
+      repo: nath5763/DailyTracker
+      branch: load-testing
+      deploy_on_push: true
+    source_dir: /
+    environment_slug: node-js
+    build_command: npm ci && npm run build
+    run_command: npm start
+    http_port: 3000
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    health_check:
+      http_path: /
+    envs:
+      - key: NODE_ENV
+        value: production
+        scope: RUN_TIME
+      - key: BACKEND_INTERNAL_URL
+        value: ${backend.PRIVATE_URL}
+        scope: RUN_TIME
+
+  - name: backend
+    github:
+      repo: nath5763/DailyTrackerBackend
+      branch: load-testing
+      deploy_on_push: true
+    source_dir: /
+    dockerfile_path: Dockerfile
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb-fixed
+    health_check:
+      http_path: /api/health
+    envs:
+      - key: DATABASE_URL
+        value: ${daily-games-load-db.JDBC_DATABASE_URL}
+        scope: RUN_TIME
+      - key: DATABASE_USER
+        value: ${daily-games-load-db.USERNAME}
+        scope: RUN_TIME
+      - key: DATABASE_PASSWORD
+        value: ${daily-games-load-db.PASSWORD}
+        scope: RUN_TIME
+      - key: APP_BASE_URL
+        value: ${APP_URL}
+        scope: RUN_TIME
+      - key: SECURE_COOKIE
+        value: "true"
+        scope: RUN_TIME
+      - key: EMAIL_PROVIDER
+        value: mailpit
+        scope: RUN_TIME
+      - key: MAILPIT_API_URL
+        value: ${mailpit.PRIVATE_URL}/mailpit
+        scope: RUN_TIME
+      - key: MAILPIT_SEND_AUTH
+        value: REPLACE_WITH_MAILPIT_SEND_USERNAME_AND_PASSWORD
+        scope: RUN_TIME
+        type: SECRET
+      - key: AUTH_TOKEN_REQUESTS_PER_IP_PER_HOUR
+        value: "1000"
+        scope: RUN_TIME
+      - key: AUTH_TOKEN_PEPPER
+        value: REPLACE_WITH_A_NEW_STAGING_ONLY_RANDOM_VALUE
+        scope: RUN_TIME
+        type: SECRET
+      - key: DISCORD_COMMAND_REGISTRATION_ENABLED
+        value: "false"
+        scope: RUN_TIME
+
+  - name: mailpit
+    image:
+      registry_type: DOCKER_HUB
+      registry: axllent
+      repository: mailpit
+      tag: v1.33.1
+    http_port: 8025
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    envs:
+      - key: MP_WEBROOT
+        value: /mailpit
+        scope: RUN_TIME
+      - key: MP_UI_AUTH
+        value: REPLACE_WITH_MAILPIT_UI_USERNAME_AND_PASSWORD
+        scope: RUN_TIME
+        type: SECRET
+      - key: MP_SEND_API_AUTH
+        value: REPLACE_WITH_MAILPIT_SEND_USERNAME_AND_PASSWORD
+        scope: RUN_TIME
+        type: SECRET
+
+databases:
+  - name: daily-games-load-db
+    engine: PG
+    version: "17"
+    production: true
+    cluster_name: daily-games-load-db

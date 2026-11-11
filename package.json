@@ -10,8 +10,9 @@
     "start": "next start -p ${PORT:-3000}",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "check": "npm run lint && npm run typecheck && npm run test && npm run build"
+    "test": "vitest run && node --test scripts/provision-load-test-accounts.test.mjs",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "provision:load-test": "node scripts/provision-load-test-accounts.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

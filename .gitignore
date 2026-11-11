@@ -6,3 +6,5 @@ coverage/
 .vercel/
 *.tsbuildinfo
 npm-debug.log*
+.load-test-accounts*.json
+.do/load-testing.private.yaml
