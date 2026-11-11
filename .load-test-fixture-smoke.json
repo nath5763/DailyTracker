@@ -1,0 +1,28 @@
+{
+  "baseUrl": "https://load-test-atbh8.ondigitalocean.app",
+  "accountHash": "67b79919ee25b56275e09166ac361a4152fa3ef42bb858e0f00368054337eaf9",
+  "seedId": "f9fda4b5",
+  "users": [
+    {
+      "email": "load-mwch21gj-7522670a-1@load-test.invalid",
+      "userId": "0b970d97-7a22-4ebd-8bea-9214f16dcd68",
+      "shareId": "29f316a3-d989-4f88-b9fd-f9a18b41670e",
+      "cookie": "daily_tracker_session=sr1CE8tJjaLFw8D67ue8sMkWH4LQtDWLBbHKU5b3SxE"
+    }
+  ],
+  "boards": [
+    {
+      "name": "Load f9fda4b5 S01 wordle",
+      "gameSlug": "wordle",
+      "size": "small",
+      "ownerIndex": 0,
+      "memberIndexes": [
+        0
+      ],
+      "id": "36147f39-e18b-4184-bad3-97a37b174b27"
+    }
+  ],
+  "completedScoreIndexes": [
+    0
+  ]
+}

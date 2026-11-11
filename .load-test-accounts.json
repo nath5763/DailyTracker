@@ -1,0 +1,10 @@
+{
+  "baseUrl": "https://load-test-atbh8.ondigitalocean.app",
+  "accounts": [
+    {
+      "email": "load-mwch21gj-7522670a-1@load-test.invalid",
+      "password": "H0U6QpMwBPa_smKhkcbZ70_tWJ7BI7gW"
+    }
+  ],
+  "failures": []
+}

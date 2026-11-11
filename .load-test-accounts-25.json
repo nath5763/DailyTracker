@@ -1,0 +1,106 @@
+{
+  "baseUrl": "https://load-test-atbh8.ondigitalocean.app",
+  "accounts": [
+    {
+      "email": "load-mwch3mnh-ee203890-1@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-2@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-3@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-4@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-5@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-6@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-7@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-8@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-9@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-10@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-11@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-12@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-13@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-14@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-15@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-16@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-17@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-18@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-19@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-20@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-21@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-22@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-23@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-24@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    },
+    {
+      "email": "load-mwch3mnh-ee203890-25@load-test.invalid",
+      "password": "-C2G1MXOk9ZhBTyqihUdHdCbjx3NZNyi"
+    }
+  ],
+  "failures": []
+}
