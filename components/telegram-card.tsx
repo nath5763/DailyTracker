@@ -57,7 +57,7 @@ export function TelegramCard() {
   return <section className="card discord-card" id="telegram-linking" aria-busy={working || result.loading}>
     <p className="field-label telegram-label"><TelegramSymbol />Telegram</p>
     {result.loading ? <p>Checking Telegram linking…</p> : !status?.configured ? <><h2>Not configured</h2><p>Telegram linking is not available yet.</p></> : status.linked ? <>
-      <h2>Connected</h2><p>Your Telegram identity is linked. Use <code>/daily</code> in a private chat or connected group to submit a result, or <code>/leaderboard</code> to see rankings. Group owners connect a multi-game leaderboard from its page.</p>
+      <h2>Connected</h2><p>Your Telegram identity is linked. In a connected group, send <code>/daily</code> followed by the complete Share result in one message; the bot identifies the game and confirms the score there. Send <code>/daily</code> alone for the private flow, or <code>/leaderboard</code> to see rankings. Group owners connect a multi-game leaderboard from its page.</p>
       <button className="button button-ghost" type="button" disabled={working} onClick={() => void unlink()}>Unlink Telegram</button>
     </> : <>
       <h2>Submit from Telegram</h2>
