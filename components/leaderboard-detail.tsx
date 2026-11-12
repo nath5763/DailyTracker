@@ -76,7 +76,6 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
     <div className="grid score-layout"><section className="card">
       <div className="leaderboard-game-toolbar">
         {games.length > 1 ? <LeaderboardGameSelector boardId={id} games={games} selected={board.game} range={range} recentGameSlugs={board.recentGameSlugs} /> : <span className="field-label">{board.game.name} results</span>}
-        <div className="leaderboard-share-actions"><button className="button button-small" type="button" aria-label={`Share ${board.game.name} results`} onClick={() => setSharing(true)}>Share Results</button><button className="button button-small button-ghost" type="button" onClick={() => shareToWhatsApp(board)}>Share results to WhatsApp</button></div>
       </div>
       <nav className="tabs leaderboard-range-tabs" aria-label="Leaderboard date range">{ranges.map((tab) => <AppLink className={`tab ${range === tab.key ? "active" : ""}`} aria-current={range === tab.key ? "page" : undefined} href={`/leaderboards/${id}?game=${encodeURIComponent(board.game.slug)}&range=${tab.key}`} key={tab.key}>{tab.label}</AppLink>)}</nav>
       <LeaderboardPosition board={board} userId={userId} />
@@ -91,17 +90,15 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
         <LeaderboardPodium board={board} expanded={expanded} onToggle={togglePlayer} />
       </section>
       <LeaderboardInsightsView key={`${board.game.slug}-${insightsVersion}-${board.members.map(member => member.userId).join(",")}`} boardId={id} game={board.game} />
-    </section><aside className="card" id="leaderboard-roster-management">{board.owner ? <><h2>Manage players</h2><LeaderboardInvite boardId={id} /><div className="spacer" /><p className="subtle">Add an existing account using its exact UUID.</p><MemberManager leaderboardId={id} onChanged={() => void result.refresh()} /><div className="spacer" /><div className="list">{board.members.map((member) => <div className="list-row" key={member.userId}><span className="avatar small" style={{ background: avatarBackground(member.avatarColor) }}>{member.displayName[0].toUpperCase()}</span><span>{member.displayName}<small>{member.owner ? "Owner" : "Member"}</small></span>{!member.owner ? <RemoveMemberButton leaderboardId={id} userId={member.userId} onChanged={() => void result.refresh()} /> : <strong>★</strong>}</div>)}</div></> : <><h2>Club roster</h2><div className="list">{board.members.map((member) => <div className="list-row" key={member.userId}><span className="avatar small" style={{ background: avatarBackground(member.avatarColor) }}>{member.displayName[0].toUpperCase()}</span><span>{member.displayName}</span><strong>{member.owner ? "Owner" : ""}</strong></div>)}</div></>}</aside></div>
-    {board.boardType === "MULTI_GAME" && board.combinedRankings?.length ? <section className="card combined-standings" aria-label="Combined leaderboard rankings">
-      <p className="section-number">ACROSS ALL GAMES · {ranges.find((tab) => tab.key === range)?.label.toUpperCase()}</p>
-      <h2>Combined standings</h2>
-      <p className="subtle">These standings combine every game in this leaderboard. Placement points compare players within each game and puzzle: first place earns 100 points, and each subsequent place earns 20% less, rounded down. Failed results earn no performance points; participation remains separate.</p>
-      <div className="list">{board.combinedRankings.map((row) => <div className="list-row" key={row.userId}>
-        <span className="rank">{String(row.rank).padStart(2, "0")}</span>
-        <span>{row.displayName}<small>{row.participationPoints ?? row.gamesPlayed} participation point{(row.participationPoints ?? row.gamesPlayed) === 1 ? "" : "s"}{row.manualResults ? ` · ${row.manualResults} manual · unverified` : ""}</small></span>
-        <strong>{row.displayScore ?? `${row.leaderboardPoints ?? row.average} leaderboard pts`}</strong>
-      </div>)}</div>
-    </section> : null}
+    </section><div className="leaderboard-sidebar">
+      <section className="card" aria-labelledby="share-results-heading">
+        <h2 id="share-results-heading">Share results</h2>
+        <p className="subtle">Share the current {board.game.name} leaderboard for this date range.</p>
+        <div className="leaderboard-share-actions"><button className="button button-small" type="button" aria-label={`Share ${board.game.name} results`} onClick={() => setSharing(true)}>Share Results</button><button className="button button-small button-ghost" type="button" onClick={() => shareToWhatsApp(board)}>Share results to WhatsApp</button></div>
+      </section>
+      {board.boardType === "MULTI_GAME" && board.combinedRankings?.length ? <CombinedStandings board={board} range={range} /> : null}
+      <aside className="card" id="leaderboard-roster-management">{board.owner ? <><h2>Manage players</h2><LeaderboardInvite boardId={id} /><div className="spacer" /><p className="subtle">Add an existing account using its exact UUID.</p><MemberManager leaderboardId={id} onChanged={() => void result.refresh()} /><div className="spacer" /><div className="list">{board.members.map((member) => <div className="list-row" key={member.userId}><span className="avatar small" style={{ background: avatarBackground(member.avatarColor) }}>{member.displayName[0].toUpperCase()}</span><span>{member.displayName}<small>{member.owner ? "Owner" : "Member"}</small></span>{!member.owner ? <RemoveMemberButton leaderboardId={id} userId={member.userId} onChanged={() => void result.refresh()} /> : <strong>★</strong>}</div>)}</div></> : <><h2>Club roster</h2><div className="list">{board.members.map((member) => <div className="list-row" key={member.userId}><span className="avatar small" style={{ background: avatarBackground(member.avatarColor) }}>{member.displayName[0].toUpperCase()}</span><span>{member.displayName}</span><strong>{member.owner ? "Owner" : ""}</strong></div>)}</div></>}</aside>
+    </div></div>
     {joinedFromInvite ? <><div className="spacer" /><DiscordLinkInstructions afterJoin /></> : null}
     <div className="spacer" />{board.boardType === "MULTI_GAME"
       ? <LeaderboardDiscord boardId={id} owner={board.owner} discordStatus={discordStatus} setupToken={setupToken} />
@@ -109,6 +106,19 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
     {board.boardType === "MULTI_GAME" ? <><div className="spacer" /><LeaderboardTelegram boardId={id} owner={board.owner} /></> : null}
     <div className="spacer" /><section className="card" id="leaderboard-roster-copy"><h2>Use this group for another game</h2><p className="subtle">Create a new leaderboard with the same players. You will own the new board.</p><CopyLeaderboard leaderboardId={id} sourceName={board.name} sourceGameSlug={board.game.slug} /></section>
     {board.owner ? <><div className="spacer" /><DeleteLeaderboard boardId={id} name={board.name} /></> : null}
+  </section>;
+}
+
+function CombinedStandings({ board, range }: { board: Leaderboard; range: string }) {
+  return <section className="card combined-standings" aria-label="Combined leaderboard rankings">
+    <p className="section-number">ACROSS ALL GAMES · {ranges.find((tab) => tab.key === range)?.label.toUpperCase()}</p>
+    <h2>Combined standings</h2>
+    <p className="subtle">These standings combine every game in this leaderboard. Placement points compare players within each game and puzzle: first place earns 100 points, and each subsequent place earns 20% less, rounded down. Failed results earn no performance points; participation remains separate.</p>
+    <div className="list">{board.combinedRankings?.map((row) => <div className="list-row" key={row.userId}>
+      <span className="rank">{String(row.rank).padStart(2, "0")}</span>
+      <span>{row.displayName}<small>{row.participationPoints ?? row.gamesPlayed} participation point{(row.participationPoints ?? row.gamesPlayed) === 1 ? "" : "s"}{row.manualResults ? ` · ${row.manualResults} manual · unverified` : ""}</small></span>
+      <strong>{row.displayScore ?? `${row.leaderboardPoints ?? row.average} leaderboard pts`}</strong>
+    </div>)}</div>
   </section>;
 }
 

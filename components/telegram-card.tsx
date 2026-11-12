@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AppLink } from "@/components/app-link";
 import { CopyButton } from "@/components/copy-button";
+import { TelegramSymbol } from "@/components/telegram-symbol";
 import { useAppData } from "@/components/app-data-provider";
 import { invalidateClientCache, useCachedApi } from "@/lib/client-cache";
 
@@ -54,18 +55,20 @@ export function TelegramCard() {
   }
 
   return <section className="card discord-card" id="telegram-linking" aria-busy={working || result.loading}>
-    <p className="field-label">Telegram</p>
+    <p className="field-label telegram-label"><TelegramSymbol />Telegram</p>
     {result.loading ? <p>Checking Telegram linking…</p> : !status?.configured ? <><h2>Not configured</h2><p>Telegram linking is not available yet.</p></> : status.linked ? <>
-      <h2>Connected</h2><p>Use the bot in a private chat or a connected group. Group owners connect a multi-game leaderboard from its page.</p>
+      <h2>Connected</h2><p>Your Telegram identity is linked. Use <code>/daily</code> in a private chat or connected group to submit a result, or <code>/leaderboard</code> to see rankings. Group owners connect a multi-game leaderboard from its page.</p>
       <button className="button button-ghost" type="button" disabled={working} onClick={() => void unlink()}>Unlink Telegram</button>
     </> : <>
       <h2>Submit from Telegram</h2>
-      <p>Generate a one-time code here. Open the bot privately and send <code>/link</code>, then paste the code.</p>
+      <ol className="telegram-link-steps"><li>Select <strong>Generate link code</strong> below. The code works once and expires after 10 minutes.</li><li>Select <strong>Open Telegram bot</strong> and start a private chat with the bot. Send <code>/link</code>.</li><li>When the bot asks for your code, paste it into that private chat. Wait for the bot to confirm your account is linked.</li><li>Return here and select <strong>Check link status</strong> to see Connected.</li></ol>
       {code ? <div className="discord-code"><div className="uuid-box">{code.code}</div><CopyButton value={code.code} label="Copy Telegram link code" /><small>Expires {new Date(code.expiresAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.</small></div> : null}
       <button className="button button-ghost" type="button" disabled={working || activeCode} onClick={() => void generate()}>{code && !activeCode ? "Generate a new code" : "Generate link code"}</button>
+      {status?.configured ? <a className="secondary-link telegram-label" href={status.botUrl} target="_blank" rel="noopener noreferrer"><TelegramSymbol />Open Telegram bot ↗</a> : null}
+      <button className="text-button" type="button" onClick={() => void result.refresh()}>Check link status</button>
     </>}
-    {status?.configured ? <a className="secondary-link" href={status.botUrl} target="_blank" rel="noopener noreferrer">Open Telegram bot ↗</a> : null}
-    <AppLink className="secondary-link discord-guide-link" href="/telegram">Read the Telegram setup guide</AppLink>
+    {status?.linked ? <a className="secondary-link telegram-label" href={status.botUrl} target="_blank" rel="noopener noreferrer"><TelegramSymbol />Open Telegram bot ↗</a> : null}
+    <AppLink className="secondary-link discord-guide-link telegram-label" href="/telegram"><TelegramSymbol />Read the Telegram setup guide</AppLink>
     {message ? <p className="form-message" role="status">{message}</p> : null}
   </section>;
 }

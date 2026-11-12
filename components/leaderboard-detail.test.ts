@@ -156,18 +156,21 @@ test("keeps combined standings separate from selected-game score details", () =>
   expect((html.match(/aria-controls="player-scores-/g) ?? []).length).toBe(2);
   expect(html).toContain("ACROSS ALL GAMES");
   expect(html.indexOf("<h2>Progress</h2>")).toBeLessThan(html.indexOf("<h2>Combined standings</h2>"));
+  expect(html.indexOf('class="leaderboard-sidebar"')).toBeLessThan(html.indexOf("<h2>Combined standings</h2>"));
+  expect(html.indexOf("<h2>Combined standings</h2>")).toBeLessThan(html.indexOf('id="leaderboard-roster-management"'));
   expect(html).not.toContain("player-scores-combined");
   expect(html).not.toContain('href="/profile/player-share"');
 });
 
-test("places sharing beside the selected game controls", () => {
+test("places sharing in its own sidebar card above the roster", () => {
   state.summaries = [summary];
   state.board = { ...summary, members: [], rankings: [], absent: [], range: "today" };
   const html = render();
   expect(html).toContain('class="leaderboard-game-toolbar"');
+  expect(html).toContain('aria-labelledby="share-results-heading"');
   expect(html).toContain('aria-label="Share Fermi results"');
-  expect(html.indexOf("leaderboard-game-toolbar")).toBeLessThan(html.indexOf("Share Results"));
-  expect(html.indexOf("Share Results")).toBeLessThan(html.indexOf("leaderboard-range-tabs"));
+  expect(html.indexOf("leaderboard-range-tabs")).toBeLessThan(html.indexOf('class="leaderboard-sidebar"'));
+  expect(html.indexOf('class="leaderboard-sidebar"')).toBeLessThan(html.indexOf("Share Results"));
   expect(html.indexOf("Share Results")).toBeLessThan(html.indexOf("Share results to WhatsApp"));
-  expect(html.indexOf("Share results to WhatsApp")).toBeLessThan(html.indexOf("leaderboard-range-tabs"));
+  expect(html.indexOf("Share results to WhatsApp")).toBeLessThan(html.indexOf('id="leaderboard-roster-management"'));
 });

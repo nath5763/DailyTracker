@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { TelegramSignupButton } from "@/components/telegram-signup-button";
+import { TelegramSymbol } from "@/components/telegram-symbol";
 import { getViewer } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 
@@ -19,7 +20,7 @@ export default async function TelegramSignupPage({ searchParams }: {
   }
   const next = valid ? `/telegram/signup?intent=${intent}` : "";
   return <main className="app-shell"><SiteHeader viewer={viewer} /><section className="page shell">
-    <div className="page-heading"><div><p className="section-number">TELEGRAM SIGNUP</p><h1>Finish your account</h1></div></div>
+    <div className="page-heading"><div><p className="section-number telegram-label"><TelegramSymbol />TELEGRAM SIGNUP</p><h1>Finish your account</h1></div></div>
     <div className="card" style={{ maxWidth: 560 }}>
       {!valid ? <p>This signup link is invalid, expired, or already used. Run /signup in Telegram again.</p> : null}
       {valid && !viewer.user ? <div className="form-stack"><p>Create an account or sign in, then confirm your Telegram identity in the bot&apos;s private chat.</p>

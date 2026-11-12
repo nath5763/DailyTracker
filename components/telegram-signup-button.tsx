@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { TelegramSymbol } from "@/components/telegram-symbol";
 
 export function TelegramSignupButton({ intent }: { intent: string }) {
   const [state, setState] = useState<"idle" | "requesting" | "waiting" | "completing" | "done">("idle");
@@ -40,7 +41,7 @@ export function TelegramSignupButton({ intent }: { intent: string }) {
   }
 
   return <div className="form-stack">
-    {state === "idle" ? <button className="button" type="button" onClick={() => void request()}>Send Telegram confirmation</button> : null}
+    {state === "idle" ? <button className="button telegram-label" type="button" onClick={() => void request()}><TelegramSymbol />Send Telegram confirmation</button> : null}
     {state === "requesting" || state === "completing" ? <p>Working…</p> : null}
     {state === "waiting" ? <><button className="button" type="button" onClick={() => void complete()}>I confirmed in Telegram</button><button className="text-button" type="button" onClick={() => void request()}>Send a new confirmation</button></> : null}
     {message ? <p role="status" className={state === "done" ? "form-message success" : "form-message"}>{message}</p> : null}

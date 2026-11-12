@@ -4,6 +4,9 @@ export type Tile = { id: number; letter: string };
 export type Word = { word: string; points: number };
 export type Round = { date: string; rack: Tile[]; bag: Tile[]; words: Word[]; score: number; startedAt: number | null; endedAt: number | null };
 const LETTERS = "AAAAAAAABCDEEEEEEEEEEEFGHIIIIIIJKLMNNOOOOOOOPQRRRRSSSSTTTTTTUUUVWYZ";
+const VOWELS = "AEIOU";
+const VOWEL_POOL = [...LETTERS].filter(letter => VOWELS.includes(letter)).join("");
+const CONSONANT_POOL = [...LETTERS].filter(letter => !VOWELS.includes(letter)).join("");
 function random(seed: string) {
   let h = 2166136261;
   for (const char of seed) h = Math.imul(h ^ char.charCodeAt(0), 16777619);
@@ -12,14 +15,38 @@ function random(seed: string) {
 }
 export function puzzle(date: string): Tile[] {
   const rng = random(date);
-  const letters = Array.from({ length: 30 }, () => LETTERS[Math.floor(rng() * LETTERS.length)]);
+  const totalVowels = 12;
+  const vowelCount = (word: string) => [...word].filter(letter => VOWELS.includes(letter)).length;
+  const draw = (pool: string) => pool[Math.floor(rng() * pool.length)];
+  const shuffle = (letters: string[]) => {
+    for (let i = letters.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [letters[i], letters[j]] = [letters[j], letters[i]];
+    }
+    return letters;
+  };
+
   const anchors = ["CAT", "DOG", "SUN", "EAR", "NOTE", "STAR", "RAIN", "FIRE", "GAME", "LAMP"];
-  const playable = anchors.filter(word => WORDS.has(word.toLowerCase()));
+  const playable = anchors.filter(word => WORDS.has(word.toLowerCase()) && vowelCount(word) <= totalVowels);
   const anchor = playable[Math.floor(rng() * playable.length)] || "CAT";
-  for (let i = 0; i < anchor.length; i++) letters[i] = anchor[i];
-  let vowels = letters.slice(0, 15).filter(ch => "AEIOU".includes(ch)).length;
-  for (let i = anchor.length; i < 15 && vowels < 3; i++) if (!"AEIOU".includes(letters[i])) { letters[i] = "AEIOU"[Math.floor(rng() * 5)]; vowels++; }
-  for (let i = 14; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [letters[i], letters[j]] = [letters[j], letters[i]]; }
+  const anchorVowels = vowelCount(anchor);
+  const anchorConsonants = anchor.length - anchorVowels;
+
+  // The Reddit game's 15/15 split chooses 5, 6, or 7 rack vowels,
+  // with the target of 6 twice as likely as either neighbor.
+  const rackVowels = [5, 6, 6, 7][Math.floor(rng() * 4)];
+  const bagVowels = totalVowels - rackVowels;
+
+  const rack = shuffle([
+    ...anchor,
+    ...Array.from({ length: rackVowels - anchorVowels }, () => draw(VOWEL_POOL)),
+    ...Array.from({ length: 15 - rackVowels - anchorConsonants }, () => draw(CONSONANT_POOL)),
+  ]);
+  const bag = shuffle([
+    ...Array.from({ length: bagVowels }, () => draw(VOWEL_POOL)),
+    ...Array.from({ length: 15 - bagVowels }, () => draw(CONSONANT_POOL)),
+  ]);
+  const letters = [...rack, ...bag];
   return letters.map((letter, id) => ({ id, letter }));
 }
 export function createRound(date: string): Round { const tiles = puzzle(date); return { date, rack: tiles.slice(0, 15), bag: tiles.slice(15), words: [], score: 0, startedAt: null, endedAt: null }; }
