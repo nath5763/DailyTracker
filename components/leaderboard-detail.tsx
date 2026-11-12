@@ -9,6 +9,7 @@ import { LeaderboardInsightsView } from "@/components/leaderboard-insights";
 import { LeaderboardPosition, LeaderboardPodium } from "@/components/leaderboard-highlights";
 import { LeaderboardMemberScoresPanel, memberScoresPanelId, nextExpandedPlayer, type ExpandedPlayer } from "@/components/leaderboard-member-scores";
 import { LeaderboardDiscord } from "@/components/leaderboard-discord";
+import { LeaderboardTelegram } from "@/components/leaderboard-telegram";
 import { LeaderboardInvite } from "@/components/leaderboard-invite";
 import { DiscordLinkInstructions } from "@/components/discord-link-instructions";
 import { DeleteLeaderboard } from "@/components/delete-leaderboard";
@@ -18,6 +19,7 @@ import { ShareLeaderboardModal } from "@/components/share-leaderboard-modal";
 import { ManageBillingButton, SubscriptionChoices } from "@/components/billing-actions";
 import { invalidateClientCachePrefix, leaderboardCachePath, useCachedApi } from "@/lib/client-cache";
 import { formatRankingScore, formatResultDetails } from "@/lib/format";
+import { leaderboardResultsMessage, leaderboardUrl, whatsappUrl } from "@/lib/whatsapp-share";
 import type { BillingStatus, BoardSummary, Leaderboard } from "@/lib/types";
 
 const ranges = [{ key: "today", label: "Today" }, { key: "7d", label: "Last 7 days" }, { key: "30d", label: "Last 30 days" }, { key: "all", label: "All time" }] as const;
@@ -63,6 +65,10 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
   if (!board) return <section className="page shell"><div className="card"><p>{refreshError || result.error || "Loading leaderboard…"}</p>{result.error ? <button className="button button-ghost" onClick={() => void refresh()}>Retry</button> : null}</div><div className="spacer" />{backToBoards}</section>;
   const scoring = board.game.rankingDirection === "lower" ? "Lower average wins." : "Higher average wins.";
   const games = board.games?.length ? board.games : [board.game];
+  function shareToWhatsApp(shareBoard: Leaderboard) {
+    const url = leaderboardUrl(shareBoard, window.location.origin);
+    window.open(whatsappUrl(leaderboardResultsMessage(shareBoard, url)), "_blank", "noopener,noreferrer");
+  }
   return <section className="page shell">
     <div className="page-heading"><div><p className="section-number">{board.game.name.toUpperCase()} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions"><p>{board.members.length} player{board.members.length === 1 ? "" : "s"} · {scoring} <a className="secondary-link" href={board.game.sourceUrl} rel="noreferrer" target="_blank">Play {board.game.name}</a></p>{backToBoards}<button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div>
     {sharing ? <ShareLeaderboardModal board={board} onClose={() => setSharing(false)} /> : null}
@@ -70,7 +76,7 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
     <div className="grid score-layout"><section className="card">
       <div className="leaderboard-game-toolbar">
         {games.length > 1 ? <LeaderboardGameSelector boardId={id} games={games} selected={board.game} range={range} recentGameSlugs={board.recentGameSlugs} /> : <span className="field-label">{board.game.name} results</span>}
-        <button className="button button-small" type="button" aria-label={`Share ${board.game.name} results`} onClick={() => setSharing(true)}>Share Results</button>
+        <div className="leaderboard-share-actions"><button className="button button-small" type="button" aria-label={`Share ${board.game.name} results`} onClick={() => setSharing(true)}>Share Results</button><button className="button button-small button-ghost" type="button" onClick={() => shareToWhatsApp(board)}>Share results to WhatsApp</button></div>
       </div>
       <nav className="tabs leaderboard-range-tabs" aria-label="Leaderboard date range">{ranges.map((tab) => <AppLink className={`tab ${range === tab.key ? "active" : ""}`} aria-current={range === tab.key ? "page" : undefined} href={`/leaderboards/${id}?game=${encodeURIComponent(board.game.slug)}&range=${tab.key}`} key={tab.key}>{tab.label}</AppLink>)}</nav>
       <LeaderboardPosition board={board} userId={userId} />
@@ -100,6 +106,7 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
     <div className="spacer" />{board.boardType === "MULTI_GAME"
       ? <LeaderboardDiscord boardId={id} owner={board.owner} discordStatus={discordStatus} setupToken={setupToken} />
       : <section className="card"><h2>Discord requires a multi-game leaderboard</h2><p className="subtle">Create a multi-game leaderboard to connect a server channel or Group DM. Discord commands require you to choose a game.</p><AppLink className="secondary-link" href="/leaderboards">View your leaderboards</AppLink></section>}
+    {board.boardType === "MULTI_GAME" ? <><div className="spacer" /><LeaderboardTelegram boardId={id} owner={board.owner} /></> : null}
     <div className="spacer" /><section className="card" id="leaderboard-roster-copy"><h2>Use this group for another game</h2><p className="subtle">Create a new leaderboard with the same players. You will own the new board.</p><CopyLeaderboard leaderboardId={id} sourceName={board.name} sourceGameSlug={board.game.slug} /></section>
     {board.owner ? <><div className="spacer" /><DeleteLeaderboard boardId={id} name={board.name} /></> : null}
   </section>;
@@ -107,7 +114,7 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
 
 function Locked({ board, refreshing, refresh }: { board: BoardSummary; refreshing: boolean; refresh: () => Promise<void> }) {
   const billing = useCachedApi<BillingStatus>("/billing/status");
-  return <section className="page shell"><div className="page-heading"><div><p className="section-number">{board.game?.name.toUpperCase() ?? "PRIVATE"} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions">{backToBoards}<button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div><section className="card locked-card"><span className="lock-mark" aria-hidden="true">LOCKED</span><h2>This all-game leaderboard is currently locked</h2><p>{board.owner ? "Restore a paid tier to reopen its rankings and roster for everyone." : "The owner needs to restore a paid tier before members can view rankings or the roster."}</p>{board.owner ? <div className="billing-buttons" id="locked-board-billing-controls">{!billing.data?.status || billing.data.status === "canceled" || billing.data.status === "incomplete_expired" ? <SubscriptionChoices /> : <ManageBillingButton />}</div> : null}</section>{board.owner ? <><section className="card"><LeaderboardInvite boardId={board.id} locked /></section><div className="spacer" /><DeleteLeaderboard boardId={board.id} name={board.name} /></> : null}</section>;
+  return <section className="page shell"><div className="page-heading"><div><p className="section-number">{board.game?.name.toUpperCase() ?? "PRIVATE"} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions">{backToBoards}<button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div><section className="card locked-card"><span className="lock-mark" aria-hidden="true">LOCKED</span><h2>This all-game leaderboard is currently locked</h2><p>{board.owner ? "Restore a paid tier to reopen its rankings and roster for everyone." : "The owner needs to restore a paid tier before members can view rankings or the roster."}</p>{board.owner ? <div className="billing-buttons" id="locked-board-billing-controls">{!billing.data?.status || billing.data.status === "canceled" || billing.data.status === "incomplete_expired" ? <SubscriptionChoices /> : <ManageBillingButton />}</div> : null}</section>{board.owner ? <><div className="spacer" /><LeaderboardTelegram boardId={board.id} owner /><div className="spacer" /><section className="card"><LeaderboardInvite boardId={board.id} locked /></section><div className="spacer" /><DeleteLeaderboard boardId={board.id} name={board.name} /></> : null}</section>;
 }
 
 

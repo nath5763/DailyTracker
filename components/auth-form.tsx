@@ -5,10 +5,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PASSWORD_HELP, passwordIsValid } from "@/lib/auth-validation";
 import { discordSignupNext } from "@/lib/discord-signup";
+import { telegramSignupNext } from "@/lib/telegram-signup";
 import { leaderboardInviteNext } from "@/lib/leaderboard-invite";
 
 function verificationQuery(next: string) {
-  const signupIntent = discordSignupNext(next)?.split("intent=")[1];
+  const signupIntent = (discordSignupNext(next) ?? telegramSignupNext(next))?.split("intent=")[1];
   const joinInvite = leaderboardInviteNext(next)?.split("invite=")[1];
   return signupIntent ? "?signupIntent=" + signupIntent : joinInvite ? "?joinInvite=" + joinInvite : "";
 }

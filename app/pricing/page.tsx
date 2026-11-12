@@ -4,13 +4,13 @@ import { getViewer } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import type { BillingStatus } from "@/lib/types";
 
-export const metadata = { title: "Pricing · Daily Tracker", description: "Compare Daily Tracker's free and paid plans for private daily game leaderboards and Discord integration." };
+export const metadata = { title: "Pricing · Daily Tracker", description: "Compare Daily Tracker's free and paid plans for private daily game leaderboards and chat integrations." };
 export const dynamic = "force-dynamic";
 
 const plans = [
-  { tier: "FREE", name: "Free", price: "$0", description: "Start a private daily games club.", features: ["Five single-game leaderboards", "Daily, weekly, monthly, and all-time rankings", "Join a paid owner's connected Discord channel"] },
-  { tier: "STANDARD", name: "Standard", price: "$2", description: "Bring the whole club together.", features: ["Everything in Free", "One all-game leaderboard", "Connect your Discord server channel"] },
-  { tier: "PREMIUM", name: "Premium", price: "$5", description: "Room for more groups.", features: ["Everything in Standard", "Five all-game leaderboards total", "Connect your Discord server channels"] },
+  { tier: "FREE", name: "Free", price: "$0", description: "Start a private daily games club.", features: ["Five single-game leaderboards", "Daily, weekly, monthly, and all-time rankings", "Join a paid owner's connected Discord channel or Telegram group"] },
+  { tier: "STANDARD", name: "Standard", price: "$2", description: "Bring the whole club together.", features: ["Everything in Free", "One all-game leaderboard", "Connect a Discord channel or Telegram group"] },
+  { tier: "PREMIUM", name: "Premium", price: "$5", description: "Room for more groups.", features: ["Everything in Standard", "Five all-game leaderboards total", "Connect Discord channels or Telegram groups"] },
 ] as const;
 
 export default async function PricingPage() {
@@ -23,6 +23,6 @@ export default async function PricingPage() {
       <ul>{plan.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
       <PricingActions tier={plan.tier} billing={billing} shareId={viewer.profile?.shareId} needsSetup={Boolean(viewer.user && !viewer.profile)} />
     </article>)}</div>
-    <p className="pricing-note">Discord commands support share-text games on multi-game leaderboards. Choose a game when you use <code>/daily</code> or <code>/leaderboard</code>. Linked free members can use supported commands in a paid owner&apos;s connected channel or use the user app in DMs and Group DMs. You can change or cancel a paid plan in Stripe billing settings.</p>
+    <p className="pricing-note">Discord and Telegram commands support share-text games on multi-game leaderboards. Linked free members can use supported commands in a paid owner&apos;s connected chat. Telegram also works in a private bot chat with an explicit leaderboard choice; Discord works in DMs and Group DMs. You can change or cancel a paid plan in Stripe billing settings.</p>
   </section></main>;
 }

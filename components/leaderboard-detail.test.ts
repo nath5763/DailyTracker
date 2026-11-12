@@ -80,6 +80,7 @@ test("shows position, full rankings, then progress", () => {
   expect(html.indexOf("Viewer")).toBeLessThan(html.indexOf("<h2>Progress</h2>"));
   expect(html).toContain('aria-expanded="false"');
   expect(html).toContain("Share Results");
+  expect(html).toContain("Share results to WhatsApp");
   expect(html).not.toContain('href="/profile/viewer-share"');
 });
 
@@ -167,4 +168,6 @@ test("places sharing beside the selected game controls", () => {
   expect(html).toContain('aria-label="Share Fermi results"');
   expect(html.indexOf("leaderboard-game-toolbar")).toBeLessThan(html.indexOf("Share Results"));
   expect(html.indexOf("Share Results")).toBeLessThan(html.indexOf("leaderboard-range-tabs"));
+  expect(html.indexOf("Share Results")).toBeLessThan(html.indexOf("Share results to WhatsApp"));
+  expect(html.indexOf("Share results to WhatsApp")).toBeLessThan(html.indexOf("leaderboard-range-tabs"));
 });

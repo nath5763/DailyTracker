@@ -5,6 +5,7 @@ import { ProfileView } from "./profile-view";
 
 const state = vi.hoisted(() => ({ self: true }));
 vi.mock("@/components/discord-card", () => ({ DiscordCard: () => createElement("section", null, "Discord controls and setup guide") }));
+vi.mock("@/components/telegram-card", () => ({ TelegramCard: () => createElement("section", null, "Telegram controls and setup guide") }));
 vi.mock("@/components/game-stats", () => ({ GameStatsList: () => createElement("section", null, "Game statistics") }));
 vi.mock("@/components/subscription-panel", () => ({ SubscriptionPanel: () => createElement("section", null, "Subscription and billing controls") }));
 vi.mock("@/components/theme-toggle", () => ({ ThemeToggle: () => createElement("section", null, "Dark mode") }));
@@ -23,6 +24,7 @@ test("shows account management without game activity on the signed-in user's pro
   expect(html).toContain("player-uuid");
   expect(html).toContain("Copy account UUID");
   expect(html).toContain("Discord controls and setup guide");
+  expect(html).toContain("Telegram controls and setup guide");
   expect(html).toContain("Subscription and billing controls");
   expect(html).toContain("Dark mode");
   expect(html).not.toContain("Game statistics");
@@ -36,6 +38,7 @@ test("shows game activity and UUID without private account controls on another p
   expect(html).toContain("Score history");
   expect(html).toContain("player-uuid");
   expect(html).not.toContain("Discord controls and setup guide");
+  expect(html).not.toContain("Telegram controls and setup guide");
   expect(html).not.toContain("Subscription and billing controls");
   expect(html).not.toContain("Dark mode");
 });

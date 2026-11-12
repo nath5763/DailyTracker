@@ -2,6 +2,7 @@
 
 import { CopyButton } from "@/components/copy-button";
 import { DiscordCard } from "@/components/discord-card";
+import { TelegramCard } from "@/components/telegram-card";
 import { GameStatsList } from "@/components/game-stats";
 import { SubscriptionPanel } from "@/components/subscription-panel";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -16,7 +17,7 @@ export function ProfileView({ shareId, checkout, billingReturn }: { shareId: str
   return <section className="page shell">
     <div className="page-heading"><div className="profile-top"><span className="avatar" style={{ background: avatarBackground(data.profile.avatarColor) }}>{data.profile.displayName[0].toUpperCase()}</span><div><p className="section-number">PLAYER PROFILE</p><h1>{data.profile.displayName}</h1></div></div><p>{data.self ? "This is your profile." : "You share a private leaderboard with this player."}</p></div>
     {data.self ? <>
-      <div className="grid grid-2 account-grid"><section className="card" id="account-uuid"><h2>Account UUID</h2><p className="subtle">Share this UUID with a leaderboard owner so they can add your account.</p><div className="uuid-box">{data.profile.shareId}</div><CopyButton value={data.profile.shareId} label="Copy account UUID" /></section><DiscordCard /></div>
+      <div className="grid grid-2 account-grid"><section className="card" id="account-uuid"><h2>Account UUID</h2><p className="subtle">Share this UUID with a leaderboard owner so they can add your account.</p><div className="uuid-box">{data.profile.shareId}</div><CopyButton value={data.profile.shareId} label="Copy account UUID" /></section><DiscordCard /><TelegramCard /></div>
       <div className="spacer" /><ThemeToggle /><div className="spacer" /><SubscriptionPanel checkout={checkout} billingReturn={billingReturn} />
     </> : <>
       <GameStatsList values={data.statsByGame} />

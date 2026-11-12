@@ -13,6 +13,7 @@ export async function SiteHeader({ viewer }: { viewer?: Viewer } = {}) {
       <Logo />
       <nav aria-label="Main navigation">
         <AppLink className="nav-games" href="/games">Games</AppLink>
+        <AppLink href="/daily">Play daily</AppLink>
         <AppLink className="nav-pricing" href="/pricing">Pricing</AppLink>
         {profile ? (
           <>

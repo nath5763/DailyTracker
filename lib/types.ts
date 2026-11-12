@@ -57,7 +57,7 @@ export type Game = {
   supportedFormats?: string[];
 };
 export type CatalogGame = { slug: string; name: string; description: string; category: string; sourceUrl: string; scoreTrackingAvailable: boolean };
-export type Score = { id: string; puzzleKey: string; playedOn: string; primaryScore: number; gameName: string; gameSlug: string; game: Game; metrics?: Record<string, unknown>; submissionMethod?: "SHARE_TEXT" | "MANUAL" };
+export type Score = { id: string; puzzleKey: string; playedOn: string; primaryScore: number; gameName: string; gameSlug: string; game: Game; metrics?: Record<string, unknown>; submissionMethod?: "SHARE_TEXT" | "MANUAL" | "IN_APP" };
 export type BoardSummary = { id: string; name: string; ownerId: string; owner: boolean; game: Game | null; boardType: "SINGLE_GAME" | "MULTI_GAME"; games: Game[]; locked: boolean; createdAt: string };
 export type GameStats = Stats & { game: Game };
 export type Dashboard = { profile: Profile; stats: Stats; statsByGame: GameStats[]; recentScores: Score[]; leaderboards: BoardSummary[] };

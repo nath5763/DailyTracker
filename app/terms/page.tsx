@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
-  description: "Terms for using Daily Tracker leaderboards, scores, Discord integration, and subscriptions.",
+  description: "Terms for using Daily Tracker leaderboards, scores, chat integrations, and subscriptions.",
 };
 export const dynamic = "force-dynamic";
 
@@ -31,12 +31,12 @@ export default function TermsPage() {
         <section>
           <h2>Subscriptions and billing</h2>
           <p>Daily Tracker offers a free tier and monthly paid tiers. The current price and included features are shown before checkout. Stripe handles payment details and provides the billing portal, where you can change tiers or cancel your subscription.</p>
-          <p>Cancelling a subscription normally leaves paid access available through the current billing period. If paid access ends, existing all-game leaderboards become locked and connected Discord channels stop working until the board owner regains a paid entitlement. Existing boards are kept when a tier limit decreases, but creation remains subject to the current limit.</p>
+          <p>Cancelling a subscription normally leaves paid access available through the current billing period. If paid access ends, existing all-game leaderboards become locked and connected Discord channels and Telegram groups stop working until the board owner regains a paid entitlement. Existing boards are kept when a tier limit decreases, but creation remains subject to the current limit.</p>
         </section>
 
         <section>
-          <h2>Discord and other services</h2>
-          <p>Discord account linking is optional. A leaderboard owner needs a paid tier to connect a server channel; linked free members can use supported commands in a paid owner&apos;s connected channel. Your use of Discord, supported games, and Stripe is also subject to those providers&apos; own terms.</p>
+          <h2>Chat integrations and other services</h2>
+          <p>Discord and Telegram account linking are optional. A leaderboard owner needs a paid tier to connect a Discord server channel or Telegram group; linked free members can use supported commands in a paid owner&apos;s connected chat. Your use of Discord, Telegram, supported games, and Stripe is also subject to those providers&apos; own terms.</p>
         </section>
 
         <section>
