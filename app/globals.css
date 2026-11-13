@@ -620,3 +620,21 @@ html[data-theme="dark"] .so-secondary { color: #e1d9ff; }
 html[data-theme="dark"] .so-secondary:hover { background: #433e62; }
 html[data-theme="dark"] .so-modal { background: #292738; color: #f3f1ff; }
 @media (max-width: 480px) { .so-stats { grid-template-columns: minmax(80px, .5fr) minmax(0, 1fr); }.so-stats > div:last-child { grid-column: auto; }.so-result { padding: 19px; }.so-block-face { border-width: 2px; }.so-target .so-block-face { border-width: 3px; } }
+.so-heading-actions, .so-card-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.so-level-page { max-width: 1120px; }
+.so-level-page > p { line-height: 1.5; }
+.so-level-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin: 26px 0; }
+.so-level-list > div { padding: 16px; border: 1px solid var(--so-line); border-radius: 12px; background: var(--so-surface); }
+.so-level-list h2 { margin: 0 0 13px; font-family: var(--font-display); font-size: 19px; text-transform: capitalize; }
+.so-level-buttons { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.so-level-buttons button { min-width: 0; padding: 8px 2px; border: 2px solid var(--so-purple); border-radius: 8px; background: transparent; color: var(--so-ink); cursor: pointer; }
+.so-level-buttons button.selected { background: var(--so-purple); color: #fff; }
+.so-level-buttons button:disabled { opacity: .45; cursor: default; }
+.so-level-buttons strong, .so-level-buttons small { display: block; }
+.so-level-buttons small { margin-top: 3px; font-size: 9px; white-space: nowrap; }
+.so-level-page .so-block-face { font-size: clamp(8px, 1vw, 12px); font-weight: 900; }
+.so-level-page .so-stats strong { font-size: clamp(18px, 3vw, 27px); }
+.so-level-page .so-stats { grid-template-columns: 1.3fr .5fr 1fr; }
+html[data-theme="dark"] .so-level-buttons button.selected { color: #1a1824; }
+@media (max-width: 760px) { .so-level-list { grid-template-columns: 1fr; }.so-level-list > div { padding: 12px; }.so-level-buttons { gap: 8px; }.so-level-buttons button { min-height: 48px; } }
+@media (max-width: 480px) { .so-level-page .so-stats { grid-template-columns: 1fr 1fr; }.so-level-page .so-stats > div:last-child { grid-column: 1 / -1; } }

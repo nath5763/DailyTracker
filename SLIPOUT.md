@@ -2,6 +2,12 @@
 
 SlipOut is available at `/daily/slipout`. Run the frontend with `npm run dev` and the sibling Spring Boot backend with its usual database configuration. The frontend's `/api/*` rewrite points to `BACKEND_INTERNAL_URL` (default `http://localhost:8080`). Guests can play without an account; signed-in players get server-verified results on Daily Tracker leaderboards.
 
+## Levels
+
+The separate `/daily/slipout/levels` mode has 15 fixed levels: five easy (6–12 optimal moves), five medium (13–19), and five hard (20 or more). Levels unlock in order and completed levels remain replayable. Daily results do not unlock levels. Level targets may be 1×1, 1×2, 2×1, or 2×2 and move on both axes. The target must align its top edge with row three and clear every row it occupies to exit right. Other blocks remain two- or three-cell bars moving on one axis.
+
+Guest best moves and their verified move histories are saved on this device. Signed-in best moves and unlocks are saved through `/api/v1/slipout/levels`; guest completions are imported after sign-in and replayed by the server before they count. There is no public level leaderboard. The level catalog is frozen as `slipout-level-v1-01` through `slipout-level-v1-15` in both repositories. Database migration `V39__slipout_levels.sql` adds account attempts and progress.
+
 ## Gameplay
 
 - The board is 6×6. Every block is two or three cells long and moves only along its horizontal or vertical axis.
@@ -22,7 +28,7 @@ Results contain `puzzleId`, `puzzleDate`, `playerId` (null for a guest), `comple
 
 Guest attempt history and the best completed result for each puzzle are stored in `localStorage`. Signed-in attempts use `/api/v1/slipout/today`: `GET` returns today's puzzle and best result, `POST /start` creates a new attempt, and `POST /finish` accepts the ordered move log and returns the verified result and current best. The backend replays every move against its daily board. It rejects illegal movement, collisions, no-ops, and moves after the target has exited. All signed-in attempts are kept in `slipout_attempts`; only the best successful result per player and date is upserted into the existing `submissions` table. Leaderboard metrics are `rankingPrimary = moves`, ascending, with `completionStatus = WIN`. The old attempt time columns remain for database compatibility.
 
-The share text uses the active site's origin, the daily puzzle number, move count, and optimal move count. Native sharing is used when available, with a separate copy button.
+The Share results button copies text containing the active site's origin, the daily puzzle number, move count, and optimal move count.
 
 ## Verification
 

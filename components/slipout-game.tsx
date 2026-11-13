@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import Link from "next/link";
 import { reachableRange } from "@/lib/slipout/movement";
 import { loadBest, saveAttempt, saveBest } from "@/lib/slipout/persistence";
 import { puzzleForDate, todayUtc, type Puzzle } from "@/lib/slipout/puzzles";
@@ -179,15 +180,15 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
   }
 
   const share = result ? shareText(puzzle, result, `${typeof window === "undefined" ? "" : window.location.origin}/daily/slipout`) : "";
-  async function shareResult(native: boolean) {
+  async function shareResult() {
     try {
-      if (native && navigator.share) await navigator.share({ title: "SlipOut", text: share });
-      else { await navigator.clipboard.writeText(share); setMessage("Result copied."); }
-    } catch (error) { if ((error as DOMException).name !== "AbortError") setMessage("Could not share this result."); }
+      await navigator.clipboard.writeText(share);
+      setMessage("Result copied.");
+    } catch { setMessage("Could not copy this result."); }
   }
 
   return <section className="so-page shell">
-    <header className="so-heading"><div><p className="so-kicker">DAILY PUZZLE #{puzzle.number} · {puzzle.date} UTC</p><h1>SlipOut</h1></div><button type="button" className="so-text-button" onClick={() => setHelp(true)}>How to play</button></header>
+    <header className="so-heading"><div><p className="so-kicker">DAILY PUZZLE #{puzzle.number} · {puzzle.date} UTC</p><h1>SlipOut</h1></div><div className="so-heading-actions"><Link className="so-text-button" href="/daily/slipout/levels">Play levels →</Link><button type="button" className="so-text-button" onClick={() => setHelp(true)}>How to play</button></div></header>
     <div className="so-stats"><div><span>MOVES</span><strong>{session.history.length}</strong></div><div><span>BEST TODAY</span><strong className="so-best">{best ? `${best.moves} ${best.moves === 1 ? "move" : "moves"}` : "No finish yet"}</strong></div></div>
     <div className="so-main"><div className="so-board-shell"><div className="so-board" ref={boardRef} aria-label="SlipOut six by six sliding block board">
       {Array.from({ length: 36 }, (_, index) => <span className="so-cell" key={index} aria-hidden="true" />)}
@@ -206,7 +207,7 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
       <div className="so-exit" aria-hidden="true"><span>EXIT →</span></div>
     </div></div><aside className="so-side"><p className="so-side-label">THE OBJECTIVE</p><h2>Clear a path to the right.</h2><p>Guide the pink target through the exit. Each slide counts as one move, no matter how far it travels.</p>{session.status === "COMPLETED" && <><div className="so-side-line" /><p>Today’s shortest solution <strong>{puzzle.optimalMoves} moves</strong></p></>}<p className="so-keyboard">Keyboard: focus a block, use arrow keys. Home or End slides it all the way.</p></aside></div>
     <div className="so-controls">{session.status === "READY" ? <button type="button" className="so-primary" onClick={() => void start()} disabled={busy}>Start puzzle →</button> : null}<button type="button" className="so-secondary" onClick={restart} disabled={busy || session.status === "READY"}>Restart</button><span className="so-status" role="status">{message}</span></div>
-    {result && <div className="so-result" role="status"><p className="so-kicker">PUZZLE COMPLETE</p><h2>You slipped out.</h2><div className="so-result-numbers"><p><strong>{result.moves}</strong><span>moves</span></p><p><strong>{puzzle.optimalMoves}</strong><span>optimal moves</span></p></div><div className="so-result-actions"><button type="button" className="so-primary" onClick={restart} disabled={busy}>Play again</button><button type="button" className="so-secondary" onClick={() => void shareResult(true)}>Share results</button><button type="button" className="so-text-button" onClick={() => void shareResult(false)}>Copy results</button></div></div>}
+    {result && <div className="so-result" role="status"><p className="so-kicker">PUZZLE COMPLETE</p><h2>You slipped out.</h2><div className="so-result-numbers"><p><strong>{result.moves}</strong><span>moves</span></p><p><strong>{puzzle.optimalMoves}</strong><span>optimal moves</span></p></div><div className="so-result-actions"><button type="button" className="so-primary" onClick={restart} disabled={busy}>Play again</button><button type="button" className="so-secondary" onClick={() => void shareResult()}>Share results</button></div></div>}
     {help && <div className="so-modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setHelp(false); }}><div className="so-modal" role="dialog" aria-modal="true" aria-labelledby="so-help-title"><button type="button" className="so-modal-close" onClick={() => setHelp(false)} aria-label="Close instructions">×</button><p className="so-kicker">HOW TO PLAY</p><h2 id="so-help-title">Slide. Clear. Escape.</h2><p>Move blocks only along their length. They cannot overlap or leave the board. Guide the pink target through the exit on the right.</p><p>Drag with a mouse or touch. A drag of any distance counts as one move. With a keyboard, focus a block and use the arrow keys; Home and End move it to the farthest open spot.</p><p>Fewer moves rank higher. Equal move counts share a rank. You can retry today’s puzzle as often as you like.</p></div></div>}
   </section>;
 }
