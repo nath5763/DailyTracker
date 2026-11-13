@@ -43,15 +43,15 @@ export function LetterBagGame({ saved }: { saved: boolean }) {
     } catch (error) { setMessage(error instanceof Error ? error.message : "Something went wrong."); if (saved) request("").then(setView).catch(() => {}); }
     finally { setBusy(false); }
   }, [view, busy, saved, selected, local]);
-  if (!view) return <section className="shell letter-bag"><h1>Daily Letter Bag</h1><p role="status">{message || "Loading today’s game…"}</p></section>;
+  if (!view) return <section className="shell letter-bag"><h1>Letter Bag</h1><p role="status">{message || "Loading today’s game…"}</p></section>;
   const started = view.startedAt !== null;
   const ended = view.endedAt !== null || started && remaining === 0;
   const active = started && !ended;
   const chosen = selected.map(id => view.rack.find(tile => tile.id === id)).filter((tile): tile is Tile => !!tile);
   const longest = Math.max(0, ...view.words.map(word => word.word.length));
-  const share = `Daily Letter Bag #${view.gameNumber}\nScore: ${view.score}\nWords: ${view.words.length}\nLongest word: ${longest} letters${saved ? "" : "\nUnsaved round"}\n${typeof window === "undefined" ? "" : `${window.location.origin}/daily/letter-bag`}`;
+  const share = `Letter Bag #${view.gameNumber}\nScore: ${view.score}\nWords: ${view.words.length}\nLongest word: ${longest} letters${saved ? "" : "\nUnsaved round"}\n${typeof window === "undefined" ? "" : `${window.location.origin}/daily/letter-bag`}`;
   return <section className="shell letter-bag">
-    <div className="lb-top"><div><p className="section-number">DAILY GAME #{view.gameNumber}</p><h1>Daily Letter Bag</h1><p>{saved ? "Your one scored attempt today" : "Guest round · unsaved"}</p></div><button type="button" className="secondary-link" onClick={() => setHelp(true)}>How to play</button></div>
+    <div className="lb-top"><div><p className="section-number">DAILY GAME #{view.gameNumber}</p><h1>Letter Bag</h1><p>{saved ? "Your one scored attempt today" : "Guest round · unsaved"}</p></div><button type="button" className="secondary-link" onClick={() => setHelp(true)}>How to play</button></div>
     <div className="lb-stats"><div><span>SCORE</span><strong>{view.score}</strong></div><div><span>TIME</span><strong>{remaining}s</strong></div><div><span>BAG</span><strong>{view.bagRemaining}</strong></div></div>
     <div className="lb-timer" aria-hidden="true"><span style={{ width: `${remaining / 90 * 100}%` }} /></div>
     {ended ? <div className="lb-result"><p className="section-number">{saved ? "DAILY RESULT" : "UNSAVED RESULT"}</p><h2>{view.score} points</h2><p>{view.words.length} words · longest {longest} letters</p><button className="button" type="button" onClick={() => navigator.clipboard.writeText(share).then(() => setMessage("Result copied.")).catch(() => setMessage("Could not copy result."))}>Copy result</button>{view.words.length > 0 && <div className="lb-history"><h3>Words played</h3>{[...view.words].reverse().map((word, i) => <div key={i}>{word.word}<b>+{word.points}</b></div>)}</div>}</div> : <div className="lb-board">

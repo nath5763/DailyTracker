@@ -15,4 +15,5 @@ test("labels the signed-in profile destination and keeps the avatar", async () =
   expect(html).toContain('href="/profile/share-id"');
   expect(html).toContain("Profile");
   expect(html).toContain('class="avatar small"');
+  expect(html).not.toContain('href="/daily"');
 });

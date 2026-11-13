@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { AppLink } from "@/components/app-link";
-import { ManageBillingButton, SubscriptionChoices } from "@/components/billing-actions";
+import { ChangePlanButton, ManageBillingButton, SubscriptionChoices } from "@/components/billing-actions";
 import { useAppData } from "@/components/app-data-provider";
 import { invalidateClientCache, useCachedApi } from "@/lib/client-cache";
 import type { BillingStatus } from "@/lib/types";
@@ -55,7 +55,7 @@ export function SubscriptionPanel({ checkout, billingReturn }: { checkout?: stri
       {billing.cancelAtPeriodEnd && billing.currentPeriodEnd ? <p className="form-message">Paid access continues through {new Date(billing.currentPeriodEnd).toLocaleDateString()}.</p> : null}
       {billing.graceUntil ? <p className="form-message error">Payment needs attention before {new Date(billing.graceUntil).toLocaleDateString()}.</p> : null}
       {!billing.cancelAtPeriodEnd && billing.currentPeriodEnd ? <p className="subtle">Current billing period ends {new Date(billing.currentPeriodEnd).toLocaleDateString()}.</p> : null}
-      <div className="subscription-actions">{canStartCheckout(billing) ? <SubscriptionChoices /> : <ManageBillingButton />}<AppLink className="secondary-link" href="/pricing">Compare plans</AppLink><button className="text-button" type="button" onClick={() => void refresh()}>Refresh subscription</button></div>
+      <div className="subscription-actions">{canStartCheckout(billing) ? <SubscriptionChoices /> : billing.tier === "FREE" ? <ManageBillingButton /> : <div className="billing-buttons"><ChangePlanButton /><ManageBillingButton /></div>}<AppLink className="secondary-link" href="/pricing">Compare plans</AppLink><button className="text-button" type="button" onClick={() => void refresh()}>Refresh subscription</button></div>
     </>}
   </section>;
 }

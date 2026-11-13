@@ -22,7 +22,9 @@ test("shows account management without game activity on the signed-in user's pro
   state.self = true;
   const html = renderToStaticMarkup(createElement(ProfileView, { shareId: "player-uuid" }));
   expect(html).toContain("player-uuid");
-  expect(html).toContain("Copy account UUID");
+  expect(html).toContain("Copy account ID");
+  expect(html).toContain('class="grid grid-2 profile-integrations"');
+  expect(html).not.toContain("Account UUID");
   expect(html).toContain("Discord controls and setup guide");
   expect(html).toContain("Telegram controls and setup guide");
   expect(html).toContain("Subscription and billing controls");
@@ -37,6 +39,8 @@ test("shows game activity and UUID without private account controls on another p
   expect(html).toContain("Game statistics");
   expect(html).toContain("Score history");
   expect(html).toContain("player-uuid");
+  expect(html).toContain("Copy account ID");
+  expect(html).not.toContain("Account UUID");
   expect(html).not.toContain("Discord controls and setup guide");
   expect(html).not.toContain("Telegram controls and setup guide");
   expect(html).not.toContain("Subscription and billing controls");

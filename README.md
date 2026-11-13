@@ -1,6 +1,6 @@
 # Daily Club
 
-Daily Letter Bag is playable at `/daily/letter-bag` and listed in the `/daily` hub and `/games` directory. Guests can play unsaved; signed-in players get one server-scored attempt per UTC day. The sibling backend owns attempts and records completed scores in private leaderboards. The game uses the same date-seeded letters as the Reddit version, with its own website result link. The SCOWL-derived word list and notices live in `lib/letter-bag` and the backend resources.
+Letter Bag is playable at `/daily/letter-bag` and listed in the `/daily` hub and `/games` directory. Guests can play unsaved; signed-in players get one server-scored attempt per UTC day. The sibling backend owns attempts and records completed scores in private leaderboards. The game uses the same date-seeded letters as the Reddit version, with its own website result link. The SCOWL-derived word list and notices live in `lib/letter-bag` and the backend resources.
 
 Daily Club is a private friends leaderboard for daily games. The public `/games` directory links to original publishers. Website score tracking supports Fermi, Krillion, Wordle, Pinpoint, Queens, Crossclimb, Tango, Zip, and LoLdle's five modes: players paste a shared result, confirm the parsed score, and compare daily, 7-day, 30-day, and all-time averages. For LoLdle, paste the complete five-mode share and supply the puzzle date to save all five scores together. Discord offers `/loldle` for the same import alongside `/daily` for single-game shares.
 

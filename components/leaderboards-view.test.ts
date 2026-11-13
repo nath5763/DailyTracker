@@ -3,14 +3,18 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test, vi } from "vitest";
 import { LeaderboardsView } from "./leaderboards-view";
 
-const state = vi.hoisted(() => ({ boards: [] as unknown[] }));
+const state = vi.hoisted(() => ({ boards: [] as unknown[], tier: "FREE" as "FREE" | "STANDARD" | "PREMIUM" }));
 vi.mock("@/components/app-data-provider", () => ({ useAppData: () => ({ userId: "viewer", shareId: "share", games: [] }) }));
 vi.mock("@/components/create-leaderboard", () => ({ CreateLeaderboard: () => null }));
-vi.mock("@/components/billing-actions", () => ({ ManageBillingButton: () => null, SubscriptionChoices: () => null }));
+vi.mock("@/components/billing-actions", () => ({
+  ChangePlanButton: () => createElement("button", null, "Change plan"),
+  ManageBillingButton: () => createElement("button", null, "Manage billing"),
+  SubscriptionChoices: () => null,
+}));
 vi.mock("@/lib/client-cache", () => ({
   invalidateClientCache: vi.fn(),
   useCachedApi: (path: string) => ({ data: path === "/leaderboards" ? state.boards : {
-    tier: "FREE", status: null, singleGameCount: 0, singleGameLimit: 5, allGameCount: 0, allGameLimit: 0,
+    tier: state.tier, status: null, singleGameCount: 0, singleGameLimit: 5, allGameCount: 0, allGameLimit: 0,
   }, error: "", refresh: vi.fn() }),
 }));
 
@@ -33,4 +37,12 @@ test("omits the all-game section when none exist", () => {
   state.boards = [single];
   expect(render()).not.toContain("All-game leaderboards");
   expect(render()).toContain("Single-game leaderboards");
+});
+
+test("paid members can open a dedicated plan change flow", () => {
+  state.tier = "STANDARD";
+  const html = render();
+  expect(html).toContain("Change plan");
+  expect(html).toContain("Manage billing");
+  state.tier = "FREE";
 });

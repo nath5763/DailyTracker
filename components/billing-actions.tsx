@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { BillingTier } from "@/lib/types";
 
-type BillingEndpoint = "/api/v1/billing/checkout-session" | "/api/v1/billing/portal-session";
+type BillingEndpoint = "/api/v1/billing/checkout-session" | "/api/v1/billing/portal-session" | "/api/v1/billing/plan-change-session";
 type BillingResponse = { url?: string; error?: string; code?: string };
 
 async function createBillingSession(endpoint: BillingEndpoint, tier?: BillingTier) {
@@ -51,4 +51,8 @@ export function SubscriptionChoices() {
 
 export function ManageBillingButton() {
   return <BillingButton className="button button-ghost" endpoint="/api/v1/billing/portal-session">Manage billing</BillingButton>;
+}
+
+export function ChangePlanButton() {
+  return <BillingButton endpoint="/api/v1/billing/plan-change-session">Change plan</BillingButton>;
 }

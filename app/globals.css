@@ -291,6 +291,11 @@ footer a, .privacy-note a { font-weight: 800; text-decoration: underline; text-u
 .profile-top { display: flex; gap: 22px; align-items: center; }
 .profile-top .avatar { width: 76px; height: 76px; font-size: 28px; }
 .profile-top h1 { margin: 0; }
+.profile-identity { display: grid; gap: 8px; max-width: 460px; min-width: 0; }
+.profile-id-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.profile-id-row code { font-size: 12px; overflow-wrap: anywhere; padding: 6px 8px; border: 1px solid var(--line); background: var(--cream); }
+.profile-identity .subtle, .profile-identity .text-button { font-size: 12px; }
+.profile-integrations { align-items: start; }
 .subtle { color: var(--muted); }
 .spacer { height: 20px; }
 .leaderboard-layout { grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr); align-items: start; }
