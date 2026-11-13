@@ -4,11 +4,11 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Poin
 import { reachableRange } from "@/lib/slipout/movement";
 import { loadBest, saveAttempt, saveBest } from "@/lib/slipout/persistence";
 import { puzzleForDate, todayUtc, type Puzzle } from "@/lib/slipout/puzzles";
-import { formatCountdown, formatTime, resultFromSession, shareText, type SlipOutResult } from "@/lib/slipout/results";
-import { expireSession, moveSession, readySession, remainingMs, startSession, type Session } from "@/lib/slipout/session";
+import { resultFromSession, shareText, type SlipOutResult } from "@/lib/slipout/results";
+import { moveSession, readySession, startSession, type Session } from "@/lib/slipout/session";
 import type { Block, Move } from "@/lib/slipout/model";
 
-type ServerStart = { attemptId: string; startedAt: number; serverNow: number };
+type ServerStart = { attemptId: string };
 type ServerFinish = { result: SlipOutResult; best: SlipOutResult | null };
 type ServerToday = { puzzle: Puzzle; best: SlipOutResult | null };
 type Drag = { pointerId: number; id: string; origin: number; start: number; cell: number; min: number; max: number };
@@ -27,15 +27,12 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
   const sessionRef = useRef(session);
   const [best, setBest] = useState<SlipOutResult | null>(null);
   const [result, setResult] = useState<SlipOutResult | null>(null);
-  const [now, setNow] = useState(0);
   const [drag, setDrag] = useState<{ id: string; to: number } | null>(null);
   const dragRef = useRef<Drag | null>(null);
   const boardRef = useRef<HTMLDivElement | null>(null);
   const attemptRef = useRef<string | null>(null);
-  const offsetRef = useRef(0);
   const finishingRef = useRef(false);
   const startingRef = useRef(false);
-  const finalizeRef = useRef<(finished: Session) => void>(() => {});
   const [serverEnabled, setServerEnabled] = useState(signedIn);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -54,18 +51,6 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
     return () => { live = false; };
   }, [puzzle.id, signedIn, setLiveSession]);
 
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      const current = Date.now() + offsetRef.current;
-      setNow(current);
-      const expired = expireSession(sessionRef.current, current);
-      if (expired !== sessionRef.current) {
-        setLiveSession(expired);
-        finalizeRef.current(expired);
-      }
-    }, 100);
-    return () => window.clearInterval(timer);
-  }, [setLiveSession]);
   useEffect(() => {
     const cancel = () => { dragRef.current = null; setDrag(null); };
     window.addEventListener("resize", cancel);
@@ -96,7 +81,6 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
       catch { setMessage("This browser could not save your best result."); }
     }
   }
-  useEffect(() => { finalizeRef.current = finished => { void finalize(finished); }; });
 
   async function start() {
     if (startingRef.current || sessionRef.current.status !== "READY") return;
@@ -109,15 +93,11 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
     }
     startingRef.current = true; setBusy(true); setMessage("");
     try {
-      let startedAt = Date.now();
       if (serverEnabled) {
         const data = await api<ServerStart>("/start", "POST");
         attemptRef.current = data.attemptId;
-        offsetRef.current = data.serverNow - Date.now();
-        startedAt = data.startedAt;
       }
-      setLiveSession(startSession(sessionRef.current, startedAt));
-      setNow(startedAt);
+      setLiveSession(startSession(sessionRef.current, Date.now()));
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not start the puzzle."); }
     finally { startingRef.current = false; setBusy(false); }
   }
@@ -127,7 +107,7 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
     const previous = sessionRef.current;
     const attemptId = attemptRef.current;
     dragRef.current = null; setDrag(null); setResult(null); setMessage("");
-    attemptRef.current = null; finishingRef.current = false; offsetRef.current = 0;
+    attemptRef.current = null; finishingRef.current = false;
     setLiveSession(readySession(puzzle));
     if (previous.status === "PLAYING" && previous.startedAt !== null) {
       if (serverEnabled && attemptId) {
@@ -136,7 +116,7 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
         catch { setMessage("The interrupted attempt could not be saved."); }
         finally { setBusy(false); }
       } else {
-        const abandoned: Session = { ...previous, status: "TIME_EXPIRED", endedAt: Date.now() };
+        const abandoned: Session = { ...previous, status: "RESTARTED", endedAt: Date.now() };
         try { saveAttempt(resultFromSession(puzzle, abandoned, null), localStorage); } catch { /* Retry remains available. */ }
       }
     }
@@ -145,10 +125,10 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
   function commit(move: Move) {
     const current = sessionRef.current;
     if (current.status !== "PLAYING") return;
-    const next = moveSession(current, move, Date.now() + offsetRef.current);
+    const next = moveSession(current, move, Date.now());
     if (next === current) return;
     setLiveSession(next);
-    if (next.status === "COMPLETED" || next.status === "TIME_EXPIRED") void finalize(next);
+    if (next.status === "COMPLETED") void finalize(next);
   }
 
   function pointerPosition(event: ReactPointerEvent<HTMLButtonElement>, active: Drag) {
@@ -198,8 +178,6 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
     if (to >= min && to <= max) commit({ id: block.id, to });
   }
 
-  const remaining = remainingMs(session, now || Date.now() + offsetRef.current);
-  const warning = session.status === "PLAYING" && remaining <= 15_000;
   const share = result ? shareText(puzzle, result, `${typeof window === "undefined" ? "" : window.location.origin}/daily/slipout`) : "";
   async function shareResult(native: boolean) {
     try {
@@ -209,26 +187,26 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
   }
 
   return <section className="so-page shell">
-    <header className="so-heading"><div><p className="so-kicker">DAILY PUZZLE #{puzzle.number} · {puzzle.date} UTC</p><h1>SlipOut<span className="so-period">.</span></h1><p>Make space. Find the exit. Beat your best.</p></div><button type="button" className="so-text-button" onClick={() => setHelp(true)}>How to play</button></header>
-    <div className="so-stats"><div className={warning ? "so-warning" : ""}><span>TIME LEFT</span><strong role="timer">{formatCountdown(remaining)}</strong></div><div><span>MOVES</span><strong>{session.history.length}</strong></div><div><span>BEST TODAY</span><strong className="so-best">{best ? `${best.moves} moves · ${formatTime(best.completionTimeMs ?? 0)}` : "No finish yet"}</strong></div></div>
+    <header className="so-heading"><div><p className="so-kicker">DAILY PUZZLE #{puzzle.number} · {puzzle.date} UTC</p><h1>SlipOut</h1></div><button type="button" className="so-text-button" onClick={() => setHelp(true)}>How to play</button></header>
+    <div className="so-stats"><div><span>MOVES</span><strong>{session.history.length}</strong></div><div><span>BEST TODAY</span><strong className="so-best">{best ? `${best.moves} ${best.moves === 1 ? "move" : "moves"}` : "No finish yet"}</strong></div></div>
     <div className="so-main"><div className="so-board-shell"><div className="so-board" ref={boardRef} aria-label="SlipOut six by six sliding block board">
       {Array.from({ length: 36 }, (_, index) => <span className="so-cell" key={index} aria-hidden="true" />)}
-      {session.blocks.map(block => {
+      {session.status !== "READY" && session.blocks.map(block => {
         const visual = drag?.id === block.id ? drag.to : block.axis === "H" ? block.x : block.y;
         const x = block.axis === "H" ? visual : block.x;
         const y = block.axis === "V" ? visual : block.y;
         const style: CSSProperties = { left: `${x / 6 * 100}%`, top: `${y / 6 * 100}%`,
           width: `${(block.axis === "H" ? block.length : 1) / 6 * 100}%`, height: `${(block.axis === "V" ? block.length : 1) / 6 * 100}%` };
-        return <button key={block.id} type="button" className={`so-block ${block.id === "X" ? "so-target" : ""} ${drag?.id === block.id ? "so-dragging" : ""} ${session.status === "COMPLETED" && block.id === "X" ? "so-exited" : ""}`}
-          style={style} disabled={session.status !== "PLAYING"} aria-label={`${block.id === "X" ? "Target" : "Wood"} block ${block.id}, ${block.axis === "H" ? "horizontal" : "vertical"}, row ${block.y + 1}, column ${block.x + 1}`}
+        return <button key={block.id} type="button" className={`so-block ${block.id === "X" ? "so-target" : block.id.charCodeAt(0) % 2 ? "so-lime" : "so-purple"} ${drag?.id === block.id ? "so-dragging" : ""} ${session.status === "COMPLETED" && block.id === "X" ? "so-exited" : ""}`}
+          style={style} disabled={session.status !== "PLAYING"} aria-label={`${block.id === "X" ? "Target block" : "Block"} ${block.id}, ${block.axis === "H" ? "horizontal" : "vertical"}, row ${block.y + 1}, column ${block.x + 1}`}
           onPointerDown={event => pointerDown(event, block)} onPointerMove={pointerMove} onPointerUp={pointerUp}
           onPointerCancel={() => { dragRef.current = null; setDrag(null); }} onLostPointerCapture={() => { dragRef.current = null; setDrag(null); }}
-          onKeyDown={event => keyMove(event, block)}><span className="so-block-face">{block.id === "X" ? <span className="so-target-mark">SLIP OUT →</span> : <span className="so-grip" />}</span></button>;
+          onKeyDown={event => keyMove(event, block)}><span className="so-block-face">{block.id === "X" ? <span className="so-target-mark">SLIP OUT →</span> : null}</span></button>;
       })}
       <div className="so-exit" aria-hidden="true"><span>EXIT →</span></div>
-    </div></div><aside className="so-side"><p className="so-side-label">THE OBJECTIVE</p><h2>Clear a path to the right.</h2><p>Drag the coral block through the exit. Each slide counts as one move, no matter how far it travels.</p><div className="so-side-line" /><p>Today’s shortest solution <strong>{puzzle.optimalMoves} moves</strong></p><p className="so-keyboard">Keyboard: focus a block, use arrow keys. Home or End slides it all the way.</p></aside></div>
-    <div className="so-controls">{session.status === "READY" ? <button type="button" className="so-primary" onClick={() => void start()} disabled={busy}>Start 90-second puzzle →</button> : null}<button type="button" className="so-secondary" onClick={restart} disabled={busy || session.status === "READY"}>Restart</button><span className="so-status" role="status">{message}</span></div>
-    {result && <div className="so-result" role="status"><p className="so-kicker">{result.completed ? "PUZZLE COMPLETE" : "ATTEMPT ENDED"}</p><h2>{result.completed ? "You slipped out." : "Time’s up."}</h2><div className="so-result-numbers"><p><strong>{result.moves}</strong><span>moves</span></p><p><strong>{result.completed ? formatTime(result.completionTimeMs ?? 0, 2) : "00:00"}</strong><span>{result.completed ? "completion time" : "time remaining"}</span></p><p><strong>{puzzle.optimalMoves}</strong><span>optimal moves</span></p></div><div className="so-result-actions"><button type="button" className="so-primary" onClick={restart} disabled={busy}>Play again</button><button type="button" className="so-secondary" onClick={() => void shareResult(true)}>Share results</button><button type="button" className="so-text-button" onClick={() => void shareResult(false)}>Copy results</button></div></div>}
-    {help && <div className="so-modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setHelp(false); }}><div className="so-modal" role="dialog" aria-modal="true" aria-labelledby="so-help-title"><button type="button" className="so-modal-close" onClick={() => setHelp(false)} aria-label="Close instructions">×</button><p className="so-kicker">HOW TO PLAY</p><h2 id="so-help-title">Slide. Clear. Escape.</h2><p>Move wooden blocks only along their length. They cannot overlap or leave the board. Free the coral target block through the exit on the right before the 90-second timer runs out.</p><p>Drag with a mouse or touch. A drag of any distance counts as one move. With a keyboard, focus a block and use the arrow keys; Home and End move it to the farthest open spot.</p><p>Fewer moves rank higher. When moves tie, the faster completion wins. You can retry today’s puzzle as often as you like.</p></div></div>}
+    </div></div><aside className="so-side"><p className="so-side-label">THE OBJECTIVE</p><h2>Clear a path to the right.</h2><p>Guide the pink target through the exit. Each slide counts as one move, no matter how far it travels.</p>{session.status === "COMPLETED" && <><div className="so-side-line" /><p>Today’s shortest solution <strong>{puzzle.optimalMoves} moves</strong></p></>}<p className="so-keyboard">Keyboard: focus a block, use arrow keys. Home or End slides it all the way.</p></aside></div>
+    <div className="so-controls">{session.status === "READY" ? <button type="button" className="so-primary" onClick={() => void start()} disabled={busy}>Start puzzle →</button> : null}<button type="button" className="so-secondary" onClick={restart} disabled={busy || session.status === "READY"}>Restart</button><span className="so-status" role="status">{message}</span></div>
+    {result && <div className="so-result" role="status"><p className="so-kicker">PUZZLE COMPLETE</p><h2>You slipped out.</h2><div className="so-result-numbers"><p><strong>{result.moves}</strong><span>moves</span></p><p><strong>{puzzle.optimalMoves}</strong><span>optimal moves</span></p></div><div className="so-result-actions"><button type="button" className="so-primary" onClick={restart} disabled={busy}>Play again</button><button type="button" className="so-secondary" onClick={() => void shareResult(true)}>Share results</button><button type="button" className="so-text-button" onClick={() => void shareResult(false)}>Copy results</button></div></div>}
+    {help && <div className="so-modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setHelp(false); }}><div className="so-modal" role="dialog" aria-modal="true" aria-labelledby="so-help-title"><button type="button" className="so-modal-close" onClick={() => setHelp(false)} aria-label="Close instructions">×</button><p className="so-kicker">HOW TO PLAY</p><h2 id="so-help-title">Slide. Clear. Escape.</h2><p>Move blocks only along their length. They cannot overlap or leave the board. Guide the pink target through the exit on the right.</p><p>Drag with a mouse or touch. A drag of any distance counts as one move. With a keyboard, focus a block and use the arrow keys; Home and End move it to the farthest open spot.</p><p>Fewer moves rank higher. Equal move counts share a rank. You can retry today’s puzzle as often as you like.</p></div></div>}
   </section>;
 }

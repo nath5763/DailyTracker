@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { SlipOutGame } from "@/components/slipout-game";
 import { applyMove, reachableRange } from "./movement";
 import { loadBest, saveAttempt, saveBest } from "./persistence";
 import { puzzleForDate } from "./puzzles";
-import { compareResults, resultFromSession, type SlipOutResult } from "./results";
-import { expireSession, moveSession, readySession, startSession } from "./session";
+import { compareResults, resultFromSession, shareText, type SlipOutResult } from "./results";
+import { moveSession, readySession, startSession } from "./session";
 import { solve } from "./solver";
 import type { Board } from "./model";
 
@@ -63,25 +66,32 @@ describe("SlipOut daily puzzles", () => {
   });
 });
 
-describe("SlipOut timing, results, and retries", () => {
-  it("expires at 90 seconds and rejects a completion exactly at the limit", () => {
-    const started = startSession(readySession(puzzle), 1000);
-    expect(expireSession(started, 90_999).status).toBe("PLAYING");
-    expect(moveSession(started, { id: "X", to: 6 }, 91_000).status).toBe("TIME_EXPIRED");
-    expect(moveSession(started, { id: "X", to: 6 }, 90_999).status).toBe("COMPLETED");
+describe("SlipOut results and retries", () => {
+  it("shows an empty board and hides the optimal count before Start", () => {
+    const html = renderToStaticMarkup(createElement(SlipOutGame, { signedIn: false }));
+    expect(html).toContain("Start puzzle");
+    expect(html).toContain("so-board");
+    expect(html).not.toContain("so-block-face");
+    expect(html).not.toContain("optimal moves");
   });
-  it("resets the board, count, and timer for another attempt", () => {
+  it("remains playable after 90 seconds", () => {
+    const started = startSession(readySession(puzzle), 1000);
+    expect(moveSession(started, { id: "B", to: 4 }, 91_000).status).toBe("PLAYING");
+    expect(moveSession(started, { id: "X", to: 6 }, 120_000).status).toBe("COMPLETED");
+  });
+  it("resets the board and count for another attempt", () => {
     const played = moveSession(startSession(readySession(puzzle), 1000), { id: "B", to: 4 }, 2000);
     expect(readySession(puzzle)).toEqual({ status: "READY", blocks: puzzle.blocks, history: [], startedAt: null, endedAt: null });
     expect(played.history).toHaveLength(1);
   });
-  it("ranks completed attempts by moves, then milliseconds, ahead of failures", () => {
+  it("ranks completed attempts by moves alone, ahead of restarts", () => {
     const base: SlipOutResult = { puzzleId: puzzle.id, puzzleDate: puzzle.date, playerId: null,
-      completed: true, moves: 12, completionTimeMs: 42_000, remainingTimeMs: 48_000, completedAt: "2026-11-13T00:00:42Z" };
-    const faster = { ...base, completionTimeMs: 35_000 };
-    const fewer = { ...base, moves: 11, completionTimeMs: 80_000 };
-    const failed = { ...base, completed: false, moves: 1, completionTimeMs: null };
-    expect([base, fewer, faster, failed].sort(compareResults)).toEqual([fewer, faster, base, failed]);
+      completed: true, moves: 12, completedAt: "2026-11-13T00:00:42Z" };
+    const tied = { ...base, completedAt: "2026-11-13T00:00:35Z" };
+    const fewer = { ...base, moves: 11 };
+    const failed = { ...base, completed: false, moves: 1 };
+    expect(compareResults(base, tied)).toBe(0);
+    expect([base, fewer, tied, failed].sort(compareResults)).toEqual([fewer, base, tied, failed]);
   });
   it("persists only the best completed result for a puzzle", () => {
     const values = new Map<string, string>();
@@ -89,12 +99,20 @@ describe("SlipOut timing, results, and retries", () => {
     const finished = moveSession(startSession(readySession(puzzle), 1000), { id: "X", to: 6 }, 2000);
     const first = resultFromSession(puzzle, finished, null);
     expect(saveBest(first, storage)).toEqual(first);
-    expect(saveBest({ ...first, moves: 2, completionTimeMs: 500 }, storage)).toEqual(first);
+    expect(saveBest({ ...first, moves: 2 }, storage)).toEqual(first);
     expect(saveBest({ ...first, completed: false, moves: 0 }, storage)).toEqual(first);
-    const better = { ...first, completionTimeMs: 800 };
+    expect(saveBest({ ...first, completedAt: "2026-11-13T00:00:01Z" }, storage)).toEqual(first);
+    const better = { ...first, moves: 0 };
     expect(saveBest(better, storage)).toEqual(better);
     expect(loadBest(puzzle.id, storage)).toEqual(better);
-    saveAttempt({ ...first, completed: false, completionTimeMs: null }, storage);
+    saveAttempt({ ...first, completed: false }, storage);
     expect([...values.values()].some(value => value.includes('"completed":false'))).toBe(true);
+  });
+  it("shares moves and optimal count without a time", () => {
+    const finished = moveSession(startSession(readySession(puzzle), 0), { id: "X", to: 6 }, 120_000);
+    const shared = shareText(puzzle, resultFromSession(puzzle, finished, null), "https://example.com/daily/slipout");
+    expect(shared).toContain("Solved in 1 move");
+    expect(shared).toContain("Optimal: 2 moves");
+    expect(shared).not.toMatch(/time|seconds|ms/i);
   });
 });

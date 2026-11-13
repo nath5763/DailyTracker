@@ -17,8 +17,7 @@ export function loadBest(puzzleId: string, storage: Pick<Storage, "getItem">): S
     const raw = storage.getItem(key(puzzleId));
     if (!raw) return null;
     const result = JSON.parse(raw) as SlipOutResult;
-    return result.puzzleId === puzzleId && result.completed && Number.isInteger(result.moves) &&
-      typeof result.completionTimeMs === "number" ? result : null;
+    return result.puzzleId === puzzleId && result.completed && Number.isInteger(result.moves) ? result : null;
   } catch { return null; }
 }
 

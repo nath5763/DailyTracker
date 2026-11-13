@@ -1,7 +1,6 @@
 import { validBoard, type Board, type Block } from "./model";
 
 export const PUZZLE_VERSION = "v1";
-export const PUZZLE_SECONDS = 90;
 
 // Frozen, solver-validated templates. Order and contents are part of v1's identity.
 const TEMPLATES = [
