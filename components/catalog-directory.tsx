@@ -23,7 +23,7 @@ export function CatalogDirectory({ games, initialTrackedOnly = false }: { games:
   })).filter((group) => group.games.length);
 
   return <section className="page shell catalog-page">
-    <div className="daily-catalog-feature"><div><p className="section-number">PLAY HERE, EVERY DAY</p><h2>Letter Bag</h2><p>Build words from a fresh bag of letters in 90 seconds.</p><Link className="button button-small" href="/daily/letter-bag">Play today →</Link><Link href="/daily">All daily games</Link></div><Image src="/letter-bag/letter-bag-3x2.png" width={600} height={400} alt="Illustrated letter bag" /></div>
+    <div className="daily-catalog-feature"><div><p className="section-number">PLAY HERE, EVERY DAY</p><h2>Letter Bag</h2><p>Build words from a fresh bag of thirty letters, with no time limit.</p><Link className="button button-small" href="/daily/letter-bag">Play today →</Link><Link href="/daily">All daily games</Link></div><Image src="/letter-bag/letter-bag-3x2.png" width={600} height={400} alt="Illustrated letter bag" /></div>
     <div className="page-heading"><div><p className="section-number">PLAY DAILY, COMPARE WITH FRIENDS</p><h1>Daily games</h1></div>
       <p>Play SlipOut and Letter Bag here, or find a puzzle on its original site and share your result when score tracking is available.</p></div>
     <div className="catalog-filters">

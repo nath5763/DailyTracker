@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRound, puzzle, submit } from "./engine";
+import { createRound, finish, puzzle, submit } from "./engine";
 describe("Letter Bag rules", () => {
   it("matches the Reddit game's balanced daily puzzles", () => {
     expect(puzzle("2026-11-11").map(tile => tile.letter).join("")).toBe("ERERRAOTORITNTRSAPDJTMOATIORAN");
@@ -25,5 +25,21 @@ describe("Letter Bag rules", () => {
     const result = submit(round, [1, 3, 4], 1000);
     expect(result.error).toBe("Not in the word list");
     expect(result.round).toEqual(round);
+  });
+  it("keeps a daily round open after 90 seconds and lets the player finish it", () => {
+    const round = { ...createRound("2026-11-11"), startedAt: 1_000 };
+    const later = submit(round, [1, 3, 4], 1_000_000);
+    expect(later.round.endedAt).toBeNull();
+    expect(finish(round, 1_000_000).endedAt).toBe(1_000_000);
+    expect(finish(finish(round, 1_000_000), 2_000_000).endedAt).toBe(1_000_000);
+  });
+  it("awards each rare-letter bonus and ends only when letters are exhausted", () => {
+    const round = { ...createRound("2026-11-11"), startedAt: 1_000,
+      rack: [{ id: 0, letter: "J" }, { id: 1, letter: "A" }, { id: 2, letter: "Z" }, { id: 3, letter: "Z" }], bag: [] };
+    const played = submit(round, [0, 1, 2, 3], 1_000_000);
+    expect(played.error).toBeUndefined();
+    expect(played.round.words).toEqual([{ word: "jazz", points: 16 }]);
+    expect(played.round.score).toBe(16);
+    expect(played.round.endedAt).toBe(1_000_000);
   });
 });

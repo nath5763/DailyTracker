@@ -1,7 +1,8 @@
 import { puzzle, type Tile, type Word } from "./engine";
 import { WORDS } from "./words";
+import { wordScore } from "./scoring";
 
-export type VariantMode = "untimed" | "endless";
+export type VariantMode = "endless";
 export type VariantRound = {
   mode: VariantMode;
   seed: string;
@@ -26,20 +27,18 @@ export function startVariant(round: VariantRound, now = Date.now()): VariantRoun
   return round.startedAt === null ? { ...round, startedAt: now } : round;
 }
 
-export function variantTimeLeft(round: VariantRound, now = Date.now()): number | null {
-  if (round.mode === "untimed") return null;
+export function variantTimeLeft(round: VariantRound, now = Date.now()): number {
   if (round.startedAt === null) return 90;
   return Math.max(0, Math.ceil((round.startedAt + 90_000 - now) / 1000));
 }
 
 export function finishVariant(round: VariantRound, now = Date.now()): VariantRound {
   if (round.endedAt !== null) return round;
-  const deadline = round.mode === "endless" && round.startedAt !== null ? round.startedAt + 90_000 : now;
+  const deadline = round.startedAt !== null ? round.startedAt + 90_000 : now;
   return { ...round, endedAt: Math.min(now, deadline) };
 }
 
 function refill(round: VariantRound, bag: Tile[], nextId: number) {
-  if (round.mode === "untimed") return { bag, nextId };
   const filled = [...bag];
   while (filled.length < 15) {
     const batch = Math.floor((nextId - 30) / 30) + 1;
@@ -63,7 +62,7 @@ export function submitVariant(round: VariantRound, ids: number[], now = Date.now
   if (round.words.some(entry => entry.word === word)) return { round, error: "Already played" };
   if (!WORDS.has(word)) return { round, error: "Not in the word list" };
 
-  const points = 1 + ids.length * (ids.length + 1) / 2;
+  const points = wordScore(word).total;
   const drawn = round.bag.slice(0, ids.length);
   const rack = [...round.rack.filter(tile => !ids.includes(tile.id)), ...drawn].sort((a, b) => a.id - b.id);
   const remainingBag = refill(round, round.bag.slice(drawn.length), round.nextId);

@@ -2,19 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { LetterBagPlayHistory, potentialWordPoints } from "@/components/letter-bag-play-details";
+import { LetterBagPlayHistory, LetterBagTileFace, potentialWordPoints } from "@/components/letter-bag-play-details";
+import { baseWordPoints, letterBonus } from "@/lib/letter-bag/scoring";
 import { createVariantRound, finishVariant, startVariant, submitVariant, variantTimeLeft, type VariantMode, type VariantRound } from "@/lib/letter-bag/variants";
 
 const settings = {
-  untimed: {
-    title: "Letter Bag: Take Your Time",
-    summary: "30 letters · no timer",
-    instructions: "Use the 30 letters in the rack and bag to make as many words as you can. There is no clock. Used tiles refill from the bag until all 30 have been used.",
-  },
   endless: {
     title: "Letter Bag: Endless Draw",
     summary: "90 seconds · unlimited tiles",
-    instructions: "Make as many words as you can in 90 seconds. Each accepted word draws replacement tiles, and new tiles keep coming even after the first 30 are used.",
+    instructions: "Make as many words as you can in 90 seconds. Each accepted word draws replacement tiles, and new tiles keep coming even after the first 30 are used. Longer words earn progressively more points; Q and Z add 2 points each, while J, X, K, and V add 1 each.",
   },
 } as const;
 
@@ -44,7 +40,7 @@ export function LetterBagVariant({ mode }: { mode: VariantMode }) {
       const current = Date.now();
       const loaded = loadRound(mode);
       setNow(current);
-      setRound(loaded.mode === "endless" && loaded.startedAt !== null && variantTimeLeft(loaded, current) === 0
+      setRound(loaded.startedAt !== null && variantTimeLeft(loaded, current) === 0
         ? finishVariant(loaded, current) : loaded);
     }, 0);
     return () => window.clearTimeout(timer);
@@ -54,7 +50,7 @@ export function LetterBagVariant({ mode }: { mode: VariantMode }) {
     try { localStorage.setItem(`letter-bag:${mode}:v1`, JSON.stringify(round)); } catch { /* Play still works without storage. */ }
   }, [mode, round]);
   useEffect(() => {
-    if (mode !== "endless" || round?.startedAt == null || round.endedAt !== null) return;
+    if (round?.startedAt == null || round.endedAt !== null) return;
     const timer = window.setInterval(() => {
       const current = Date.now();
       setNow(current);
@@ -76,6 +72,7 @@ export function LetterBagVariant({ mode }: { mode: VariantMode }) {
   const ended = round.endedAt !== null || timeLeft === 0;
   const active = started && !ended;
   const chosen = selected.map(id => round.rack.find(tile => tile.id === id)).filter(tile => tile !== undefined);
+  const potential = potentialWordPoints(chosen.map(tile => tile.letter).join(""));
   const longest = Math.max(0, ...round.words.map(word => word.word.length));
   const visibleRack = started ? round.rack : round.rack.map(tile => ({ ...tile, letter: "?" }));
   const preview = round.bag.slice(0, 5).map(tile => started ? tile : { ...tile, letter: "?" });
@@ -88,7 +85,12 @@ export function LetterBagVariant({ mode }: { mode: VariantMode }) {
       setFreshTiles(result.round.rack.filter(tile => !oldIds.has(tile.id)).map(tile => tile.id));
     }
     setRound(result.round);
-    setMessage(result.error || "");
+    if (result.error) setMessage(result.error);
+    else {
+      const played = result.round.words.at(-1)!;
+      const base = baseWordPoints(played.word.length);
+      setMessage(`${played.word.toUpperCase()} earned ${played.points} points (${base} base + ${played.points - base} letter bonus).`);
+    }
     if (!result.error) setSelected([]);
   }
   function freshBag() {
@@ -100,13 +102,13 @@ export function LetterBagVariant({ mode }: { mode: VariantMode }) {
 
   return <section className="shell letter-bag">
     <div className="lb-top"><div><p className="section-number">LETTER BAG PRACTICE</p><h1>{settings[mode].title}</h1><p>Browser-local round · {settings[mode].summary}</p></div><button type="button" className="secondary-link" onClick={() => setHelp(true)}>How to play</button></div>
-    <div className="lb-stats"><div><span>SCORE</span><strong>{round.score}</strong></div><div><span>TIME</span><strong>{timeLeft === null ? "∞" : `${timeLeft}s`}</strong></div><div><span>{mode === "untimed" ? "BAG" : "DRAW"}</span><strong>{mode === "untimed" ? round.bag.length : "∞"}</strong></div></div>
-    {timeLeft !== null && <div className="lb-timer" aria-hidden="true"><span style={{ width: `${timeLeft / 90 * 100}%` }} /></div>}
+    <div className="lb-stats"><div><span>SCORE</span><strong>{round.score}</strong></div><div><span>TIME</span><strong>{timeLeft}s</strong></div><div><span>DRAW</span><strong>∞</strong></div></div>
+    <div className="lb-timer" aria-hidden="true"><span style={{ width: `${timeLeft / 90 * 100}%` }} /></div>
     {ended ? <div className="lb-result"><p className="section-number">PRACTICE RESULT</p><h2>{round.score} points</h2><p>{round.words.length} words · longest {longest} letters</p><div className="lb-actions"><button className="button" type="button" onClick={() => navigator.clipboard.writeText(share).then(() => setMessage("Result copied.")).catch(() => setMessage("Could not copy result."))}>Copy result</button><button type="button" onClick={freshBag}>Play again</button></div>{round.words.length > 0 && <div className="lb-history"><h3>Words played</h3>{[...round.words].reverse().map((word, index) => <div key={index}>{word.word}<b>+{word.points}</b></div>)}</div>}</div> : <div className="lb-play-layout"><div className="lb-board">
       <div className="lb-bag"><Image src="/letter-bag/letter-bag.webp" width={500} height={300} alt="" /><span>{settings[mode].summary.toUpperCase()}</span></div>
-      {active && <div className="lb-compose"><div className="lb-compose-heading"><span>YOUR WORD</span><strong aria-live="polite">Potential +{potentialWordPoints(chosen.length)} pts</strong></div><div className="lb-chosen">{chosen.length ? chosen.map(tile => <button key={tile.id} type="button" onClick={() => setSelected(current => current.filter(id => id !== tile.id))} aria-label={`Remove ${tile.letter} from word`}>{tile.letter}</button>) : <span>Tap letters to form a word</span>}</div><small>{chosen.length < 3 ? "Select at least 3 tiles to score." : "Points count when a valid word is played."}</small><button type="button" onClick={() => setSelected(current => current.slice(0, -1))} disabled={!selected.length}>← Back</button></div>}
-      <h2>Your letters</h2><div className="lb-rack">{visibleRack.map(tile => <button key={tile.id} type="button" disabled={!active || selected.includes(tile.id)} className={[!started && "masked", selected.includes(tile.id) && "lb-selected", freshTiles.includes(tile.id) && "lb-fresh"].filter(Boolean).join(" ")} onClick={() => setSelected(current => [...current, tile.id])} aria-label={started ? `Letter ${tile.letter}` : "Hidden letter"}>{tile.letter}</button>)}</div>
-      <h2>Up next</h2><div className="lb-preview">{preview.map(tile => <span key={tile.id}>{tile.letter}</span>)}</div>
+      {active && <div className="lb-compose"><div className="lb-compose-heading"><span>YOUR WORD</span><strong aria-live="polite">Potential +{potential.total} pts</strong></div><div className="lb-chosen">{chosen.length ? chosen.map(tile => <button key={tile.id} type="button" onClick={() => setSelected(current => current.filter(id => id !== tile.id))} aria-label={`Remove ${tile.letter} from word`}><LetterBagTileFace letter={tile.letter} /></button>) : <span>Tap letters to form a word</span>}</div><small>{potential.base} base + {potential.bonus} letter bonus. {chosen.length < 3 ? "Select at least 3 tiles to score." : "Points count when a valid word is played."}</small><button type="button" onClick={() => setSelected(current => current.slice(0, -1))} disabled={!selected.length}>← Back</button></div>}
+      <h2>Your letters</h2><div className="lb-rack">{visibleRack.map(tile => <button key={tile.id} type="button" disabled={!active || selected.includes(tile.id)} className={[!started && "masked", selected.includes(tile.id) && "lb-selected", freshTiles.includes(tile.id) && "lb-fresh"].filter(Boolean).join(" ")} onClick={() => setSelected(current => [...current, tile.id])} aria-label={started ? `Letter ${tile.letter}${letterBonus(tile.letter) ? `, ${letterBonus(tile.letter)} bonus points` : ""}` : "Hidden letter"}><LetterBagTileFace letter={tile.letter} /></button>)}</div>
+      <h2>Up next</h2><div className="lb-preview">{preview.map(tile => <span key={tile.id}><LetterBagTileFace letter={tile.letter} /></span>)}</div>
       <div className="lb-actions">{!started ? <><button className="button" type="button" onClick={() => { setRound(startVariant(round)); setNow(Date.now()); }}>Start</button><button type="button" onClick={freshBag}>New bag</button></> : <><button className="button" type="button" disabled={selected.length < 3} onClick={playWord}>Play word</button><button type="button" disabled={!selected.length} onClick={() => setSelected([])}>Clear</button><button type="button" onClick={() => setRound(finishVariant(round))}>Finish early</button></>}</div>
     </div><LetterBagPlayHistory words={round.words} /></div>}
     <p className="lb-feedback" role="status">{message}</p>

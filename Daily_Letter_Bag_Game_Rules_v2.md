@@ -2,7 +2,7 @@
 
 ## Objective
 
-Earn the highest score possible by forming valid words from a limited supply of letters before the 90-second timer expires or no further words can be made.
+Earn the highest score possible by forming valid words from a limited supply of 30 letters. There is no time limit.
 
 ## Daily Puzzle
 
@@ -17,7 +17,7 @@ Earn the highest score possible by forming valid words from a limited supply of 
 - The remaining **15 letters** form a hidden draw bag.
 - The **next 5 letters** in the draw order are visible as a preview, but cannot be used until drawn.
 - The remaining letters beyond the preview stay hidden.
-- The game begins when the player starts the **90-second timer**.
+- The game begins when the player presses **Start**. There is no countdown.
 
 ## Forming Words
 
@@ -37,9 +37,9 @@ Each valid word earns **1 base point**, plus points for every letter position in
 - Third letter: 3 points
 - Continue increasing by 1 point for each additional letter.
 
-**Formula:** `Word Score = 1 + (word length × (word length + 1) / 2)`
+**Base formula:** `Base Score = 1 + (word length × (word length + 1) / 2)`
 
-| Word length | Points |
+| Word length | Base points |
 | --- | ---: |
 | 3 letters | 7 |
 | 4 letters | 11 |
@@ -52,24 +52,26 @@ Each valid word earns **1 base point**, plus points for every letter position in
 
 For example, a five-letter word earns `1 + 1 + 2 + 3 + 4 + 5 = 16` points.
 
+Each Q or Z adds 2 bonus points. Each J, X, K, or V adds 1 bonus point. Every occurrence counts, including duplicate letters. The total word score is the base score plus all letter bonuses. CAT scores 7, JAM 8, ZIP 9, JAZZ 16, QUIZ 15, and PLANT 16.
+
 The **final score** is the total points earned from all accepted words in the attempt. Longer words earn progressively more points, rewarding careful use of the limited letters.
 
 ## Ending the Game
 
-- The timer counts down from **90 seconds**.
-- When the timer reaches zero, word submissions stop and the final score is recorded.
-- If all usable letters have been consumed before the timer expires, the player may finish early.
-- Players compete on the daily leaderboard using their final scores.
+- The player can finish explicitly at any time after starting.
+- The game also ends when fewer than three letters remain available to make a word.
+- A lack of an immediately valid word does not end the game automatically.
+- Players compete on the daily leaderboard by highest total points. Equal scores share the same rank; completion time is not used.
 
-## Proposed Rules to Finalize
-
-The following are suggested defaults discussed for the first version, rather than confirmed requirements:
+## Additional Rules
 
 - **Minimum word length:** 3 letters.
 - **Repeated words:** The same word cannot score twice in one attempt.
 - **Invalid submissions:** Earn no points and do not consume letters.
 - **Letter swaps:** None.
 - **Ranked attempts:** One per player per day.
-- **Leaderboard tie-break:** Shorter completion time.
+- **Leaderboard tie-break:** None; equal scores share a rank.
 - **Daily reset:** Midnight UTC.
+
+The separate Endless Draw practice mode keeps its 90-second timer and continuing tile supply.
 

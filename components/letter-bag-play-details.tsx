@@ -1,7 +1,13 @@
 import type { Word } from "@/lib/letter-bag/engine";
+import { letterBonus, wordScore } from "@/lib/letter-bag/scoring";
 
-export function potentialWordPoints(tileCount: number) {
-  return tileCount ? 1 + tileCount * (tileCount + 1) / 2 : 0;
+export function LetterBagTileFace({ letter }: { letter: string }) {
+  const bonus = letterBonus(letter);
+  return <>{letter}{bonus > 0 ? <small className="lb-tile-bonus" aria-label={`${bonus} bonus points`}>{bonus}</small> : null}</>;
+}
+
+export function potentialWordPoints(letters: string) {
+  return wordScore(letters);
 }
 
 export function LetterBagPlayHistory({ words }: { words: Word[] }) {

@@ -1,8 +1,7 @@
 import Link from "next/link";
 
 const modes = [
-  { href: "/daily/letter-bag", label: "Daily 30 · 90 seconds" },
-  { href: "/daily/letter-bag/untimed", label: "30 letters · no timer" },
+  { href: "/daily/letter-bag", label: "Daily 30 · no time limit" },
   { href: "/daily/letter-bag/endless", label: "90 seconds · endless tiles" },
 ] as const;
 

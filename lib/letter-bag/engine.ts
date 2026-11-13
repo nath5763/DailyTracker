@@ -1,4 +1,5 @@
 import { WORDS } from "./words";
+import { wordScore } from "./scoring";
 
 export type Tile = { id: number; letter: string };
 export type Word = { word: string; points: number };
@@ -50,17 +51,16 @@ export function puzzle(date: string): Tile[] {
   return letters.map((letter, id) => ({ id, letter }));
 }
 export function createRound(date: string): Round { const tiles = puzzle(date); return { date, rack: tiles.slice(0, 15), bag: tiles.slice(15), words: [], score: 0, startedAt: null, endedAt: null }; }
-export function remaining(round: Round, now = Date.now()) { return round.startedAt === null ? 90 : Math.max(0, Math.ceil((round.startedAt + 90000 - now) / 1000)); }
-export function finish(round: Round, now = Date.now()): Round { return round.endedAt === null ? { ...round, endedAt: Math.min(now, (round.startedAt ?? now) + 90000) } : round; }
+export function finish(round: Round, now = Date.now()): Round { return round.startedAt !== null && round.endedAt === null ? { ...round, endedAt: now } : round; }
 export function submit(round: Round, ids: number[], now = Date.now()): { round: Round; error?: string } {
-  if (round.startedAt === null || round.endedAt !== null || remaining(round, now) === 0) return { round: finish(round, now), error: "Round has ended" };
+  if (round.startedAt === null || round.endedAt !== null) return { round, error: "Round has ended" };
   if (ids.length < 3 || new Set(ids).size !== ids.length) return { round, error: "Select at least three different tiles" };
   const chosen = ids.map(id => round.rack.find(tile => tile.id === id));
   if (chosen.some(tile => !tile)) return { round, error: "Those tiles are no longer in the rack" };
   const word = chosen.map(tile => tile!.letter).join("").toLowerCase();
   if (round.words.some(entry => entry.word === word)) return { round, error: "Already played" };
   if (!WORDS.has(word)) return { round, error: "Not in the word list" };
-  const points = 1 + ids.length * (ids.length + 1) / 2;
+  const points = wordScore(word).total;
   const drawn = round.bag.slice(0, ids.length);
   const rack = [...round.rack.filter(tile => !ids.includes(tile.id)), ...drawn].sort((a,b) => a.id - b.id);
   const next = { ...round, rack, bag: round.bag.slice(drawn.length), words: [...round.words, { word, points }], score: round.score + points };

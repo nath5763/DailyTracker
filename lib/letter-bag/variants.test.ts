@@ -15,21 +15,6 @@ function playableIds(rack: { id: number; letter: string }[]) {
 }
 
 describe("Letter Bag variants", () => {
-  it("lets a thirty-letter round continue without a clock and end when tiles run out", () => {
-    const waiting = createVariantRound("untimed", "finite");
-    const round = startVariant(waiting, 1_000);
-    expect(variantTimeLeft(round, 1_000_000)).toBeNull();
-    const ids = playableIds(round.rack);
-    const result = submitVariant(round, ids, 1_000_000);
-    expect(result.error).toBeUndefined();
-    expect(result.round.rack).toHaveLength(15);
-    expect(result.round.bag).toHaveLength(15 - ids.length);
-    expect(result.round.score).toBe(1 + ids.length * (ids.length + 1) / 2);
-
-    const lastTiles = { ...round, rack: [{ id: 0, letter: "C" }, { id: 1, letter: "A" }, { id: 2, letter: "T" }], bag: [] };
-    expect(submitVariant(lastTiles, [0, 1, 2], 1_000_000).round.endedAt).toBe(1_000_000);
-  });
-
   it("replenishes the timed round and preview from a continuing draw sequence", () => {
     const round = startVariant(createVariantRound("endless", "continuous"), 1_000);
     const ids = playableIds(round.rack);
