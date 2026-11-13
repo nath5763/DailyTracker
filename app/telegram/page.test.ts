@@ -17,4 +17,5 @@ test("explains private linking, paid group setup, and signup verification", asyn
   expect(html).toContain("Confirm your identity");
   expect(html).toContain("ignores ordinary group conversation");
   expect(html).toContain("complete Share result in that same group message");
+  expect(html).toContain("Expand button for private game leaders");
 });

@@ -38,7 +38,7 @@ export default async function DiscordGuidePage() {
       <section className="discord-guide-section"><h2>Subscriptions and account controls</h2><p>Discord identity linking, user-app installation, and commands in DMs or Group DMs are available without a paid plan. A subscription is required only for a leaderboard owner who connects that leaderboard to a Discord server channel. View the current plan, subscribe, or open billing controls from your Profile.</p><div className="discord-guide-actions"><a className="button button-ghost" href={profileHref} target="_blank" rel="noopener noreferrer">Open Profile and billing <span aria-hidden="true">↗</span></a></div></section>
 
       <section className="discord-guide-section"><h2>Using commands</h2><ul>
-        <li>Use <code>/daily</code> to submit a supported result. Choose the required <code>game</code> option.</li>
+        <li>Use <code>/daily</code> and paste the complete Share result into <code>result</code>. The bot identifies the game from the share text.</li>
         <li>Use <code>/loldle</code> with the complete five-mode LoLdle share and its puzzle date to save Classic, Quote, Ability, Emoji, and Splash together.</li>
         <li>Use <code>/leaderboard</code> to view the current standings for the selected game.</li>
         <li>In an unconfigured DM or Group DM, provide the leaderboard UUID when the command asks for the <code>leaderboard</code> option.</li>

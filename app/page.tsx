@@ -78,7 +78,7 @@ export default async function HomePage() {
 
       <section className="discord-feature shell" id="discord" aria-labelledby="discord-title">
         <div><p className="section-number">PLAY TOGETHER, WHERE YOU CHAT</p><h2 id="discord-title">Your daily games club belongs in Discord, too</h2></div>
-        <div><p>Link your Daily Tracker account, submit supported game share results with <code>/daily</code>, and see your multi-game leaderboard rankings with <code>/leaderboard</code>. Choose a game for each command.</p><p>Paid board owners can connect server channels. Friends on the free plan can join in, and the user app works in DMs and Group DMs.</p><Link className="button discord-label" href="/discord"><DiscordSymbol />Set up Discord <span aria-hidden="true">→</span></Link></div>
+        <div><p>Link your Daily Tracker account, paste supported game share results into <code>/daily</code>, and see your multi-game leaderboard rankings with <code>/leaderboard</code>. The bot identifies the game when you submit a result.</p><p>Paid board owners can connect server channels. Friends on the free plan can join in, and the user app works in DMs and Group DMs.</p><Link className="button discord-label" href="/discord"><DiscordSymbol />Set up Discord <span aria-hidden="true">→</span></Link></div>
       </section>
 
       <section className="closing shell">

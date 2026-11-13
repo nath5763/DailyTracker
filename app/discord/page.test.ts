@@ -21,6 +21,7 @@ test("documents server channel and Group DM setup", async () => {
   expect(html).toContain("Manage Server");
   expect(html).toContain("/set-leaderboard");
   expect(html).toContain("/daily");
+  expect(html).toContain("identifies the game from the share text");
   expect(html).toContain("/leaderboard");
   expect(html).toContain("does not passively read or parse");
   expect(html).toContain("No subscription required");
