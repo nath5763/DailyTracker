@@ -4,11 +4,13 @@ SlipOut is available at `/daily/slipout`. Run the frontend with `npm run dev` an
 
 ## Levels
 
-The separate `/daily/slipout/levels` mode has 15 fixed levels: five easy (6–12 optimal moves), five medium (13–19), and five hard (20 or more). Levels unlock in order and completed levels remain replayable. Daily results do not unlock levels. Level targets may be 1×1, 1×2, 2×1, or 2×2 and move on both axes. The target must align its top edge with row three and clear every row it occupies to exit right. Other blocks remain two- or three-cell bars moving on one axis.
+The separate `/daily/slipout/levels` mode has 15 fixed levels: five easy (6–12 optimal moves), five medium (13–19), and five hard (20 or more). Levels unlock in order and completed levels remain replayable. Daily results do not unlock levels. Level targets are 1×1, 1×2, or 2×1. A 2×1 target starts on the horizontal axis; a 1×2 target starts on the vertical axis; each 1×1 level declares its starting axis. The target keeps its shape and can only slide along its active axis. Landing on a switch cell with newly occupied target space toggles the axis once; passing over a switch or staying on it does not. Other blocks may cross switches without changing them.
 
-Guest best moves and their verified move histories are saved on this device. Signed-in best moves and unlocks are saved through `/api/v1/slipout/levels`; guest completions are imported after sign-in and replayed by the server before they count. There is no public level leaderboard. The level catalog is frozen as `slipout-level-v1-01` through `slipout-level-v1-15` in both repositories. Database migration `V39__slipout_levels.sql` adds account attempts and progress.
+Each level has one one-cell-wide exit on a specified side and cell. The target can leave only along its active axis, aligned with the opening, with its one-cell-wide end facing out. Other blocks remain two- or three-cell bars moving on one axis. `lib/slipout/level-engine.ts` uses breadth-first search over block positions and active axis to verify the exact optimal move count.
 
-## Gameplay
+Guest best moves and their verified move histories are saved on this device. Signed-in best moves and unlocks are saved through `/api/v1/slipout/levels`; guest completions are imported after sign-in and replayed by the server before they count. There is no public level leaderboard. The level catalog is frozen as `slipout-level-v2-01` through `slipout-level-v2-15` in both repositories. Database migration `V40__reset_slipout_level_catalog.sql` clears old level attempts and progress. The frontend clears the old `slipout:levels:v1` guest key and stores version 2 progress separately. Daily results and rankings are unaffected.
+
+## Daily gameplay
 
 - The board is 6×6. Every block is two or three cells long and moves only along its horizontal or vertical axis.
 - Drag a block with a mouse or touch, or focus it and use arrow keys. Home and End move to the farthest available position. Positions snap to cells.

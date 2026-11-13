@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type KeyboardEvent } from "react";
 import catalog from "@/lib/slipout/levels.json";
-import { applyLevelMove, levelRange, type Level, type LevelBlock, type LevelMove } from "@/lib/slipout/level-engine";
+import { applyLevelMove, initialLevelState, levelRange, type Axis, type Level, type LevelBlock, type LevelMove, type LevelState } from "@/lib/slipout/level-engine";
 
 type Saved = { levelNumber: number; bestMoves: number; moves: LevelMove[] };
 type Progress = { levelNumber: number; bestMoves: number };
 type Drag = { pointerId: number; id: string; x: number; y: number; startX: number; startY: number; axis: "H" | "V" | null; to: number };
 const levels = catalog as Level[];
-const storageKey = "slipout:levels:v1";
+const storageKey = "slipout:levels:v2";
 
 function localProgress(): Saved[] {
   try {
@@ -29,7 +29,7 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
   const [progress, setProgress] = useState<Progress[]>([]);
   const [selected, setSelected] = useState(1);
   const [status, setStatus] = useState<"READY" | "PLAYING" | "COMPLETED">("READY");
-  const [blocks, setBlocks] = useState<LevelBlock[]>(levels[0].blocks);
+  const [board, setBoard] = useState<LevelState>(initialLevelState(levels[0]));
   const [history, setHistory] = useState<LevelMove[]>([]);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -42,9 +42,14 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
   const unlocked = selected === 1 || progress.some(item => item.levelNumber === selected - 1);
   const nextUnlocked = selected < 15 && progress.some(item => item.levelNumber === selected);
   const best = progress.find(item => item.levelNumber === selected)?.bestMoves;
+  const exitArrow = { left: "←", right: "→", top: "↑", bottom: "↓" }[level.exit.side];
+  const exitStyle: CSSProperties = level.exit.side === "left" || level.exit.side === "right"
+    ? { top: `${level.exit.cell / 6 * 100}%` }
+    : { left: `${level.exit.cell / 6 * 100}%` };
 
   useEffect(() => {
     let live = true;
+    localStorage.removeItem("slipout:levels:v1");
     const guest = localProgress();
     setProgress(guest.map(({ levelNumber, bestMoves }) => ({ levelNumber, bestMoves })));
     if (signedIn) {
@@ -64,7 +69,7 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
 
   function choose(number: number) {
     if (busy || syncing || status === "PLAYING" || number > 1 && !progress.some(item => item.levelNumber === number - 1)) return;
-    setSelected(number); setBlocks(levels[number - 1].blocks); setHistory([]); setStatus("READY"); setMessage("");
+    setSelected(number); setBoard(initialLevelState(levels[number - 1])); setHistory([]); setStatus("READY"); setMessage("");
     attemptRef.current = null;
   }
   async function start() {
@@ -72,7 +77,7 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
     setBusy(true); setMessage("");
     try {
       if (signedIn) attemptRef.current = (await request<{ attemptId: string }>(`/${selected}/start`, "POST")).attemptId;
-      setBlocks(level.blocks); setHistory([]); setStatus("PLAYING");
+      setBoard(initialLevelState(level)); setHistory([]); setStatus("PLAYING");
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not start level."); }
     finally { setBusy(false); }
   }
@@ -105,39 +110,41 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
       if (status === "PLAYING" && signedIn && attemptRef.current)
         await request("/finish", "POST", { attemptId: attemptRef.current, moves: history });
       attemptRef.current = null;
-      setBlocks(level.blocks); setHistory([]); setStatus("READY"); setMessage(""); setDrag(null); dragRef.current = null;
+      setBoard(initialLevelState(level)); setHistory([]); setStatus("READY"); setMessage(""); setDrag(null); dragRef.current = null;
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not restart."); }
     finally { setBusy(false); }
   }
   function commit(move: LevelMove) {
     if (status !== "PLAYING" || busy) return;
     try {
-      const next = applyLevelMove(blocks, move);
+      const next = applyLevelMove(level, board, move);
       if (!next.moved) return;
       const moves = [...history, move];
-      setBlocks(next.blocks); setHistory(moves);
+      setBoard(next.state); setHistory(moves);
       if (next.exited) void finish(moves);
     } catch { /* Ignore gestures that do not make a legal slide. */ }
   }
   function gesture(event: PointerEvent<HTMLButtonElement>, active: Drag): Drag {
-    const block = blocks.find(value => value.id === active.id)!;
+    const block = board.blocks.find(value => value.id === active.id)!;
     const dx = event.clientX - active.startX, dy = event.clientY - active.startY;
-    const axis = block.axis === "B" ? Math.abs(dx) >= Math.abs(dy) ? "H" : "V" : block.axis;
+    const axis = block.id === "X" ? board.activeAxis : block.axis as Axis;
     const origin = axis === "H" ? active.x : active.y;
-    const [min, max] = levelRange(blocks, active.id, axis);
+    const [min, max] = levelRange(level, board, active.id, axis);
     let to = Math.max(min, Math.min(max, origin + Math.round((axis === "H" ? dx : dy) / (boardRef.current!.clientWidth / 6))));
-    if (active.id === "X" && axis === "H" && to > 6 - block.width && max === 6) to = 6;
+    if (active.id === "X" && max === 6 && to >= 6 - (axis === "H" ? block.width : block.height) &&
+        (axis === "H" ? dx : dy) > (6 - (axis === "H" ? block.width : block.height) - origin + .4) * boardRef.current!.clientWidth / 6) to = 6;
     return { ...active, axis, to };
   }
   function keyMove(event: KeyboardEvent<HTMLButtonElement>, block: LevelBlock) {
     const axis = event.key === "ArrowLeft" || event.key === "ArrowRight" ? "H" :
       event.key === "ArrowUp" || event.key === "ArrowDown" ? "V" : null;
-    if (!axis || block.axis !== "B" && block.axis !== axis) return;
+    if (!axis || (block.id === "X" ? board.activeAxis !== axis : block.axis !== axis)) return;
     event.preventDefault();
     const origin = axis === "H" ? block.x : block.y;
-    const [min, max] = levelRange(blocks, block.id, axis);
+    const [min, max] = levelRange(level, board, block.id, axis);
     let to = Math.max(min, Math.min(max, origin + (event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 1)));
-    if (block.id === "X" && axis === "H" && to > 6 - block.width && max === 6) to = 6;
+    if (block.id === "X" && max === 6 && origin === 6 - (axis === "H" ? block.width : block.height) &&
+        (event.key === "ArrowRight" || event.key === "ArrowDown")) to = 6;
     commit({ id: block.id, axis, to });
   }
 
@@ -152,17 +159,26 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
         aria-label={`Level ${item.number}, ${open ? score ? `best ${score} moves` : "unlocked" : "locked"}`}>
         <strong>{item.number}</strong><small>{!open ? "Locked" : score ? `${score} moves` : "Ready"}</small></button>;
     })}</div></div>)}</div>
-    <div className="so-stats"><div><span>LEVEL {selected} · {level.difficulty.toUpperCase()}</span><strong>{level.blocks[0].width}×{level.blocks[0].height} target</strong></div><div><span>MOVES</span><strong>{history.length}</strong></div><div><span>BEST</span><strong className="so-best">{best ? `${best} moves` : "No finish yet"}</strong></div></div>
+    <div className="so-stats"><div><span>LEVEL {selected} · {level.difficulty.toUpperCase()}</span><strong>{level.blocks[0].width}×{level.blocks[0].height} target</strong></div><div><span>MOVES</span><strong>{history.length}</strong></div><div><span>ACTIVE AXIS</span><strong className="so-axis-indicator">{board.activeAxis === "H" ? "↔ Horizontal" : "↕ Vertical"}</strong></div></div>
+    <p className="so-level-best">Best: {best ? `${best} moves` : "No finish yet"} · Exit: {level.exit.side} side</p>
     <div className="so-main"><div className="so-board-shell"><div className="so-board" ref={boardRef} aria-label={`SlipOut level ${selected} board`}>
       {Array.from({ length: 36 }, (_, index) => <span className="so-cell" key={index} aria-hidden="true" />)}
-      {status !== "READY" && blocks.map(block => {
+      {status !== "READY" && level.switches.map(cell => {
+        const covered = board.blocks.some(block => cell.x >= block.x && cell.x < block.x + block.width &&
+          cell.y >= block.y && cell.y < block.y + block.height);
+        return <span key={`${cell.x},${cell.y}`} className={`so-switch ${covered ? "so-switch-covered" : ""}`}
+          style={{ left: `${cell.x / 6 * 100}%`, top: `${cell.y / 6 * 100}%` }}
+          aria-label={`Direction switch at row ${cell.y + 1}, column ${cell.x + 1}`}>
+          <span>↔<br/>↕</span></span>;
+      })}
+      {status !== "READY" && board.blocks.map(block => {
         const preview = drag?.id === block.id && drag.axis ? drag : null;
         const x = preview?.axis === "H" ? preview.to : block.x;
         const y = preview?.axis === "V" ? preview.to : block.y;
         const style: CSSProperties = { left: `${x / 6 * 100}%`, top: `${y / 6 * 100}%`, width: `${block.width / 6 * 100}%`, height: `${block.height / 6 * 100}%` };
         return <button type="button" key={block.id} style={style} disabled={status !== "PLAYING" || busy}
           className={`so-block ${block.id === "X" ? "so-target" : block.id.charCodeAt(0) % 2 ? "so-lime" : "so-purple"} ${status === "COMPLETED" && block.id === "X" ? "so-exited" : ""}`}
-          aria-label={`${block.id === "X" ? "Target" : "Block"} ${block.id}, row ${block.y + 1}, column ${block.x + 1}`}
+          aria-label={`${block.id === "X" ? `Target, active axis ${board.activeAxis === "H" ? "horizontal" : "vertical"}` : "Block"} ${block.id}, row ${block.y + 1}, column ${block.x + 1}`}
           onPointerDown={event => { if (status !== "PLAYING" || busy) return; event.preventDefault();
             const active: Drag = { pointerId: event.pointerId, id: block.id, x: block.x, y: block.y,
               startX: event.clientX, startY: event.clientY, axis: null, to: block.x };
@@ -173,9 +189,9 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
             const next = gesture(event, dragRef.current); dragRef.current = null; setDrag(null);
             if (next.axis) commit({ id: next.id, axis: next.axis, to: next.to }); }}
           onPointerCancel={() => { dragRef.current = null; setDrag(null); }}
-          onKeyDown={event => keyMove(event, block)}><span className="so-block-face">{block.id === "X" ? "EXIT →" : null}</span></button>;
-      })}<div className="so-exit" aria-hidden="true"><span>EXIT →</span></div>
-    </div></div><aside className="so-side"><p className="so-side-label">THE OBJECTIVE</p><h2>Clear a path to the right.</h2><p>Move the pink target in any direction, align its top edge with the exit, and slide it out. Other blocks move along their length.</p><p>Each slide counts as one move. There is no time limit.</p>{status === "COMPLETED" && <p>Optimal solution: <strong>{level.optimalMoves} moves</strong></p>}</aside></div>
+          onKeyDown={event => keyMove(event, block)}><span className="so-block-face">{block.id === "X" ? board.activeAxis === "H" ? "↔" : "↕" : null}</span></button>;
+      })}<div className={`so-exit so-level-exit so-exit-${level.exit.side}`} style={exitStyle} aria-label={`Exit on the ${level.exit.side} side at cell ${level.exit.cell + 1}`}><span>EXIT {exitArrow}</span></div>
+    </div></div><aside className="so-side"><p className="so-side-label">THE OBJECTIVE</p><h2>Switch direction, find the exit.</h2><p>The pink target slides only along its active axis. Land on a marked switch to toggle between horizontal and vertical movement. Passing over a switch does nothing.</p><p>Slide the target through the one-cell opening on the {level.exit.side} side. Other blocks move along their length and do not activate switches. Each slide counts as one move.</p>{status === "COMPLETED" && <p>Optimal solution: <strong>{level.optimalMoves} moves</strong></p>}</aside></div>
     <div className="so-controls">{status === "READY" && <button type="button" className="so-primary" disabled={busy || syncing || !unlocked} onClick={() => void start()}>Start level {selected} →</button>}
       <button type="button" className="so-secondary" disabled={busy || status === "READY"} onClick={() => void restart()}>Restart</button><span className="so-status" role="status">{message}</span></div>
     {status === "COMPLETED" && <div className="so-result" role="status"><p className="so-kicker">LEVEL COMPLETE</p><h2>{history.length} moves.</h2><p>Optimal: {level.optimalMoves} moves.</p><div className="so-result-actions"><button type="button" className="so-primary" onClick={() => choose(nextUnlocked ? selected + 1 : selected)}>{nextUnlocked ? "Next level →" : "Play again"}</button></div></div>}
