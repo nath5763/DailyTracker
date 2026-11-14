@@ -71,7 +71,7 @@ export function LeaderboardsView({ checkout, billingReturn, discordStatus }: { c
   const grouped = Array.from(boardsByGame.entries()).sort(([left], [right]) => left.localeCompare(right));
   const canStartCheckout = billing.tier === "FREE" && (!billing.status || billing.status === "canceled" || billing.status === "incomplete_expired");
 
-  return <section className="page shell">
+  return <section className="page shell leaderboards-page">
     {discordStatus ? <div className="form-message error" role="alert">Discord setup could not be completed. Open the leaderboard you own and try again.</div> : null}
     {checkout === "success" ? <div className="notice">{billing.tier !== "FREE" ? "Subscription active. Your all-game leaderboard access is ready." : "Payment received. Waiting for Stripe to confirm your subscription…"}</div> : null}
     {checkout === "cancelled" ? <div className="notice">Checkout was cancelled. Your existing leaderboards were not changed.</div> : null}

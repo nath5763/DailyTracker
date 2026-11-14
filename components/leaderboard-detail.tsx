@@ -69,7 +69,7 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
     const url = leaderboardUrl(shareBoard, window.location.origin);
     window.open(whatsappUrl(leaderboardResultsMessage(shareBoard, url)), "_blank", "noopener,noreferrer");
   }
-  return <section className="page shell">
+  return <section className="page shell leaderboard-detail-page">
     <div className="page-heading"><div><p className="section-number">{board.game.name.toUpperCase()} LEADERBOARD</p><h1>{board.name}</h1></div><div className="heading-actions"><p>{board.members.length} player{board.members.length === 1 ? "" : "s"} · {scoring} <a className="secondary-link" href={board.game.sourceUrl} rel="noreferrer" target="_blank">Play {board.game.name}</a></p>{backToBoards}<button className="button button-ghost" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh leaderboard"}</button></div></div>
     {sharing ? <ShareLeaderboardModal board={board} onClose={() => setSharing(false)} /> : null}
     {refreshError ? <div className="form-message error">{refreshError}</div> : null}
