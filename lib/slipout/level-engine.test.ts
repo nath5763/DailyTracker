@@ -18,16 +18,20 @@ describe("SlipOut level catalog", () => {
     expect(html).not.toContain('class="so-switch');
     expect(html).toContain("so-level-exit");
   });
-  it("has 15 fixed, solvable levels in three tiers", () => {
-    expect(levels).toHaveLength(15);
-    for (const [index, level] of levels.entries()) {
+  it("has an obstacle-free tutorial and 15 sorted, solvable levels", () => {
+    expect(levels).toHaveLength(16);
+    expect(levels[0]).toMatchObject({ number: 0, difficulty: "tutorial", optimalMoves: 2 });
+    expect(levels[0].blocks).toHaveLength(1);
+    expect(solveLevel(levels[0])).toBe(2);
+    for (const [index, level] of levels.slice(1).entries()) {
       expect(level.number).toBe(index + 1);
-      expect(level.id).toBe(`slipout-level-v2-${String(index + 1).padStart(2, "0")}`);
+      expect(level.id).toBe(`slipout-level-v3-${String(index + 1).padStart(2, "0")}`);
       expect(validLevel(level), level.id).toBe(true);
       expect(solveLevel(level), level.id).toBe(level.optimalMoves);
       expect(level.difficulty).toBe(index < 5 ? "easy" : index < 10 ? "medium" : "hard");
       expect(level.optimalMoves).toBeGreaterThanOrEqual(index < 5 ? 6 : index < 10 ? 13 : 20);
       if (index < 10) expect(level.optimalMoves).toBeLessThanOrEqual(index < 5 ? 12 : 19);
+      if (index > 0 && index % 5 !== 0) expect(level.optimalMoves).toBeGreaterThanOrEqual(levels[index].optimalMoves);
     }
     expect(new Set(levels.map(({ blocks }) => `${blocks[0].width}x${blocks[0].height}`)))
       .toEqual(new Set(["1x1", "1x2", "2x1"]));

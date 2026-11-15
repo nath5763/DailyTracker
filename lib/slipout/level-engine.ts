@@ -2,7 +2,7 @@ export type Axis = "H" | "V";
 export type Side = "left" | "right" | "top" | "bottom";
 export type LevelBlock = { id: string; x: number; y: number; width: number; height: number; axis: Axis | "B" };
 export type LevelMove = { id: string; axis: Axis; to: number };
-export type Level = { id: string; number: number; difficulty: "easy" | "medium" | "hard"; optimalMoves: number;
+export type Level = { id: string; number: number; difficulty: "tutorial" | "easy" | "medium" | "hard"; optimalMoves: number;
   startAxis: Axis; exit: { side: Side; cell: number }; switches: { x: number; y: number }[]; blocks: LevelBlock[] };
 export type LevelState = { blocks: LevelBlock[]; activeAxis: Axis };
 export const LEVEL_BOARD_SIZE = 6;

@@ -658,6 +658,11 @@ html[data-theme="dark"] .so-modal { background: #292738; color: #f3f1ff; }
 @media (max-width: 480px) { .so-stats { grid-template-columns: minmax(80px, .5fr) minmax(0, 1fr); }.so-stats > div:last-child { grid-column: auto; }.so-result { padding: 19px; }.so-block-face { border-width: 2px; }.so-target .so-block-face { border-width: 3px; } }
 .so-heading-actions, .so-card-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
 .so-level-page { max-width: 1120px; }
+.so-tutorial-entry { display: flex; align-items: center; gap: 14px; margin-top: 18px; }
+.so-tutorial-entry button { padding: 9px 14px; border: 2px solid var(--so-purple); border-radius: 8px; background: transparent; color: var(--so-ink); font-weight: 700; cursor: pointer; }
+.so-tutorial-entry button.selected { background: var(--so-purple); color: #fff; }
+.so-tutorial-entry span { color: var(--so-muted); font-size: 14px; }
+.so-tutorial-prompt { padding: 12px; border: 1px solid var(--so-purple); border-radius: 8px; font-weight: 700; }
 .so-level-page > p { line-height: 1.5; }
 .so-level-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin: 26px 0; }
 .so-level-list > div { padding: 16px; border: 1px solid var(--so-line); border-radius: 12px; background: var(--so-surface); }
