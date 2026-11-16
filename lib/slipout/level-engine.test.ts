@@ -12,32 +12,41 @@ const simple = (side: Level["exit"]["side"], cell: number, x: number, y: number,
 });
 
 describe("SlipOut level catalog", () => {
-  it("hides blocks and switches until Start while marking the exit", () => {
+  it("shows level blocks and switches before Start while marking the exit", () => {
     const html = renderToStaticMarkup(createElement(SlipOutLevels, { signedIn: false }));
-    expect(html).not.toContain('class="so-block ');
-    expect(html).not.toContain('class="so-switch');
+    expect(html).toContain('class="so-block ');
+    expect(html).toContain('class="so-switch');
     expect(html).toContain("so-level-exit");
   });
-  it("has an obstacle-free tutorial and 15 sorted, solvable levels", () => {
-    expect(levels).toHaveLength(16);
+  it("has an obstacle-free tutorial and 20 solvable levels per difficulty", () => {
+    expect(levels).toHaveLength(61);
     expect(levels[0]).toMatchObject({ number: 0, difficulty: "tutorial", optimalMoves: 2 });
     expect(levels[0].blocks).toHaveLength(1);
     expect(solveLevel(levels[0])).toBe(2);
     for (const [index, level] of levels.slice(1).entries()) {
       expect(level.number).toBe(index + 1);
-      expect(level.id).toBe(`slipout-level-v3-${String(index + 1).padStart(2, "0")}`);
+      expect(level.id).toBe(`slipout-level-v${index < 15 ? 3 : 4}-${String(index + 1).padStart(2, "0")}`);
       expect(validLevel(level), level.id).toBe(true);
-      expect(solveLevel(level), level.id).toBe(level.optimalMoves);
-      expect(level.difficulty).toBe(index < 5 ? "easy" : index < 10 ? "medium" : "hard");
-      expect(level.optimalMoves).toBeGreaterThanOrEqual(index < 5 ? 6 : index < 10 ? 13 : 20);
-      if (index < 10) expect(level.optimalMoves).toBeLessThanOrEqual(index < 5 ? 12 : 19);
-      if (index > 0 && index % 5 !== 0) expect(level.optimalMoves).toBeGreaterThanOrEqual(levels[index].optimalMoves);
+      const shortest = solveLevelPath(level);
+      expect(shortest?.length, level.id).toBe(level.optimalMoves);
+      const difficulty = index < 15 ? index < 5 ? "easy" : index < 10 ? "medium" : "hard" :
+        index < 30 ? "easy" : index < 45 ? "medium" : "hard";
+      expect(level.difficulty).toBe(difficulty);
+      expect(level.optimalMoves).toBeGreaterThanOrEqual(difficulty === "easy" ? 6 : difficulty === "medium" ? 13 : 20);
+      if (difficulty !== "hard") expect(level.optimalMoves).toBeLessThanOrEqual(difficulty === "easy" ? 12 : 19);
+      if (index >= 15) {
+        const moved = new Set(shortest?.filter(move => move.id !== "X").map(move => move.id));
+        const threshold = difficulty === "easy" ? .5 : difficulty === "medium" ? .75 : .9;
+        expect(moved.size, level.id).toBeGreaterThanOrEqual(Math.ceil((level.blocks.length - 1) * threshold));
+      }
     }
+    for (const difficulty of ["easy", "medium", "hard"] as const)
+      expect(levels.filter(level => level.difficulty === difficulty)).toHaveLength(20);
     expect(new Set(levels.map(({ blocks }) => `${blocks[0].width}x${blocks[0].height}`)))
       .toEqual(new Set(["1x1", "1x2", "2x1"]));
     expect(new Set(levels.map(level => level.exit.side)))
       .toEqual(new Set(["left", "right", "top", "bottom"]));
-  }, 120_000);
+  }, 600_000);
 
   it("toggles only when newly landing on a switch and permits re-entry", () => {
     const level = simple("top", 2, 0, 2);
