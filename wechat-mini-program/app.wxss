@@ -1,0 +1,23 @@
+page { background: #f4f7f2; color: #172b2a; font-family: sans-serif; font-size: 30rpx; }
+.page { padding: 36rpx 28rpx 90rpx; }
+.eyebrow { color: #456b62; font-size: 22rpx; font-weight: 700; letter-spacing: 3rpx; }
+.title { font-size: 54rpx; font-weight: 800; margin: 12rpx 0 20rpx; line-height: 1.08; }
+.lead { color: #49625d; line-height: 1.5; margin-bottom: 28rpx; }
+.card { background: white; border-radius: 26rpx; padding: 28rpx; margin: 20rpx 0; box-shadow: 0 8rpx 24rpx rgba(10,40,30,.06); }
+.card-title { font-size: 36rpx; font-weight: 700; margin-bottom: 12rpx; }
+.muted { color: #60756e; font-size: 26rpx; line-height: 1.5; }
+.error { color: #a02c30; margin: 16rpx 0; }
+.success { color: #17654b; margin: 16rpx 0; }
+.button { background: #d8f054; color: #172b2a; border: 0; border-radius: 16rpx; font-weight: 700; margin: 16rpx 0; }
+.secondary { background: #e7eee7; }
+.danger { background: #ffdddd; color: #8b2730; }
+.field { background: #fff; border: 2rpx solid #d0ddd4; border-radius: 14rpx; padding: 18rpx; margin: 12rpx 0 20rpx; }
+.textarea { min-height: 230rpx; width: auto; }
+.label { color: #456b62; font-size: 24rpx; font-weight: 700; margin-top: 20rpx; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; padding: 16rpx 0; border-bottom: 1rpx solid #edf1eb; }
+.row:last-child { border-bottom: 0; }
+.chip { display: inline-block; padding: 12rpx 18rpx; background: #e7eee7; border-radius: 40rpx; margin: 6rpx; font-size: 25rpx; }
+.chip.active { background: #d8f054; font-weight: 700; }
+.link { color: #186d55; font-weight: 700; }
+.score { font-size: 40rpx; font-weight: 800; }
+.space { height: 20rpx; }

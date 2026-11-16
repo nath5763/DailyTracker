@@ -1,0 +1,22 @@
+<view class="page">
+  <view class="eyebrow">DAILY RESULT</view><view class="title">Submit a score</view>
+  <view class="lead">Paste the game's complete share result. The Daily Tracker server reads it and checks duplicates.</view>
+  <view class="label">Game</view>
+  <picker range="{{games}}" range-key="name" bindchange="onGame"><view class="field">{{game || 'Choose a game'}}</view></picker>
+  <view class="label">Share text</view><textarea class="field textarea" maxlength="10000" placeholder="Paste your game result here" value="{{rawText}}" bindinput="onText" />
+  <view wx:if="{{isLoldle}}" class="label">LoLdle puzzle date</view>
+  <input wx:if="{{isLoldle}}" class="field" type="text" placeholder="YYYY-MM-DD" value="{{loldleDate}}" bindinput="onDate" />
+  <button class="button" disabled="{{busy || !rawText || !game}}" bindtap="preview">Preview parsed score</button>
+  <view wx:if="{{preview}}" class="card"><view class="card-title">Check your result</view>
+    <view class="score">{{preview.primaryScore}}</view>
+    <view class="muted">Puzzle {{preview.puzzleKey}} · {{preview.playedOn}}</view>
+    <button class="button" disabled="{{busy}}" bindtap="submit">Confirm and save</button>
+  </view>
+  <view wx:if="{{loldlePreview}}" class="card"><view class="card-title">Check LoLdle results</view>
+    <view wx:for="{{loldlePreview}}" wx:key="game" class="row"><text>{{item.game}}</text><text>{{item.submission.primaryScore}}</text></view>
+    <button class="button" disabled="{{busy}}" bindtap="submit">Confirm and save all</button>
+  </view>
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+  <view wx:if="{{success}}" class="success">{{success}}<button class="button secondary" bindtap="openBoard">Back to leaderboard</button><button class="button secondary" open-type="share">Share result</button></view>
+  <view class="muted">Scores are self-reported. Each saved result uses the same rules as the website.</view>
+</view>

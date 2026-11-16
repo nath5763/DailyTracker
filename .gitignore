@@ -6,3 +6,4 @@ coverage/
 .vercel/
 *.tsbuildinfo
 npm-debug.log*
+wechat-mini-program/dist-chat-tool/

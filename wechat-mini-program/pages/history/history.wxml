@@ -1,0 +1,9 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+  <block wx:if="{{history}}"><view class="eyebrow">PLAYER HISTORY</view><view class="title">{{history.member.displayName}}</view>
+    <view class="lead">{{history.game.name}} · {{history.period}}</view>
+    <view class="card"><view wx:if="{{!history.scores.length}}" class="muted">No scores yet.</view>
+      <view wx:for="{{history.scores}}" wx:key="id" class="row"><view>{{item.playedOn}}<view class="muted">Puzzle {{item.puzzleKey}}</view></view><view class="score">{{item.primaryScore}}</view></view>
+    </view>
+  </block>
+</view>

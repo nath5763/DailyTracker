@@ -1,0 +1,6 @@
+{
+  "miniprogramRoot": "./",
+  "projectname": "Daily Tracker",
+  "appid": "REPLACE_WITH_WECHAT_APP_ID",
+  "setting": { "es6": true, "minified": true, "urlCheck": true }
+}

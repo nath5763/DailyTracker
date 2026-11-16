@@ -1,0 +1,46 @@
+<view class="page">
+  <view class="eyebrow">DAILY TRACKER · CHAT TOOL</view>
+  <view class="title">Play together</view>
+  <view wx:if="{{error}}" class="error">{{error}}</view><view wx:if="{{info}}" class="success">{{info}}</view>
+  <view wx:if="{{!active}}" class="card"><view class="heading">Open in the regular Mini Program</view>
+    <view class="muted">Chat Tool Mode is unavailable in this entry scene.</view><button class="button" bindtap="openRegular">Continue</button></view>
+  <view wx:elif="{{!signedIn}}" class="card"><view class="heading">Sign in with WeChat</view>
+    <button class="button" disabled="{{busy}}" bindtap="signIn">Continue with WeChat</button></view>
+  <view wx:elif="{{!profile}}" class="card"><view class="heading">Connect a player profile</view>
+    <view class="muted">For an existing Daily Tracker account, enter the one-time code from your website Profile before creating a new profile.</view>
+    <input class="field" placeholder="Website link code" maxlength="12" bindinput="onCode" />
+    <button class="button" disabled="{{busy || !code}}" bindtap="linkAccount">Link existing account</button>
+    <input class="field" placeholder="New display name" maxlength="32" bindinput="onName" />
+    <button class="button secondary" disabled="{{busy || name.length < 2}}" bindtap="createProfile">Create profile</button></view>
+  <block wx:else>
+    <view wx:if="{{reference && preview}}" class="card"><view class="heading">Invitation · {{preview.name}}</view>
+      <button class="button" disabled="{{busy}}" bindtap="join">Join leaderboard</button></view>
+    <view wx:if="{{group && group.verified}}" class="card"><view class="heading">Verified group</view>
+      <view wx:if="{{group.mapped && group.leaderboardId}}" class="muted">Linked to {{group.name}}.</view>
+      <view wx:elif="{{group.mapped}}" class="muted">This group has a different leaderboard. Ask its owner for an invitation.</view>
+      <view wx:else class="muted">An owner can confirm a leaderboard association below.</view></view>
+    <view class="card"><view class="heading">Your leaderboards</view>
+      <view wx:for="{{boards}}" wx:key="id" class="row" data-id="{{item.id}}" bindtap="chooseBoard">
+        <text>{{item.name}}</text><text class="link">Open</text></view>
+    </view>
+    <view wx:if="{{board}}" class="card"><view class="heading">{{board.name}} · Today</view>
+      <picker range="{{games}}" range-key="name" bindchange="chooseGame"><view class="field">{{selectedGameName}}</view></picker>
+      <view wx:if="{{!board.rankings.length}}" class="muted">No results yet today.</view>
+      <view wx:for="{{board.rankings}}" wx:key="userId" class="row"><text>#{{item.rank}} {{item.displayName}}</text><text>{{item.displayScore || item.average}}</text></view>
+      <button wx:if="{{group && group.verified && !group.mapped && board.owner}}" class="button secondary" bindtap="linkGroup">Link this verified group</button>
+      <button wx:if="{{group && group.mapped && group.leaderboardId === board.id && board.owner}}" class="button secondary" disabled="{{busy}}" bindtap="shareCard">Share card to this chat</button>
+      <button wx:if="{{group && group.mapped && group.leaderboardId === board.id}}" class="button secondary" bindtap="selectMembers">Select members to remind</button>
+      <view wx:if="{{members.length}}" class="muted">{{members.length}} selected. Tap the next button to send a WeChat reminder.</view>
+      <button wx:if="{{members.length}}" class="button" bindtap="remind">Remind selected members</button>
+    </view>
+    <view wx:if="{{board}}" class="card"><view class="heading">Submit a result</view>
+      <textarea class="field textarea" maxlength="10000" placeholder="Paste the game's full share result" value="{{rawText}}" bindinput="onText" />
+      <input wx:if="{{isLoldle}}" class="field" placeholder="LoLdle date YYYY-MM-DD" bindinput="onDate" />
+      <button class="button" disabled="{{busy || !rawText}}" bindtap="previewScore">Preview score</button>
+      <view wx:if="{{scorePreview}}" class="muted">Puzzle {{scorePreview.puzzleKey}} · {{scorePreview.primaryScore}} · {{scorePreview.playedOn}}</view>
+      <view wx:if="{{loldlePreview}}" class="muted">{{loldlePreview.length}} LoLdle scores ready.</view>
+      <button wx:if="{{scorePreview || loldlePreview}}" class="button" disabled="{{busy}}" bindtap="submitScore">Confirm and save</button>
+    </view>
+  </block>
+  <button class="button secondary" bindtap="openRegular">Open regular Mini Program</button>
+</view>

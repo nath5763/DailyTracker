@@ -1,0 +1,11 @@
+<view class="page">
+  <view class="eyebrow">YOUR FRIENDS' SPACE</view><view class="title">Create a leaderboard</view>
+  <view class="lead">Choose a name and game scope. Daily Tracker's existing account and plan limits apply.</view>
+  <view class="label">Leaderboard name</view><input class="field" maxlength="48" placeholder="e.g. Morning puzzlers" value="{{name}}" bindinput="onName" />
+  <view class="label">Games</view>
+  <radio-group bindchange="onType"><label class="row"><radio value="MULTI_GAME" checked="{{type === 'MULTI_GAME'}}" />All games</label><label class="row"><radio value="SINGLE_GAME" checked="{{type === 'SINGLE_GAME'}}" />One game</label></radio-group>
+  <picker wx:if="{{type === 'SINGLE_GAME'}}" range="{{games}}" range-key="name" value="{{gameIndex}}" bindchange="onGame"><view class="field">{{games[gameIndex].name || 'Choose a game'}}</view></picker>
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+  <button class="button" disabled="{{busy || name.length < 2 || (type === 'SINGLE_GAME' && !games.length)}}" bindtap="create">Create leaderboard</button>
+  <view class="muted">You can prepare a group card and explicitly link a verified group after creation.</view>
+</view>

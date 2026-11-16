@@ -1,0 +1,15 @@
+<view class="page">
+  <view class="eyebrow">SETTINGS</view><view class="title">Account and groups</view>
+  <view wx:if="{{error}}" class="error">{{error}}</view><view wx:if="{{info}}" class="success">{{info}}</view>
+  <view wx:if="{{me}}" class="card"><view class="card-title">{{me.profile.displayName}}</view>
+    <view class="muted">{{status.provisional ? 'WeChat-only profile' : 'Linked Daily Tracker account'}}</view>
+    <button class="button danger" bindtap="unlink">Unlink WeChat</button>
+  </view>
+  <view class="card"><view class="card-title">Group links you own</view>
+    <view class="muted">A verified group association shows which leaderboard a group card belongs to. It does not let Daily Tracker read group messages.</view>
+    <view wx:for="{{boards}}" wx:key="id"><view wx:if="{{item.owner}}" class="row" data-id="{{item.id}}" bindtap="showLinks"><text>{{item.name}}</text><text class="link">Manage</text></view></view>
+    <view wx:if="{{selected && !links.length}}" class="muted">No active group mappings for this leaderboard.</view>
+    <view wx:for="{{links}}" wx:key="id" class="row"><text>Linked {{item.linkedAt}}</text><text class="link" data-id="{{item.id}}" bindtap="disconnect">Disconnect</text></view>
+  </view>
+  <view class="card"><view class="card-title">Privacy</view><view class="muted">Daily Tracker stores a protected WeChat account identifier, short-lived group proof, group mapping, and the scores you submit. Group members can see leaderboard rankings. Unlinking does not delete saved scores.</view></view>
+</view>

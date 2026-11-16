@@ -1,0 +1,33 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">{{error}}</view><view wx:if="{{info}}" class="success">{{info}}</view>
+  <block wx:if="{{board}}">
+    <view class="eyebrow">TODAY'S LEADERBOARD · {{dateLabel}}</view><view class="title">{{board.name}}</view>
+    <view class="muted">{{group && group.verified && group.mapped && group.leaderboardId === board.id ? 'Verified WeChat group' : 'Daily Tracker membership'}}</view>
+    <view class="card"><view class="card-title">Games</view>
+      <view wx:for="{{games}}" wx:key="slug" class="chip {{selectedGame === item.slug ? 'active' : ''}}" data-slug="{{item.slug}}" bindtap="chooseGame">{{item.name}}</view>
+    </view>
+    <button class="button" bindtap="submit">Submit score</button>
+    <view class="card"><view class="card-title">Standings · {{board.game.name}}</view>
+      <view wx:if="{{!board.rankings.length}}" class="muted">No results yet today.</view>
+      <view wx:for="{{board.rankings}}" wx:key="userId" class="row" data-id="{{item.userId}}" bindtap="history">
+        <view>#{{item.rank}} · {{item.displayName}}<view class="muted">{{item.gamesPlayed}} result(s) · tap for history</view></view>
+        <view class="score">{{item.displayScore || item.average}}</view>
+      </view>
+      <view wx:if="{{board.absent.length}}" class="muted">Still to play: <text wx:for="{{board.absent}}" wx:for-item="member" wx:key="userId">{{member.displayName}} </text></view>
+    </view>
+    <view class="card"><view class="card-title">Today's submissions</view>
+      <view wx:if="{{!board.rankings.length}}" class="muted">No one has submitted this game today.</view>
+      <view wx:for="{{board.rankings}}" wx:key="userId" class="row"><text>{{item.displayName}}</text><text>{{item.displayScore || item.average}}</text></view>
+    </view>
+    <view wx:if="{{board.owner}}" class="card">
+      <view class="card-title">Share with your group</view>
+      <view class="muted">Prepare a short-lived card, then tap Share and choose the existing WeChat group. Friends open the card and join in the Mini Program.</view>
+      <button class="button secondary" disabled="{{busy}}" bindtap="prepareShare">Prepare group card</button>
+      <button wx:if="{{share}}" class="button" open-type="share">Share card</button>
+      <button wx:if="{{chatToolAvailable}}" class="button secondary" bindtap="openChatTool">Open chat tool</button>
+      <button wx:if="{{group && group.verified && !group.mapped}}" class="button secondary" bindtap="linkGroup">Link verified group</button>
+      <view wx:if="{{links.length}}" class="label">Connected group mappings</view>
+      <view wx:for="{{links}}" wx:key="id" class="row"><text>Linked {{item.linkedAt}}</text><text class="link" data-id="{{item.id}}" bindtap="disconnect">Disconnect</text></view>
+    </view>
+  </block>
+</view>

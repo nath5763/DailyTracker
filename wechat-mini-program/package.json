@@ -1,0 +1,1 @@
+{ "private": true, "type": "commonjs", "scripts": { "test": "node --test tests", "build:chat-tool": "node scripts/build-chat-tool.cjs" } }

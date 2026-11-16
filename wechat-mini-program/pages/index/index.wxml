@@ -1,0 +1,48 @@
+<view class="page">
+  <view class="eyebrow">DAILY GAMES TOGETHER</view>
+  <view class="title">Daily Tracker</view>
+  <view class="lead">Play each day, paste your result here, and follow your friends' leaderboard.</view>
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+  <view wx:if="{{!ready}}" class="card">Loading…</view>
+  <view wx:elif="{{!enabled}}" class="card"><view class="card-title">Coming soon</view><view class="muted">WeChat access is not enabled for this Mini Program yet.</view></view>
+  <view wx:elif="{{!signedIn}}" class="card">
+    <view class="card-title">Sign in with WeChat</view>
+    <view class="muted">Your WeChat identity can be linked to an existing Daily Tracker account.</view>
+    <button class="button" disabled="{{busy}}" bindtap="signIn">Continue with WeChat</button>
+  </view>
+  <block wx:else>
+    <view wx:if="{{!profile}}" class="card">
+      <view class="card-title">Connect your account</view>
+      <view class="muted">Already use Daily Tracker? Generate a one-time WeChat code from your website profile and enter it here before creating a new profile.</view>
+      <input class="field" placeholder="Website link code" value="{{code}}" bindinput="onCode" maxlength="12" />
+      <button class="button" disabled="{{busy || !code}}" bindtap="linkAccount">Link existing account</button>
+      <view class="space"></view><view class="muted">New to Daily Tracker? Choose a name to create a profile.</view>
+      <input class="field" placeholder="Display name" value="{{name}}" bindinput="onName" maxlength="32" />
+      <button class="button secondary" disabled="{{busy}}" bindtap="createProfile">Create new profile</button>
+    </view>
+    <block wx:else>
+      <view wx:if="{{reference && preview}}" class="card">
+        <view class="eyebrow">SHARED LEADERBOARD</view><view class="card-title">{{preview.name}}</view>
+        <view class="muted">{{group && group.verified ? 'This group launch was verified.' : 'Opened by invitation. The current WeChat group was not verified.'}}</view>
+        <button class="button" disabled="{{busy}}" bindtap="join">Join leaderboard</button>
+      </view>
+      <view wx:if="{{group && group.verified}}" class="card">
+        <view class="card-title">Verified group context</view>
+        <view wx:if="{{group.mapped && group.leaderboardId}}" class="muted">Linked to {{group.name || 'a leaderboard'}}.</view>
+        <view wx:elif="{{group.mapped}}" class="muted">This group is linked to another leaderboard. Join with a valid invitation to view it.</view>
+        <view wx:else class="muted">This group is not linked yet. If you own a leaderboard, confirm the association below.</view>
+      </view>
+      <view class="card">
+        <view class="card-title">Your leaderboards</view>
+        <view wx:if="{{!boards.length}}" class="muted">No leaderboards yet. Create one or open a shared card from a friend.</view>
+        <view wx:for="{{boards}}" wx:key="id" class="row">
+          <view><view>{{item.name}}</view><view class="muted">{{item.boardType === 'MULTI_GAME' ? 'All games' : item.game.name}}</view></view>
+          <view><text class="link" data-id="{{item.id}}" bindtap="openBoard">Open</text>
+            <text wx:if="{{group && group.verified && !group.mapped && item.owner}}" class="link" data-id="{{item.id}}" bindtap="linkGroup"> · Link group</text></view>
+        </view>
+        <button class="button" bindtap="openCreate">Create leaderboard</button>
+      </view>
+      <button class="button secondary" bindtap="openAccount">Account and group settings</button>
+    </block>
+  </block>
+</view>

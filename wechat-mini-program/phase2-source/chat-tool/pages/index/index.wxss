@@ -1,0 +1,15 @@
+page { background: #f4f7f2; color: #172b2a; font-size: 30rpx; }
+.page { padding: 32rpx 26rpx 90rpx; }
+.eyebrow { font-size: 22rpx; color: #456b62; font-weight: 700; letter-spacing: 2rpx; }
+.title { font-size: 50rpx; font-weight: 800; margin: 14rpx 0 24rpx; }
+.card { background: #fff; border-radius: 24rpx; padding: 26rpx; margin: 18rpx 0; }
+.heading { font-size: 34rpx; font-weight: 700; margin-bottom: 12rpx; }
+.muted { color: #60756e; line-height: 1.5; font-size: 25rpx; }
+.field { background: #f8faf6; border: 2rpx solid #d0ddd4; border-radius: 14rpx; padding: 18rpx; margin: 14rpx 0; }
+.textarea { min-height: 200rpx; width: auto; }
+.button { background: #d8f054; border-radius: 16rpx; color: #172b2a; font-weight: 700; margin: 14rpx 0; }
+.secondary { background: #e7eee7; }
+.row { display: flex; justify-content: space-between; border-bottom: 1rpx solid #e7eee7; padding: 16rpx 0; }
+.link { color: #17654b; font-weight: 700; }
+.error { color: #a02c30; margin: 14rpx 0; }
+.success { color: #17654b; margin: 14rpx 0; }
