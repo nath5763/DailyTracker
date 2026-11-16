@@ -13,8 +13,8 @@ const simple = (side: Level["exit"]["side"], cell: number, x: number, y: number,
 
 describe("SlipOut level catalog", () => {
   it("shows a playable level board with Restart and no Start button", () => {
-    const html = renderToStaticMarkup(createElement(SlipOutLevels, { signedIn: false }));
-    expect(html).toContain("90 LEVELS");
+    const html = renderToStaticMarkup(createElement(SlipOutLevels, { signedIn: false, mode: "tutorial" }));
+    expect(html).toContain("HOW TO PLAY");
     expect(html).toContain('class="so-block ');
     expect(html).toContain('class="so-switch');
     expect(html).toContain("so-level-exit");
@@ -23,6 +23,15 @@ describe("SlipOut level catalog", () => {
     const target = html.match(/<button type="button"[^>]*class="so-block so-target[^"]*"[^>]*>/)?.[0];
     expect(target).toBeDefined();
     expect(target).not.toContain("disabled");
+  });
+  it("keeps the campaign grid in Levels mode", () => {
+    const html = renderToStaticMarkup(createElement(SlipOutLevels, { signedIn: false, mode: "levels" }));
+    expect(html).toContain("90 LEVELS");
+    expect(html).toContain("so-level-list");
+    expect(html).toContain("easy");
+    expect(html).toContain("medium");
+    expect(html).toContain("hard");
+    expect(html).not.toContain("Replay tutorial");
   });
   it("has an obstacle-free tutorial and 30 solvable levels per difficulty", () => {
     expect(levels).toHaveLength(91);

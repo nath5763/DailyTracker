@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SlipOutGame } from "@/components/slipout-game";
+import { SlipOutExperience } from "@/components/slipout-experience";
 import { applyMove, reachableRange } from "./movement";
 import { loadBest, saveAttempt, saveBest } from "./persistence";
 import { puzzleForDate } from "./puzzles";
@@ -67,12 +68,20 @@ describe("SlipOut daily puzzles", () => {
 });
 
 describe("SlipOut results and retries", () => {
-  it("shows an empty board and hides the optimal count before Start", () => {
+  it("shows the daily board before Start while keeping its blocks disabled", () => {
     const html = renderToStaticMarkup(createElement(SlipOutGame, { signedIn: false }));
     expect(html).toContain("Start puzzle");
     expect(html).toContain("so-board");
-    expect(html).not.toContain("so-block-face");
+    expect(html).toContain("so-block-face");
+    expect(html).toMatch(/class="so-block so-target[^\"]*"[^>]*disabled/);
     expect(html).not.toContain("optimal moves");
+  });
+  it("opens on the daily puzzle with the level grid in its own mode", () => {
+    const html = renderToStaticMarkup(createElement(SlipOutExperience, { signedIn: false }));
+    expect(html).toContain("Slide. Switch. Escape.");
+    expect(html).toContain("Today&#x27;s Challenge");
+    expect(html).toContain("How to Play");
+    expect(html).not.toContain("so-level-list");
   });
   it("remains playable after 90 seconds", () => {
     const started = startSession(readySession(puzzle), 1000);
