@@ -14,6 +14,7 @@ const simple = (side: Level["exit"]["side"], cell: number, x: number, y: number,
 describe("SlipOut level catalog", () => {
   it("shows a playable level board with Restart and no Start button", () => {
     const html = renderToStaticMarkup(createElement(SlipOutLevels, { signedIn: false }));
+    expect(html).toContain("90 LEVELS");
     expect(html).toContain('class="so-block ');
     expect(html).toContain('class="so-switch');
     expect(html).toContain("so-level-exit");
@@ -23,19 +24,20 @@ describe("SlipOut level catalog", () => {
     expect(target).toBeDefined();
     expect(target).not.toContain("disabled");
   });
-  it("has an obstacle-free tutorial and 20 solvable levels per difficulty", () => {
-    expect(levels).toHaveLength(61);
+  it("has an obstacle-free tutorial and 30 solvable levels per difficulty", () => {
+    expect(levels).toHaveLength(91);
     expect(levels[0]).toMatchObject({ number: 0, difficulty: "tutorial", optimalMoves: 2 });
     expect(levels[0].blocks).toHaveLength(1);
     expect(solveLevel(levels[0])).toBe(2);
     for (const [index, level] of levels.slice(1).entries()) {
       expect(level.number).toBe(index + 1);
-      expect(level.id).toBe(`slipout-level-v${index < 15 ? 3 : 4}-${String(index + 1).padStart(2, "0")}`);
+      expect(level.id).toBe(`slipout-level-v${index < 15 ? 3 : index < 60 ? 4 : 5}-${String(index + 1).padStart(2, "0")}`);
       expect(validLevel(level), level.id).toBe(true);
       const shortest = solveLevelPath(level);
       expect(shortest?.length, level.id).toBe(level.optimalMoves);
       const difficulty = index < 15 ? index < 5 ? "easy" : index < 10 ? "medium" : "hard" :
-        index < 30 ? "easy" : index < 45 ? "medium" : "hard";
+        index < 60 ? index < 30 ? "easy" : index < 45 ? "medium" : "hard" :
+          index < 70 ? "easy" : index < 80 ? "medium" : "hard";
       expect(level.difficulty).toBe(difficulty);
       expect(level.optimalMoves).toBeGreaterThanOrEqual(difficulty === "easy" ? 6 : difficulty === "medium" ? 13 : 20);
       if (difficulty !== "hard") expect(level.optimalMoves).toBeLessThanOrEqual(difficulty === "easy" ? 12 : 19);
@@ -43,10 +45,22 @@ describe("SlipOut level catalog", () => {
         const moved = new Set(shortest?.filter(move => move.id !== "X").map(move => move.id));
         const threshold = difficulty === "easy" ? .5 : difficulty === "medium" ? .75 : .9;
         expect(moved.size, level.id).toBeGreaterThanOrEqual(Math.ceil((level.blocks.length - 1) * threshold));
+        if (index >= 60) {
+          const obstacleMoves = shortest!.filter(move => move.id !== "X").length;
+          expect(obstacleMoves / shortest!.length, level.id).toBeGreaterThanOrEqual(.6);
+          let state = initialLevelState(level), changes = 0;
+          for (const move of shortest!) {
+            const next = applyLevelMove(level, state, move).state;
+            if (next.activeAxis !== state.activeAxis) changes++;
+            state = next;
+          }
+          expect(changes, level.id).toBeGreaterThanOrEqual(1);
+          expect(changes, level.id).toBeLessThanOrEqual(3);
+        }
       }
     }
     for (const difficulty of ["easy", "medium", "hard"] as const)
-      expect(levels.filter(level => level.difficulty === difficulty)).toHaveLength(20);
+      expect(levels.filter(level => level.difficulty === difficulty)).toHaveLength(30);
     expect(new Set(levels.map(({ blocks }) => `${blocks[0].width}x${blocks[0].height}`)))
       .toEqual(new Set(["1x1", "1x2", "2x1"]));
     expect(new Set(levels.map(level => level.exit.side)))

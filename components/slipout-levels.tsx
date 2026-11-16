@@ -167,7 +167,7 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
   }
 
   return <section className="so-page so-level-page shell">
-    <header className="so-heading"><div><p className="so-kicker">60 LEVELS · THREE DIFFICULTIES</p><h1>SlipOut Levels</h1></div><Link className="so-text-button" href="/daily/slipout">Daily puzzle →</Link></header>
+    <header className="so-heading"><div><p className="so-kicker">90 LEVELS · THREE DIFFICULTIES</p><h1>SlipOut Levels</h1></div><Link className="so-text-button" href="/daily/slipout">Daily puzzle →</Link></header>
     <p>Complete the tutorial to unlock the first puzzle in each difficulty. Each difficulty progresses independently.</p>
     <div className="so-tutorial-entry"><button type="button" className={selected === 0 ? "selected" : ""} disabled={busy || syncing || status === "PLAYING"} onClick={() => choose(0)}>Tutorial {progress.some(item => item.levelNumber === 0) ? "Completed" : "Ready"}</button><span>Learn how the direction switch works, with no obstacles.</span></div>
     <div className="so-level-list">{tiers.map(difficulty => <div key={difficulty}><h2>{difficulty}</h2><div className="so-level-buttons">{tierLevels[difficulty].map((item, index) => {
@@ -179,7 +179,7 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
         aria-label={`${difficulty} level ${index + 1}, ${open ? score ? `best ${score} moves` : "unlocked" : "locked"}`}>
         <strong>{index + 1}</strong><small>{!open ? "Locked" : score ? `${score} moves` : "Ready"}</small></button>;
     })}</div></div>)}</div>
-    <div className="so-stats"><div><span>{selected === 0 ? "TUTORIAL" : `${level.difficulty.toUpperCase()} ${tierIndex + 1} OF 20`}</span><strong>{level.blocks[0].width}×{level.blocks[0].height} target</strong></div><div><span>MOVES</span><strong>{history.length}</strong></div><div><span>ACTIVE AXIS</span><strong className="so-axis-indicator">{board.activeAxis === "H" ? "↔ Horizontal" : "↕ Vertical"}</strong></div></div>
+    <div className="so-stats"><div><span>{selected === 0 ? "TUTORIAL" : `${level.difficulty.toUpperCase()} ${tierIndex + 1} OF ${sequence.length}`}</span><strong>{level.blocks[0].width}×{level.blocks[0].height} target</strong></div><div><span>MOVES</span><strong>{history.length}</strong></div><div><span>ACTIVE AXIS</span><strong className="so-axis-indicator">{board.activeAxis === "H" ? "↔ Horizontal" : "↕ Vertical"}</strong></div></div>
     <p className="so-level-best">{selected === 0 ? "Land on the switch, then head to the exit." : `Best: ${best ? `${best} moves` : "No finish yet"} · Exit: ${level.exit.side} side`}</p>
     <div className="so-main"><div className="so-board-shell"><div className="so-board" ref={boardRef} aria-label={selected === 0 ? "SlipOut tutorial board" : `SlipOut ${level.difficulty} level ${tierIndex + 1} board`}>
       {Array.from({ length: 36 }, (_, index) => <span className="so-cell" key={index} aria-hidden="true" />)}
