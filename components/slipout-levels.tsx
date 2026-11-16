@@ -41,6 +41,7 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
   const dragRef = useRef<Drag | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const attemptRef = useRef<string | null>(null);
+  const startingRef = useRef(false);
   const level = levels[selected];
   const sequence = level.difficulty === "tutorial" ? [] : tierLevels[level.difficulty];
   const tierIndex = sequence.findIndex(item => item.number === selected);
@@ -80,19 +81,10 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
     const order = candidate?.difficulty === "tutorial" ? [] : tierLevels[candidate.difficulty];
     const index = order?.findIndex(item => item.number === number) ?? -1;
     const predecessor = index > 0 ? order[index - 1].number : 0;
-    if (!candidate || busy || syncing || status === "PLAYING" || number > 0 &&
+    if (!candidate || busy || startingRef.current || syncing || status === "PLAYING" || number > 0 &&
         !progress.some(item => item.levelNumber === number || item.levelNumber === predecessor)) return;
     setSelected(number); setBoard(initialLevelState(levels[number])); setHistory([]); setStatus("READY"); setMessage("");
     attemptRef.current = null;
-  }
-  async function start() {
-    if (status !== "READY" || busy || syncing || !unlocked) return;
-    setBusy(true); setMessage("");
-    try {
-      if (signedIn) attemptRef.current = (await request<{ attemptId: string }>(`/${selected}/start`, "POST")).attemptId;
-      setBoard(initialLevelState(level)); setHistory([]); setStatus("PLAYING");
-    } catch (error) { setMessage(error instanceof Error ? error.message : "Could not start level."); }
-    finally { setBusy(false); }
   }
   async function finish(moves: LevelMove[]) {
     setBusy(true);
@@ -117,7 +109,7 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
     finally { setBusy(false); }
   }
   async function restart() {
-    if (busy) return;
+    if (busy || startingRef.current) return;
     setBusy(true);
     try {
       if (status === "PLAYING" && signedIn && attemptRef.current)
@@ -127,13 +119,26 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not restart."); }
     finally { setBusy(false); }
   }
-  function commit(move: LevelMove) {
-    if (status !== "PLAYING" || busy) return;
+  async function commit(move: LevelMove) {
+    if (status === "COMPLETED" || busy || syncing || startingRef.current || !unlocked) return;
     try {
       const next = applyLevelMove(level, board, move);
       if (!next.moved) return;
+      if (status === "READY" && signedIn) {
+        startingRef.current = true;
+        setBusy(true); setMessage("");
+        try {
+          attemptRef.current = (await request<{ attemptId: string }>(`/${selected}/start`, "POST")).attemptId;
+        } catch (error) {
+          setMessage(error instanceof Error ? error.message : "Could not start level.");
+          return;
+        } finally {
+          startingRef.current = false;
+          setBusy(false);
+        }
+      }
       const moves = [...history, move];
-      setBoard(next.state); setHistory(moves);
+      setBoard(next.state); setHistory(moves); setStatus("PLAYING");
       if (next.exited) void finish(moves);
     } catch { /* Ignore gestures that do not make a legal slide. */ }
   }
@@ -158,7 +163,7 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
     let to = Math.max(min, Math.min(max, origin + (event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 1)));
     if (block.id === "X" && max === 6 && origin === 6 - (axis === "H" ? block.width : block.height) &&
         (event.key === "ArrowRight" || event.key === "ArrowDown")) to = 6;
-    commit({ id: block.id, axis, to });
+    void commit({ id: block.id, axis, to });
   }
 
   return <section className="so-page so-level-page shell">
@@ -191,10 +196,10 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
         const x = preview?.axis === "H" ? preview.to : block.x;
         const y = preview?.axis === "V" ? preview.to : block.y;
         const style: CSSProperties = { left: `${x / 6 * 100}%`, top: `${y / 6 * 100}%`, width: `${block.width / 6 * 100}%`, height: `${block.height / 6 * 100}%` };
-        return <button type="button" key={block.id} style={style} disabled={status !== "PLAYING" || busy}
+        return <button type="button" key={block.id} style={style} disabled={status === "COMPLETED" || busy || syncing || !unlocked}
           className={`so-block ${block.id === "X" ? "so-target" : block.id.charCodeAt(0) % 2 ? "so-lime" : "so-purple"} ${status === "COMPLETED" && block.id === "X" ? "so-exited" : ""}`}
           aria-label={`${block.id === "X" ? `Target, active axis ${board.activeAxis === "H" ? "horizontal" : "vertical"}` : "Block"} ${block.id}, row ${block.y + 1}, column ${block.x + 1}`}
-          onPointerDown={event => { if (status !== "PLAYING" || busy) return; event.preventDefault();
+          onPointerDown={event => { if (status === "COMPLETED" || busy || syncing || !unlocked) return; event.preventDefault();
             const active: Drag = { pointerId: event.pointerId, id: block.id, x: block.x, y: block.y,
               startX: event.clientX, startY: event.clientY, axis: null, to: block.x };
             dragRef.current = active; event.currentTarget.setPointerCapture(event.pointerId); setDrag(active); }}
@@ -202,13 +207,12 @@ export function SlipOutLevels({ signedIn }: { signedIn: boolean }) {
             const next = gesture(event, dragRef.current); dragRef.current = next; setDrag(next); }}
           onPointerUp={event => { if (dragRef.current?.pointerId !== event.pointerId) return;
             const next = gesture(event, dragRef.current); dragRef.current = null; setDrag(null);
-            if (next.axis) commit({ id: next.id, axis: next.axis, to: next.to }); }}
+            if (next.axis) void commit({ id: next.id, axis: next.axis, to: next.to }); }}
           onPointerCancel={() => { dragRef.current = null; setDrag(null); }}
           onKeyDown={event => keyMove(event, block)}><span className="so-block-face">{block.id === "X" ? board.activeAxis === "H" ? "↔" : "↕" : null}</span></button>;
       })}<div className={`so-exit so-level-exit so-exit-${level.exit.side}`} style={exitStyle} aria-label={`Exit on the ${level.exit.side} side at cell ${level.exit.cell + 1}`}><span>EXIT {exitArrow}</span></div>
     </div></div><aside className="so-side"><p className="so-side-label">THE OBJECTIVE</p><h2>{selected === 0 ? "Learn the direction switch." : "Switch direction, find the exit."}</h2>{selected === 0 && status !== "COMPLETED" && <p className="so-tutorial-prompt" role="status">{board.activeAxis === "H" ? "Slide the pink target horizontally onto the marked switch. You can pass over it, but must stop on it to change direction." : "The target now moves vertically. Slide it down through the exit."}</p>}<p>The pink target slides only along its active axis. Land on a marked switch to toggle between horizontal and vertical movement. Passing over a switch does nothing.</p><p>Slide the target through the one-cell opening on the {level.exit.side} side. Other blocks move along their length and do not activate switches. Each slide counts as one move.</p>{status === "COMPLETED" && <p>{selected === 0 ? "Tutorial complete!" : <>Optimal solution: <strong>{level.optimalMoves} moves</strong></>}</p>}</aside></div>
-    <div className="so-controls">{status === "READY" && <button type="button" className="so-primary" disabled={busy || syncing || !unlocked} onClick={() => void start()}>{selected === 0 ? "Start tutorial →" : `Start ${level.difficulty} ${tierIndex + 1} →`}</button>}
-      <button type="button" className="so-secondary" disabled={busy || status === "READY"} onClick={() => void restart()}>Restart</button><span className="so-status" role="status">{message}</span></div>
-    {status === "COMPLETED" && <div className="so-result" role="status"><p className="so-kicker">{selected === 0 ? "TUTORIAL COMPLETE" : "LEVEL COMPLETE"}</p><h2>{selected === 0 ? "You switched directions!" : `${history.length} moves.`}</h2>{selected !== 0 && <p>Optimal: {level.optimalMoves} moves.</p>}<div className="so-result-actions"><button type="button" className="so-primary" onClick={() => choose(nextUnlocked ? nextLevel?.number ?? selected : selected)}>{nextUnlocked ? "Next level →" : "Play again"}</button></div></div>}
+    <div className="so-controls"><button type="button" className="so-secondary" disabled={busy || syncing} onClick={() => void restart()}>Restart</button><span className="so-status" role="status">{message}</span></div>
+    {status === "COMPLETED" && <div className="so-result" role="status"><p className="so-kicker">{selected === 0 ? "TUTORIAL COMPLETE" : "LEVEL COMPLETE"}</p><h2>{selected === 0 ? "You switched directions!" : `${history.length} moves.`}</h2>{selected !== 0 && <p>Optimal: {level.optimalMoves} moves.</p>}{nextUnlocked && <div className="so-result-actions"><button type="button" className="so-primary" onClick={() => choose(nextLevel?.number ?? selected)}>Next level →</button></div>}</div>}
   </section>;
 }
