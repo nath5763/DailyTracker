@@ -4,8 +4,8 @@ import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, typ
 import catalog from "@/lib/slipout/levels.json";
 import { applyLevelMove, initialLevelState, levelRange, type Axis, type Level, type LevelBlock, type LevelMove, type LevelState } from "@/lib/slipout/level-engine";
 
-type Saved = { levelNumber: number; bestMoves: number; moves: LevelMove[] };
-type Progress = { levelNumber: number; bestMoves: number };
+type Saved = { levelNumber: number; bestMoves: number; moves: LevelMove[]; catalogId?: string };
+type Progress = { levelNumber: number; bestMoves: number; legacy?: boolean };
 type Drag = { pointerId: number; id: string; x: number; y: number; startX: number; startY: number; axis: "H" | "V" | null; to: number };
 const levels = catalog as Level[];
 const tiers = ["easy", "medium", "hard"] as const;
@@ -13,11 +13,24 @@ const tierLevels = Object.fromEntries(tiers.map(tier => [tier, levels.filter(lev
   .sort((a, b) => a.optimalMoves - b.optimalMoves || a.number - b.number)])) as Record<(typeof tiers)[number], Level[]>;
 const storageKey = "slipout:levels:v3";
 
-function localProgress(): Saved[] {
+function storedProgress(): Saved[] {
   try {
     const value = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    return Array.isArray(value) ? value.filter(item => Number.isInteger(item.levelNumber) && Array.isArray(item.moves)) : [];
+    return Array.isArray(value) ? value.filter(item => Number.isInteger(item.levelNumber) &&
+      !!levels[item.levelNumber] && Array.isArray(item.moves)) : [];
   } catch { return []; }
+}
+function currentBoard(item: Saved): boolean {
+  const id = levels[item.levelNumber].id;
+  return item.catalogId ? item.catalogId === id : !id.includes("-v6-");
+}
+function localProgress(): Saved[] { return storedProgress().filter(currentBoard); }
+function guestProgress(): Progress[] {
+  const saved = localProgress();
+  const current = new Set(saved.map(item => item.levelNumber));
+  return [...saved.map(({ levelNumber, bestMoves }) => ({ levelNumber, bestMoves })),
+    ...storedProgress().filter(item => !currentBoard(item) && !current.has(item.levelNumber))
+      .map(({ levelNumber, bestMoves }) => ({ levelNumber, bestMoves, legacy: true }))];
 }
 async function request<T>(path: string, method = "GET", body?: unknown): Promise<T> {
   const response = await fetch(`/api/v1/slipout/levels${path}`, { method, credentials: "same-origin", cache: "no-store",
@@ -51,7 +64,8 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
   const unlocked = selected === 0 || progress.some(item => item.levelNumber === selected || item.levelNumber === previous);
   const nextLevel = selected === 0 ? tierLevels.easy[0] : sequence[tierIndex + 1];
   const nextUnlocked = !!nextLevel && progress.some(item => item.levelNumber === selected);
-  const best = progress.find(item => item.levelNumber === selected)?.bestMoves;
+  const selectedProgress = progress.find(item => item.levelNumber === selected);
+  const best = selectedProgress?.legacy ? undefined : selectedProgress?.bestMoves;
   const exitArrow = { left: "←", right: "→", top: "↑", bottom: "↓" }[level.exit.side];
   const exitStyle: CSSProperties = level.exit.side === "left" || level.exit.side === "right"
     ? { top: `${level.exit.cell / 6 * 100}%` }
@@ -69,7 +83,7 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
     localStorage.removeItem("slipout:levels:v1");
     localStorage.removeItem("slipout:levels:v2");
     const guest = localProgress();
-    setProgress(guest.map(({ levelNumber, bestMoves }) => ({ levelNumber, bestMoves })));
+    setProgress(guestProgress());
     if (signedIn) {
       (async () => {
         const data = await request<{ progress: Progress[] }>("");
@@ -107,10 +121,10 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
         const saved = localProgress();
         const previous = saved.find(item => item.levelNumber === selected);
         if (!previous || moves.length < previous.bestMoves) {
-          const updated = [...saved.filter(item => item.levelNumber !== selected),
-            { levelNumber: selected, bestMoves: moves.length, moves }].sort((a, b) => a.levelNumber - b.levelNumber);
+          const updated = [...storedProgress().filter(item => item.levelNumber !== selected || !currentBoard(item)),
+            { levelNumber: selected, bestMoves: moves.length, moves, catalogId: level.id }].sort((a, b) => a.levelNumber - b.levelNumber);
           localStorage.setItem(storageKey, JSON.stringify(updated));
-          setProgress(updated.map(({ levelNumber, bestMoves }) => ({ levelNumber, bestMoves })));
+          setProgress(guestProgress());
         }
       }
       setStatus("COMPLETED");
@@ -179,16 +193,18 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
     {mode === "tutorial" ? <div className="so-section-intro"><div><p className="so-kicker">HOW TO PLAY</p><h2>Learn the direction switch.</h2><p>Slide blocks along their length. Stop the pink target on a switch to change its active direction, then guide it through the exit. Drag with a mouse or touch, or focus a block and use the arrow keys. Each slide counts as one move.</p><p>The daily puzzle starts with the Start button and has no time limit. Fewer moves rank higher; you can retry it as often as you like.</p></div><div className="so-tutorial-progress"><span>{progress.some(item => item.levelNumber === 0) ? "✓ Tutorial completed" : "Tutorial ready"}</span>{progress.some(item => item.levelNumber === 0) && <button type="button" className="so-secondary" disabled={busy || syncing} onClick={() => void restart()}>Replay tutorial</button>}</div></div>
       : <><div className="so-section-intro"><div><p className="so-kicker">90 LEVELS · THREE DIFFICULTIES</p><h2>Choose a level</h2><p>Complete the tutorial to unlock the first puzzle in each difficulty. Each difficulty progresses independently.</p></div></div>
     <div className="so-level-list">{tiers.map(difficulty => <div key={difficulty}><h2>{difficulty}</h2><div className="so-level-buttons">{tierLevels[difficulty].map((item, index) => {
-      const score = progress.find(value => value.levelNumber === item.number)?.bestMoves;
+      const completion = progress.find(value => value.levelNumber === item.number);
+      const score = completion?.legacy ? undefined : completion?.bestMoves;
       const prior = index > 0 ? tierLevels[difficulty][index - 1].number : 0;
       const open = progress.some(value => value.levelNumber === item.number || value.levelNumber === prior);
       return <button type="button" key={item.id} className={selected === item.number ? "selected" : ""}
         disabled={!open || busy || syncing || status === "PLAYING"} onClick={() => choose(item.number)}
-        aria-label={`${difficulty} level ${index + 1}, ${open ? score ? `best ${score} moves` : "unlocked" : "locked"}`}>
-        <strong>{index + 1}</strong><small>{!open ? "Locked" : score ? `${score} moves` : "Ready"}</small></button>;
+        aria-label={`${difficulty} level ${index + 1}, ${open ? score ? `best ${score} moves` : completion?.legacy ? "previously completed" : "unlocked" : "locked"}`}>
+        <strong>{index + 1}</strong><small>{!open ? "Locked" : score ? `${score} moves` : completion?.legacy ? "Replay" : "Ready"}</small></button>;
     })}</div></div>)}</div></>}
     <div className="so-stats"><div><span>{selected === 0 ? "TUTORIAL" : `${level.difficulty.toUpperCase()} ${tierIndex + 1} OF ${sequence.length}`}</span><strong>{level.blocks[0].width}×{level.blocks[0].height} target</strong></div><div><span>MOVES</span><strong>{history.length}</strong></div><div><span>ACTIVE AXIS</span><strong className="so-axis-indicator">{board.activeAxis === "H" ? "↔ Horizontal" : "↕ Vertical"}</strong></div></div>
-    <p className="so-level-best">{selected === 0 ? "Land on the switch, then head to the exit." : `Best: ${best ? `${best} moves` : "No finish yet"} · Exit: ${level.exit.side} side`}</p>
+    <p className="so-level-best">{selected === 0 ? "Land on the switch, then head to the exit." :
+      `${selectedProgress?.legacy ? "Previous board completed" : `Best: ${best ? `${best} moves` : "No finish yet"}`} · Exit: ${level.exit.side} side`}</p>
     <div className="so-main"><div className="so-board-shell"><div className="so-board" ref={boardRef} aria-label={selected === 0 ? "SlipOut tutorial board" : `SlipOut ${level.difficulty} level ${tierIndex + 1} board`}>
       {Array.from({ length: 36 }, (_, index) => <span className="so-cell" key={index} aria-hidden="true" />)}
       {level.switches.map(cell => {

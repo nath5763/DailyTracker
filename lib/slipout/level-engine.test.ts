@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { execFileSync } from "node:child_process";
 import { SlipOutLevels } from "@/components/slipout-levels";
 import catalog from "./levels.json";
 import { applyLevelMove, initialLevelState, levelRange, solveLevel, solveLevelPath, validLevel, type Level } from "./level-engine";
 
 const levels = catalog as Level[];
+const retainedBoards = new Set([1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 13, 14, 15,
+  16, 17, 18, 19, 31, 32, 33, 34, 61, 62, 63, 64, 65, 68, 76, 79]);
 const simple = (side: Level["exit"]["side"], cell: number, x: number, y: number, axis: "H" | "V" = "H"): Level => ({
   id: "test", number: 1, difficulty: "easy", optimalMoves: 1, startAxis: axis, exit: { side, cell },
   switches: [{ x: 2, y: 2 }], blocks: [{ id: "X", x, y, width: 1, height: 1, axis: "B" }]
@@ -40,7 +43,7 @@ describe("SlipOut level catalog", () => {
     expect(solveLevel(levels[0])).toBe(2);
     for (const [index, level] of levels.slice(1).entries()) {
       expect(level.number).toBe(index + 1);
-      expect(level.id).toBe(`slipout-level-v${index < 15 ? 3 : index < 60 ? 4 : 5}-${String(index + 1).padStart(2, "0")}`);
+      expect(level.id).toBe(`slipout-level-v${retainedBoards.has(level.number) ? index < 15 ? 3 : index < 60 ? 4 : 5 : 6}-${String(index + 1).padStart(2, "0")}`);
       expect(validLevel(level), level.id).toBe(true);
       const shortest = solveLevelPath(level);
       expect(shortest?.length, level.id).toBe(level.optimalMoves);
@@ -75,6 +78,11 @@ describe("SlipOut level catalog", () => {
     expect(new Set(levels.map(level => level.exit.side)))
       .toEqual(new Set(["left", "right", "top", "bottom"]));
   }, 600_000);
+
+  it("has no equivalent or near-identical board layouts across difficulties", () => {
+    expect(() => execFileSync(process.execPath, ["tools/audit-slipout-diversity.mjs", "--check"],
+      { encoding: "utf8" })).not.toThrow();
+  });
 
   it("toggles only when newly landing on a switch and permits re-entry", () => {
     const level = simple("top", 2, 0, 2);
