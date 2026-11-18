@@ -87,6 +87,7 @@ The public `/privacy` page documents authentication, profile, score, leaderboard
 
 ## Security behavior
 
+- The frontend sends a per-request nonce-based Content Security Policy on rendered pages. It starts in report-only mode so AdSense and navigation can be checked in production; set `CSP_ENFORCE=true` on the frontend service after that check to block unapproved scripts. The policy follows AdSense's strict CSP guidance, including its `unsafe-eval` requirement.
 - Email-verification links expire after 24 hours and password-reset links after 30 minutes; both are single-use and stored only as SHA-256 hashes.
 - Passwords are stored with Spring Security's adaptive `DelegatingPasswordEncoder`, and login and account-email requests are rate limited.
 - Sessions use random opaque tokens, stored as hashes and delivered in 30-day `HttpOnly`, `Secure`, `SameSite=Lax` cookies.

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import type { Round, Tile, Word } from "@/lib/letter-bag/engine";
 import { LetterBagPlayHistory, LetterBagTileFace, potentialWordPoints } from "@/components/letter-bag-play-details";
+import { reconcileTileDisplayOrder, shuffleTileDisplayOrder, tilesInDisplayOrder } from "@/lib/letter-bag/display-order";
 import { baseWordPoints, letterBonus } from "@/lib/letter-bag/scoring";
 
 type View = { date: string; gameNumber: string; rack: Tile[]; preview: Tile[]; bagRemaining: number; words: Word[]; score: number; startedAt: number | null; endedAt: number | null };
@@ -21,12 +22,13 @@ export function LetterBagGame({ saved }: { saved: boolean }) {
   const [practice, setPractice] = useState(false);
   const [dailyResult, setDailyResult] = useState<View | null>(null);
   const [selected, setSelected] = useState<number[]>([]);
+  const [displayOrder, setDisplayOrder] = useState<number[]>([]);
   const [freshTiles, setFreshTiles] = useState<number[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [help, setHelp] = useState(false);
   useEffect(() => { if (!help) return; const close = (event: KeyboardEvent) => { if (event.key === "Escape") setHelp(false); }; window.addEventListener("keydown", close); return () => window.removeEventListener("keydown", close); }, [help]);
-  useEffect(() => { let live = true; if (saved) request("").then(v => { if (live) setView(v); }).catch(e => { if (live) setMessage(e.message); }); else import("@/lib/letter-bag/engine").then(engine => { if (live) { const round = engine.createRound(day()); setLocal(round); setView(localView(round)); } }); return () => { live = false; }; }, [saved]);
+  useEffect(() => { let live = true; if (saved) request("").then(v => { if (live) { setView(v); setDisplayOrder(v.rack.map(tile => tile.id)); } }).catch(e => { if (live) setMessage(e.message); }); else import("@/lib/letter-bag/engine").then(engine => { if (live) { const round = engine.createRound(day()); const nextView = localView(round); setLocal(round); setView(nextView); setDisplayOrder(nextView.rack.map(tile => tile.id)); } }); return () => { live = false; }; }, [saved]);
   const act = useCallback(async (action: "start" | "words" | "finish") => {
     if (!view || busy) return;
     setBusy(true); setMessage("");
@@ -50,10 +52,11 @@ export function LetterBagGame({ saved }: { saved: boolean }) {
           const base = baseWordPoints(played.word.length);
           setMessage(`${played.word.toUpperCase()} earned ${played.points} points (${base} base + ${played.points - base} letter bonus).`);
         }
+        setDisplayOrder(current => reconcileTileDisplayOrder(current, nextView.rack));
         setView(nextView);
       }
       setSelected([]);
-    } catch (error) { setMessage(error instanceof Error ? error.message : "Something went wrong."); if (saved && !practice) request("").then(setView).catch(() => {}); }
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Something went wrong."); if (saved && !practice) request("").then(recovered => { setView(recovered); setDisplayOrder(current => reconcileTileDisplayOrder(current, recovered.rack)); }).catch(() => {}); }
     finally { setBusy(false); }
   }, [view, busy, saved, practice, selected, local]);
   const replay = useCallback(async () => {
@@ -71,7 +74,8 @@ export function LetterBagGame({ saved }: { saved: boolean }) {
         const engine = await import("@/lib/letter-bag/engine");
         round = engine.createRound(view.date);
       }
-      setLocal(round); setView(localView(round)); setPractice(saved); setSelected([]); setFreshTiles([]);
+      const nextView = localView(round);
+      setLocal(round); setView(nextView); setDisplayOrder(nextView.rack.map(tile => tile.id)); setPractice(saved); setSelected([]); setFreshTiles([]);
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not replay Letter Bag."); }
     finally { setBusy(false); }
   }, [view, busy, saved, practice]);
@@ -79,6 +83,7 @@ export function LetterBagGame({ saved }: { saved: boolean }) {
   const started = view.startedAt !== null;
   const ended = view.endedAt !== null;
   const active = started && !ended;
+  const displayedRack = tilesInDisplayOrder(view.rack, displayOrder);
   const chosen = selected.map(id => view.rack.find(tile => tile.id === id)).filter((tile): tile is Tile => !!tile);
   const potential = potentialWordPoints(chosen.map(tile => tile.letter).join(""));
   const longest = Math.max(0, ...view.words.map(word => word.word.length));
@@ -90,7 +95,7 @@ export function LetterBagGame({ saved }: { saved: boolean }) {
     {ended ? <div className="lb-result"><p className="section-number">{scored ? "DAILY RESULT" : practice ? "PRACTICE RESULT" : "UNSAVED RESULT"}</p><h2>{view.score} points</h2><p>{view.words.length} words · longest {longest} letters</p>{scored ? <p>Replay uses the same letters for practice. Your daily score stays saved.</p> : null}<div className="lb-actions"><button className="button" type="button" onClick={() => navigator.clipboard.writeText(share).then(() => setMessage("Result copied.")).catch(() => setMessage("Could not copy result."))}>Copy result</button><button type="button" disabled={busy} onClick={() => void replay()}>{busy ? "Preparing replay…" : "Replay"}</button>{practice && dailyResult ? <button type="button" onClick={() => { setView(dailyResult); setLocal(null); setPractice(false); setSelected([]); setFreshTiles([]); setMessage(""); }}>View daily result</button> : null}</div>{view.words.length > 0 && <div className="lb-history"><h3>Words played</h3>{[...view.words].reverse().map((word, i) => <div key={i}>{word.word}<b>+{word.points}</b></div>)}</div>}</div> : <div className="lb-play-layout"><div className="lb-board">
       <div className="lb-bag"><Image src="/letter-bag/letter-bag.webp" width={500} height={300} alt="" /><span>30 LETTERS · NO TIME LIMIT</span></div>
       {active && <div className="lb-compose"><div className="lb-compose-heading"><span>YOUR WORD</span><strong aria-live="polite">Potential +{potential.total} pts</strong></div><div className="lb-chosen">{chosen.length ? chosen.map(tile => <button key={tile.id} type="button" onClick={() => setSelected(current => current.filter(id => id !== tile.id))} aria-label={`Remove ${tile.letter} from word`}><LetterBagTileFace letter={tile.letter} /></button>) : <span>Tap letters to form a word</span>}</div><small>{potential.base} base + {potential.bonus} letter bonus. {chosen.length < 3 ? "Select at least 3 tiles to score." : "Points count when a valid word is played."}</small><button type="button" onClick={() => setSelected(current => current.slice(0, -1))} disabled={!selected.length}>← Back</button></div>}
-      <h2>Your letters</h2><div className="lb-rack">{view.rack.map(tile => <button type="button" key={tile.id} disabled={!active || busy || selected.includes(tile.id)} className={[!started && "masked", selected.includes(tile.id) && "lb-selected", freshTiles.includes(tile.id) && "lb-fresh"].filter(Boolean).join(" ")} onClick={() => setSelected(current => [...current, tile.id])} aria-label={started ? `Letter ${tile.letter}${letterBonus(tile.letter) ? `, ${letterBonus(tile.letter)} bonus points` : ""}` : "Hidden letter"}><LetterBagTileFace letter={tile.letter} /></button>)}</div>
+      <div className="lb-rack-heading"><h2>Your letters</h2>{active && <button className="lb-shuffle" type="button" disabled={busy} onClick={() => setDisplayOrder(current => shuffleTileDisplayOrder(reconcileTileDisplayOrder(current, view.rack)))}>Shuffle</button>}</div><div className="lb-rack">{displayedRack.map(tile => <button type="button" key={tile.id} disabled={!active || busy || selected.includes(tile.id)} className={[!started && "masked", selected.includes(tile.id) && "lb-selected", freshTiles.includes(tile.id) && "lb-fresh"].filter(Boolean).join(" ")} onClick={() => setSelected(current => [...current, tile.id])} aria-label={started ? `Letter ${tile.letter}${letterBonus(tile.letter) ? `, ${letterBonus(tile.letter)} bonus points` : ""}` : "Hidden letter"}><LetterBagTileFace letter={tile.letter} /></button>)}</div>
       <h2>Up next</h2><div className="lb-preview">{view.preview.map(tile => <span key={tile.id}><LetterBagTileFace letter={tile.letter} /></span>)}</div>
       <div className="lb-actions">{!started ? <button className="button" type="button" disabled={busy} onClick={() => act("start")}>Start</button> : <><button className="button" type="button" disabled={busy || selected.length < 3} onClick={() => act("words")}>Play word</button><button type="button" disabled={!selected.length || busy} onClick={() => setSelected([])}>Clear</button><button type="button" disabled={busy} onClick={() => act("finish")}>Finish game</button></>}</div>
     </div><LetterBagPlayHistory words={view.words} /></div>}

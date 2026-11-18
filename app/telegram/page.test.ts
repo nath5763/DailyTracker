@@ -17,5 +17,8 @@ test("explains private linking, paid group setup, and signup verification", asyn
   expect(html).toContain("Confirm your identity");
   expect(html).toContain("ignores ordinary group conversation");
   expect(html).toContain("complete Share result in that same group message");
+  expect(html).toContain("This works in any group without a leaderboard");
+  expect(html).toContain("lists supported games without asking for a leaderboard");
+  expect(html).toContain("A flow started in a group posts its score confirmation there");
   expect(html).toContain("Expand button for private game leaders");
 });

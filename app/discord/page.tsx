@@ -18,7 +18,7 @@ export default async function DiscordGuidePage() {
     <SiteHeader viewer={viewer} />
     <section className="page shell">
       <div className="page-heading discord-guide-intro"><div><p className="section-number discord-label"><DiscordSymbol />DISCORD SETUP GUIDE</p><h1>Bring your leaderboard to Discord</h1></div></div>
-      <p className="discord-guide-intro">Daily Tracker supports multi-game leaderboards in server channels, direct messages, and Group DMs. Every participant must link their own Discord account and already belong to the multi-game leaderboard before using commands.</p>
+      <p className="discord-guide-intro">Link your Discord account to save game scores with /daily or /loldle in any server channel, direct message, or Group DM. To view group rankings, connect a multi-game leaderboard and join it.</p>
 
       <div className="discord-guide-grid">
         <article className="card discord-guide-card"><p className="section-number">SERVER CHANNELS</p><h2>Connect an existing channel</h2><p className="discord-access-note"><strong>Paid owner feature.</strong> The leaderboard owner needs an active paid plan; other members do not.</p><ol>
@@ -38,13 +38,13 @@ export default async function DiscordGuidePage() {
       <section className="discord-guide-section"><h2>Subscriptions and account controls</h2><p>Discord identity linking, user-app installation, and commands in DMs or Group DMs are available without a paid plan. A subscription is required only for a leaderboard owner who connects that leaderboard to a Discord server channel. View the current plan, subscribe, or open billing controls from your Profile.</p><div className="discord-guide-actions"><a className="button button-ghost" href={profileHref} target="_blank" rel="noopener noreferrer">Open Profile and billing <span aria-hidden="true">↗</span></a></div></section>
 
       <section className="discord-guide-section"><h2>Using commands</h2><ul>
-        <li>Use <code>/daily</code> and paste the complete Share result into <code>result</code>. The bot identifies the game from the share text.</li>
-        <li>Use <code>/loldle</code> with the complete five-mode LoLdle share and its puzzle date to save Classic, Quote, Ability, Emoji, and Splash together.</li>
+        <li>With a linked account, use <code>/daily</code> and paste the complete Share result into <code>result</code>. The bot identifies the game from the share text and saves the score to your account, even if the chat has no leaderboard.</li>
+        <li>With a linked account, use <code>/loldle</code> with the complete five-mode LoLdle share and its puzzle date to save Classic, Quote, Ability, Emoji, and Splash together. No leaderboard is needed to submit.</li>
         <li>Use <code>/leaderboard</code> to view the current standings for the selected game.</li>
-        <li>In an unconfigured DM or Group DM, provide the leaderboard UUID when the command asks for the <code>leaderboard</code> option.</li>
+        <li>In an unconfigured DM or Group DM, provide the leaderboard UUID when <code>/leaderboard</code> asks for the <code>leaderboard</code> option.</li>
       </ul></section>
 
-      <section className="discord-guide-section"><h2>Permissions and membership</h2><p>If setup says you lack permission, confirm that the Discord account linked to your Profile has Manage Server permission and that you are the Daily Tracker leaderboard owner. If a command says you are not a member, link the Discord account you are currently using and ask the owner to add your Daily Tracker account to the leaderboard first.</p></section>
+      <section className="discord-guide-section"><h2>Permissions and membership</h2><p>If setup says you lack permission, confirm that the Discord account linked to your Profile has Manage Server permission and that you are the Daily Tracker leaderboard owner. If a ranking command says you are not a member, link the Discord account you are currently using and ask the owner to add your Daily Tracker account to the leaderboard first.</p></section>
 
       <section className="card discord-guide-section"><h2>Group DM privacy</h2><p>Daily Tracker is not a permanent participant in a Group DM. It responds only when someone explicitly uses an app command, and it does not passively read or parse the chat&apos;s messages.</p></section>
     </section>

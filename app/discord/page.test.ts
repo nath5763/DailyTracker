@@ -22,6 +22,8 @@ test("documents server channel and Group DM setup", async () => {
   expect(html).toContain("/set-leaderboard");
   expect(html).toContain("/daily");
   expect(html).toContain("identifies the game from the share text");
+  expect(html).toContain("even if the chat has no leaderboard");
+  expect(html).toContain("No leaderboard is needed to submit");
   expect(html).toContain("/leaderboard");
   expect(html).toContain("does not passively read or parse");
   expect(html).toContain("No subscription required");
