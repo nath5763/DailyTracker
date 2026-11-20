@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createVariantRound, startVariant, submitVariant, variantTimeLeft } from "./variants";
 import { puzzle } from "./engine";
+import { WORDS } from "./words";
 
 function playableIds(rack: { id: number; letter: string }[]) {
-  for (const word of ["CAT", "DOG", "SUN", "EAR", "NOTE", "STAR", "RAIN", "FIRE", "GAME", "LAMP"]) {
+  for (const candidate of WORDS) {
+    if (candidate.length < 3 || candidate.length > rack.length) continue;
+    const word = candidate.toUpperCase();
     const available = [...rack];
     const ids = [...word].map(letter => {
       const index = available.findIndex(tile => tile.letter === letter);
@@ -11,7 +14,7 @@ function playableIds(rack: { id: number; letter: string }[]) {
     });
     if (ids.every(id => id >= 0)) return ids;
   }
-  throw new Error("Opening rack has no anchor word");
+  throw new Error("Opening rack has no playable word");
 }
 
 describe("Letter Bag variants", () => {

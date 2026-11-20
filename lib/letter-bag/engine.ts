@@ -4,10 +4,17 @@ import { wordScore } from "./scoring";
 export type Tile = { id: number; letter: string };
 export type Word = { word: string; points: number };
 export type Round = { date: string; rack: Tile[]; bag: Tile[]; words: Word[]; score: number; startedAt: number | null; endedAt: number | null };
-const LETTERS = "AAAAAAAABCDEEEEEEEEEEEFGHIIIIIIJKLMNNOOOOOOOPQRRRRSSSSTTTTTTUUUVWYZ";
-const VOWELS = "AEIOU";
-const VOWEL_POOL = [...LETTERS].filter(letter => VOWELS.includes(letter)).join("");
-const CONSONANT_POOL = [...LETTERS].filter(letter => !VOWELS.includes(letter)).join("");
+export const VOWEL_WEIGHTS = { A: 8, E: 11, I: 6, O: 7, U: 3 } as const;
+export const CONSONANT_WEIGHTS = {
+  B: 1, C: 1, D: 1, F: 1, G: 1, H: 1, J: 1, K: 1, L: 1, M: 1,
+  N: 2, P: 1, Q: 1, R: 4, S: 4, T: 6, V: 1, W: 1, Y: 1, Z: 1,
+} as const;
+export const RACK_VOWEL_TARGETS = [5, 6, 6, 7] as const;
+
+const weightedPool = (weights: Readonly<Record<string, number>>) =>
+  Object.entries(weights).map(([letter, weight]) => letter.repeat(weight)).join("");
+const VOWEL_POOL = weightedPool(VOWEL_WEIGHTS);
+const CONSONANT_POOL = weightedPool(CONSONANT_WEIGHTS);
 function random(seed: string) {
   let h = 2166136261;
   for (const char of seed) h = Math.imul(h ^ char.charCodeAt(0), 16777619);
@@ -17,7 +24,6 @@ function random(seed: string) {
 export function puzzle(date: string): Tile[] {
   const rng = random(date);
   const totalVowels = 12;
-  const vowelCount = (word: string) => [...word].filter(letter => VOWELS.includes(letter)).length;
   const draw = (pool: string) => pool[Math.floor(rng() * pool.length)];
   const shuffle = (letters: string[]) => {
     for (let i = letters.length - 1; i > 0; i--) {
@@ -27,21 +33,12 @@ export function puzzle(date: string): Tile[] {
     return letters;
   };
 
-  const anchors = ["CAT", "DOG", "SUN", "EAR", "NOTE", "STAR", "RAIN", "FIRE", "GAME", "LAMP"];
-  const playable = anchors.filter(word => WORDS.has(word.toLowerCase()) && vowelCount(word) <= totalVowels);
-  const anchor = playable[Math.floor(rng() * playable.length)] || "CAT";
-  const anchorVowels = vowelCount(anchor);
-  const anchorConsonants = anchor.length - anchorVowels;
-
-  // The Reddit game's 15/15 split chooses 5, 6, or 7 rack vowels,
-  // with the target of 6 twice as likely as either neighbor.
-  const rackVowels = [5, 6, 6, 7][Math.floor(rng() * 4)];
+  const rackVowels = RACK_VOWEL_TARGETS[Math.floor(rng() * RACK_VOWEL_TARGETS.length)];
   const bagVowels = totalVowels - rackVowels;
 
   const rack = shuffle([
-    ...anchor,
-    ...Array.from({ length: rackVowels - anchorVowels }, () => draw(VOWEL_POOL)),
-    ...Array.from({ length: 15 - rackVowels - anchorConsonants }, () => draw(CONSONANT_POOL)),
+    ...Array.from({ length: rackVowels }, () => draw(VOWEL_POOL)),
+    ...Array.from({ length: 15 - rackVowels }, () => draw(CONSONANT_POOL)),
   ]);
   const bag = shuffle([
     ...Array.from({ length: bagVowels }, () => draw(VOWEL_POOL)),

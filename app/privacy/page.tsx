@@ -15,14 +15,14 @@ export default function PrivacyPage() {
         <article className="privacy-content">
           <p className="section-number">PRIVACY POLICY</p>
           <h1>Your data at Daily Tracker</h1>
-          <p>Last updated November 16, 2026. This policy explains what Daily Tracker collects, why it is used, and when it is shared. It applies when you visit the site or Mini Program, sign in, submit scores, join a leaderboard, link a chat identity, or manage a subscription.</p>
+          <p>Last updated November 19, 2026. This policy explains what Daily Tracker collects, why it is used, and when it is shared. It applies when you visit the site or Mini Program, play a hosted game, sign in, submit scores, join a leaderboard, link a chat identity, or manage a subscription.</p>
 
           <section>
             <h2>Information we collect</h2>
             <ul>
               <li><strong>Account and authentication data:</strong> your email address, a one-way password hash, email-verification and password-reset records, sign-in and session records, hashed action and session tokens, and an authentication cookie used to keep you signed in.</li>
               <li><strong>Profile data:</strong> your display name, avatar color, and shareable account UUID.</li>
-              <li><strong>Game and leaderboard data:</strong> the scores and result text you submit, puzzle and play dates, leaderboard names, memberships, rankings, and ownership.</li>
+              <li><strong>Game and leaderboard data:</strong> the scores and result text you submit, puzzle and play dates, hosted-game attempts, revealed moves, completion times and outcomes, leaderboard names, memberships, rankings, and ownership. Bloom &amp; Boom guests receive a random browser token that is stored only as a one-way hash on the server.</li>
               <li><strong>Discord integration data:</strong> a linked Discord user ID, server and channel IDs connected to leaderboards, link and configuration timestamps, and short-lived one-time link-code and interaction records. Link codes are stored only as hashes.</li>
               <li><strong>Telegram integration data:</strong> a linked Telegram user ID, connected group IDs and names, short-lived signup and link intents, guided-flow state including share text while a submission is pending, and update receipts. Signup and link tokens are stored as hashes.</li>
               <li><strong>WeChat Mini Program data:</strong> a protected app-scoped account identifier, an encrypted temporary WeChat session key, protected identifiers for groups you explicitly connect, short-lived share and account-link references, and mapping audit records. If you use Chat Tool Mode, we temporarily store your encrypted chat-scoped participant identifier to update a card you joined. Member selections for reminders stay on your device. We do not collect WeChat group message history or member lists.</li>
@@ -54,13 +54,13 @@ export default function PrivacyPage() {
 
           <section>
             <h2>Cookies and advertising choices</h2>
-            <p>The authentication cookie is required for signed-in features. Google and its partners may set advertising cookies or use similar technologies. Where required, a consent message lets you manage advertising choices before optional advertising storage or personalization is used.</p>
+            <p>The authentication cookie is required for signed-in features. Bloom &amp; Boom uses a required guest cookie to associate an unsigned browser with its one daily attempt. Google and its partners may set advertising cookies or use similar technologies. Where required, a consent message lets you manage advertising choices before optional advertising storage or personalization is used.</p>
             <p>You can review or turn off personalized Google ads in <a href="https://myadcenter.google.com/" rel="noreferrer" target="_blank">My Ad Center</a>, manage broader Google data and privacy settings in your <a href="https://myaccount.google.com/data-and-privacy" rel="noreferrer" target="_blank">Google Account</a>, and learn <a href="https://policies.google.com/technologies/partner-sites" rel="noreferrer" target="_blank">how Google uses information from sites that use its services</a>. Browser controls can also delete or block cookies, although blocking the authentication cookie will prevent sign-in from working.</p>
           </section>
 
           <section>
             <h2>Retention and security</h2>
-            <p>We keep account, profile, score, leaderboard, chat account-link and group-mapping, and subscription records for as long as needed to provide the service and meet security, fraud-prevention, legal, and accounting obligations. WeChat session keys are encrypted and expire after about two hours; group claims expire after five minutes; share cards expire after one day. Expired bot link-code and signup-intent records are removed after about one day, pending Telegram flows after expiry, and bot update receipts after about seven days. Passwords are stored only as adaptive one-way hashes, authentication and link codes are stored as hashes, and production traffic uses HTTPS. No online service can guarantee absolute security.</p>
+            <p>We keep account, profile, score, leaderboard, hosted-game attempt, chat account-link and group-mapping, and subscription records for as long as needed to provide the service and meet security, fraud-prevention, legal, and accounting obligations. WeChat session keys are encrypted and expire after about two hours; group claims expire after five minutes; share cards expire after one day. Expired bot link-code and signup-intent records are removed after about one day, pending Telegram flows after expiry, and bot update receipts after about seven days. Passwords are stored only as adaptive one-way hashes, authentication, guest-game, and link codes are stored as hashes, and production traffic uses HTTPS. No online service can guarantee absolute security.</p>
           </section>
 
           <section>

@@ -35,7 +35,7 @@ export function CatalogDirectory({ games, initialTrackedOnly = false }: { games:
     {grouped.length ? grouped.map((group) => <section className="catalog-group" key={group.category}>
       <h2>{group.category}</h2><div className="catalog-grid">{group.games.map((game) => <article className="card catalog-card" key={game.slug}>
         <div><h3>{game.name}</h3>{game.scoreTrackingAvailable ? <span className="result-chip">Score tracking available</span> : null}</div>
-        <p>{game.description}</p>{game.slug === "letter-bag" || game.slug === "slipout" ? <Link className="button button-small" href={game.sourceUrl}>Play here →</Link> : <a className="button button-small" href={game.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`Play ${game.name} on its original site`}>Play on original site ↗</a>}
+        <p>{game.description}</p>{["letter-bag", "slipout", "bloom-and-boom"].includes(game.slug) ? <Link className="button button-small" href={game.sourceUrl}>Play here →</Link> : <a className="button button-small" href={game.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`Play ${game.name} on its original site`}>Play on original site ↗</a>}
       </article>)}</div>
     </section>) : <div className="empty">No games match your search.</div>}
   </section>;
