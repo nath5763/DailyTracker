@@ -109,8 +109,9 @@ export function BloomAndBoomGame({ signedIn }: { signedIn: boolean }) {
   return <section className="bb-page shell">
     <header className="bb-hero">
       <div className="bb-hero-copy"><p className="bb-kicker">DAILY GARDEN · {puzzle.puzzleDate}</p><h1>Bloom <em>&</em> Boom</h1>
-        <p>Turn every safe seed packet without waking a storm-bug. The clues tell you how many are hiding in each row and column.</p></div>
-      <Image src="/bloom-and-boom/bloom-and-boom.png" width={768} height={512} priority alt="Watercolor garden satchel filled with flowers and sleepy storm-bugs" />
+        <p>Turn every safe seed packet without waking a storm-bug. The clues tell you how many are hiding in each row and column.</p>
+        <div className="bb-motif-strip" aria-hidden="true"><span>✿ Bloom</span><i>◆</i><span>☁ Boom</span><i>◆</i><span>⚑ Mark</span></div></div>
+      <div className="bb-hero-art"><Image src="/bloom-and-boom/bloom-and-boom.png" width={768} height={512} priority alt="Watercolor garden satchel filled with flowers and sleepy storm-bugs" /><span aria-hidden="true">TODAY&apos;S GARDEN</span></div>
     </header>
 
     <div className="bb-game-layout">
@@ -157,7 +158,7 @@ export function BloomAndBoomGame({ signedIn }: { signedIn: boolean }) {
         <p className="bb-kicker">HOW TO PLAY</p><h2>Count the clouds. Find the flowers.</h2>
         <ol><li>Each clue is the number of storm-bugs hidden in that row or column.</li><li>Use both directions to decide which packets are safe.</li><li>Reveal every flower to finish. One storm-bug ends today’s attempt.</li></ol>
         <div className="bb-legend"><span><i className="bb-legend-flower">✿</i> Safe bloom</span><span><i className="bb-legend-bug">☁</i> Storm-bug</span><span><i>⚑</i> Your flag</span></div>
-        <p className="bb-fairness">Most days are deduction-only. Friday gardens may ask you to take one carefully weighed chance.</p>
+        <p className="bb-fairness">Every row and column contains both flowers and storm-bugs. Use overlapping clues to narrow your choices; some gardens require a carefully weighed chance.</p>
         {!signedIn && <p className="bb-guest-note">Guest attempts are tied to this browser. Clearing browser data can reset that local identity.</p>}
       </aside>
     </div>

@@ -18,6 +18,7 @@ import { MemberManager, RemoveMemberButton } from "@/components/member-manager";
 import { ShareLeaderboardModal } from "@/components/share-leaderboard-modal";
 import { ManageBillingButton, SubscriptionChoices } from "@/components/billing-actions";
 import { invalidateClientCachePrefix, leaderboardCachePath, useCachedApi } from "@/lib/client-cache";
+import { combinedPerformanceBar, formatCombinedPerformance, gamesPlayedLabel } from "@/lib/combined-standings";
 import { formatRankingScore, formatResultDetails } from "@/lib/format";
 import { aggregateMetrics } from "@/lib/leaderboard-metrics";
 import { leaderboardResultsMessage, leaderboardUrl, whatsappUrl } from "@/lib/whatsapp-share";
@@ -99,7 +100,7 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
         <p className="subtle">Share the current {board.game.name} leaderboard for this date range.</p>
         <div className="leaderboard-share-actions"><button className="button button-small" type="button" aria-label={`Share ${board.game.name} results`} onClick={() => setSharing(true)}>Share Results</button><button className="button button-small button-ghost" type="button" onClick={() => shareToWhatsApp(board)}>Share results to WhatsApp</button></div>
       </section>
-      {board.boardType === "MULTI_GAME" && board.combinedRankings?.length ? <CombinedStandings board={board} range={range} /> : null}
+      {board.boardType === "MULTI_GAME" ? <CombinedStandings board={board} range={range} /> : null}
       <aside className="card" id="leaderboard-roster-management">{board.owner ? <><h2>Manage players</h2><LeaderboardInvite boardId={id} /><div className="spacer" /><p className="subtle">Add an existing account using its exact UUID.</p><MemberManager leaderboardId={id} onChanged={() => void result.refresh()} /><div className="spacer" /><div className="list">{board.members.map((member) => <div className="list-row" key={member.userId}><span className="avatar small" style={{ background: avatarBackground(member.avatarColor) }}>{member.displayName[0].toUpperCase()}</span><span>{member.displayName}<small>{member.owner ? "Owner" : "Member"}</small></span>{!member.owner ? <RemoveMemberButton leaderboardId={id} userId={member.userId} onChanged={() => void result.refresh()} /> : <strong>★</strong>}</div>)}</div></> : <><h2>Club roster</h2><div className="list">{board.members.map((member) => <div className="list-row" key={member.userId}><span className="avatar small" style={{ background: avatarBackground(member.avatarColor) }}>{member.displayName[0].toUpperCase()}</span><span>{member.displayName}</span><strong>{member.owner ? "Owner" : ""}</strong></div>)}</div></>}</aside>
     </div></div>
     {joinedFromInvite ? <><div className="spacer" /><DiscordLinkInstructions afterJoin /></> : null}
@@ -113,15 +114,18 @@ function Content({ id, path, range, summary, summaries, discordStatus, setupToke
 }
 
 function CombinedStandings({ board, range }: { board: Leaderboard; range: string }) {
+  const period = ranges.find((tab) => tab.key === range)?.label ?? range;
+  const rankings = board.combinedRankings ?? [];
   return <section className="card combined-standings" aria-label="Combined leaderboard rankings">
-    <p className="section-number">ACROSS ALL GAMES · {ranges.find((tab) => tab.key === range)?.label.toUpperCase()}</p>
-    <h2>Combined standings</h2>
-    <p className="subtle">These standings combine every game in this leaderboard. Placement points compare players within each game and puzzle: first place earns 100 points, and each subsequent place earns 20% less, rounded down. Failed results earn no performance points; participation remains separate.</p>
-    <div className="list">{board.combinedRankings?.map((row) => <div className="list-row" key={row.userId}>
-      <span className="rank">{String(row.rank).padStart(2, "0")}</span>
-      <span>{row.displayName}<small>{row.participationPoints ?? row.gamesPlayed} participation point{(row.participationPoints ?? row.gamesPlayed) === 1 ? "" : "s"}{row.manualResults ? ` · ${row.manualResults} manual · unverified` : ""}</small></span>
-      <strong>{Number(row.leaderboardPoints ?? row.average).toFixed(1)} ranking pts</strong>
-    </div>)}</div>
+    <div className="combined-standings-header"><div><p className="section-number">ALL GAMES · {period.toUpperCase()}</p><h2>Combined standings</h2></div><details className="combined-info"><summary aria-label="How combined performance is calculated">i</summary><div className="combined-info-popover"><strong>How performance works</strong><ul><li>First place earns 100 performance points.</li><li>Each subsequent placement earns 20% less, rounded down.</li><li>Failed results earn zero performance points.</li><li>Performance is aggregated across eligible results.</li><li>The number of recorded results is tracked separately.</li></ul></div></details></div>
+    {!rankings.length ? <div className="empty compact-empty">No combined results have been recorded for this range.</div> : <div className="combined-player-list">{rankings.map((row) => {
+      const performance = formatCombinedPerformance(row);
+      const bar = combinedPerformanceBar(row);
+      return <div className="combined-player" key={row.userId}>
+        <div className="combined-player-line"><span className="combined-rank">{row.rank === 1 ? <span className="combined-trophy" role="img" aria-label="First place">🏆</span> : `#${row.rank}`}</span><span className="combined-player-name"><strong>{row.displayName}</strong><small>{gamesPlayedLabel(row)}{row.manualResults ? <> <span className="combined-unverified">{row.manualResults} unverified</span></> : null}</small></span><span className="combined-performance"><strong>{performance}</strong><small>Performance</small></span></div>
+        <div className="combined-performance-track" role="img" aria-label={performance === "—" ? `${row.displayName} performance unavailable` : `${row.displayName} performance ${performance} out of 100`}><span className={row.rank === 1 ? "winner" : ""} style={{ width: `${bar}%` }} /></div>
+      </div>;
+    })}</div>}
   </section>;
 }
 

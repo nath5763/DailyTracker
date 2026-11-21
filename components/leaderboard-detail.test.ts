@@ -205,12 +205,46 @@ test("keeps combined standings separate from selected-game score details", () =>
   const html = render();
   expect((html.match(/<button/g) ?? []).length).toBeGreaterThanOrEqual(3);
   expect((html.match(/aria-controls="player-scores-/g) ?? []).length).toBe(2);
-  expect(html).toContain("ACROSS ALL GAMES");
+  expect(html).toContain("ALL GAMES");
   expect(html.indexOf("<h2>Progress</h2>")).toBeLessThan(html.indexOf("<h2>Combined standings</h2>"));
   expect(html.indexOf('class="leaderboard-sidebar"')).toBeLessThan(html.indexOf("<h2>Combined standings</h2>"));
   expect(html.indexOf("<h2>Combined standings</h2>")).toBeLessThan(html.indexOf('id="leaderboard-roster-management"'));
   expect(html).not.toContain("player-scores-combined");
   expect(html).not.toContain('href="/profile/player-share"');
+});
+
+test("renders combined standings as normalized performance bars with authoritative result counts", () => {
+  state.summaries = [{ ...summary, boardType: "MULTI_GAME" }];
+  state.board = { ...summary, boardType: "MULTI_GAME", members: [], rankings: [], absent: [], range: "30d",
+    combinedRankings: [
+      { rank: 1, userId: "winner", shareId: "winner-share", displayName: "Winner", average: 92.75,
+        leaderboardPoints: 92.75, participationPoints: 999, gamesPlayed: 60, manualResults: 4 },
+      { rank: 2, userId: "runner-up", shareId: "runner-share", displayName: "Runner Up", average: 64,
+        leaderboardPoints: 64, participationPoints: 1, gamesPlayed: 12, manualResults: 0 },
+    ] };
+  const html = render({ requestedRange: "30d" });
+  expect(html).toContain("ALL GAMES · LAST 30 DAYS");
+  expect(html).toContain("92.8");
+  expect(html).toContain("64.0");
+  expect(html).toContain('style="width:92.75%"');
+  expect(html).toContain('style="width:64%"');
+  expect(html).toContain("60 games played");
+  expect(html).toContain("12 games played");
+  expect(html).toContain("4 unverified");
+  expect(html).toContain('aria-label="First place"');
+  expect(html).toContain('aria-label="How combined performance is calculated"');
+  expect(html).toContain("Failed results earn zero performance points.");
+  expect(html).not.toContain("participation point");
+  expect(html).not.toContain("These standings combine every game");
+});
+
+test("shows an empty combined standings state without invented scores", () => {
+  state.summaries = [{ ...summary, boardType: "MULTI_GAME" }];
+  state.board = { ...summary, boardType: "MULTI_GAME", members: [], rankings: [], combinedRankings: [], absent: [], range: "7d" };
+  const html = render({ requestedRange: "7d" });
+  expect(html).toContain("ALL GAMES · LAST 7 DAYS");
+  expect(html).toContain("No combined results have been recorded for this range.");
+  expect(html).not.toContain("combined-performance-track");
 });
 
 test("places sharing in its own sidebar card above the roster", () => {
