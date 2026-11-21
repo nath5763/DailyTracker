@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import catalog from "@/lib/slipout/levels.json";
-import { applyLevelMove, initialLevelState, levelRange, type Axis, type Level, type LevelBlock, type LevelMove, type LevelState } from "@/lib/slipout/level-engine";
+import { applyLevelMove, initialLevelState, levelRange, type Axis, type Level, type LevelMove, type LevelState } from "@/lib/slipout/level-engine";
 import {
   isCampaignLevelUnlocked,
   playCampaignLevel,
@@ -195,7 +195,7 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
       if (next.exited) void finish(moves);
     } catch { /* Ignore gestures that do not make a legal slide. */ }
   }
-  function gesture(event: PointerEvent<HTMLButtonElement>, active: Drag): Drag {
+  function gesture(event: PointerEvent<HTMLDivElement>, active: Drag): Drag {
     const block = board.blocks.find(value => value.id === active.id)!;
     const dx = event.clientX - active.startX, dy = event.clientY - active.startY;
     const axis = block.id === "X" ? board.activeAxis : block.axis as Axis;
@@ -206,19 +206,6 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
         (axis === "H" ? dx : dy) > (6 - (axis === "H" ? block.width : block.height) - origin + .4) * boardRef.current!.clientWidth / 6) to = 6;
     return { ...active, axis, to };
   }
-  function keyMove(event: KeyboardEvent<HTMLButtonElement>, block: LevelBlock) {
-    const axis = event.key === "ArrowLeft" || event.key === "ArrowRight" ? "H" :
-      event.key === "ArrowUp" || event.key === "ArrowDown" ? "V" : null;
-    if (!axis || (block.id === "X" ? board.activeAxis !== axis : block.axis !== axis)) return;
-    event.preventDefault();
-    const origin = axis === "H" ? block.x : block.y;
-    const [min, max] = levelRange(level, board, block.id, axis);
-    let to = Math.max(min, Math.min(max, origin + (event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 1)));
-    if (block.id === "X" && max === 6 && origin === 6 - (axis === "H" ? block.width : block.height) &&
-        (event.key === "ArrowRight" || event.key === "ArrowDown")) to = 6;
-    void commit({ id: block.id, axis, to });
-  }
-
   if (mode === "levels" && navigation.view === "selection") {
     const difficulty = navigation.difficulty;
     const visibleLevels = tierLevels[difficulty];
@@ -257,7 +244,7 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
   }
 
   return <section className={`so-level-page so-mode-panel ${mode === "tutorial" ? "so-tutorial-panel" : "so-level-gameplay"}`} aria-label={mode === "tutorial" ? "SlipOut tutorial" : "SlipOut level gameplay"}>
-    {mode === "tutorial" ? <div className="so-section-intro"><div><p className="so-kicker">HOW TO PLAY</p><h2>Learn the direction switch.</h2><p>Slide blocks along their length. Stop the pink target on a switch to change its active direction, then guide it through the exit. Drag with a mouse or touch, or focus a block and use the arrow keys. Each slide counts as one move.</p><p>The daily puzzle starts with the Start button and has no time limit. Fewer moves rank higher; you can retry it as often as you like.</p></div><div className="so-tutorial-progress"><span>{progress.some(item => item.levelNumber === 0) ? "✓ Tutorial completed" : "Tutorial ready"}</span>{progress.some(item => item.levelNumber === 0) && <button type="button" className="so-secondary" disabled={busy || syncing} onClick={() => void restart()}>Replay tutorial</button>}</div></div>
+    {mode === "tutorial" ? <div className="so-section-intro"><div><p className="so-kicker">HOW TO PLAY</p><h2>Learn the direction switch.</h2><p>Click or touch a block, then drag it along its length. Stop the pink target on a switch to change its active direction, then guide it through the exit. Each slide counts as one move.</p><p>The daily puzzle starts with the Start button and has no time limit. Fewer moves rank higher; you can retry it as often as you like.</p></div><div className="so-tutorial-progress"><span>{progress.some(item => item.levelNumber === 0) ? "✓ Tutorial completed" : "Tutorial ready"}</span>{progress.some(item => item.levelNumber === 0) && <button type="button" className="so-secondary" disabled={busy || syncing} onClick={() => void restart()}>Replay tutorial</button>}</div></div>
       : <div className="so-level-play-nav"><button type="button" className="so-text-button" onClick={() => setNavigation(current => showCampaignSelection(current))}>← All levels</button><strong>{level.difficulty[0].toUpperCase() + level.difficulty.slice(1)} · Level {tierIndex + 1}</strong></div>}
     <div className="so-stats">{mode === "tutorial" && <div><span>TUTORIAL</span><strong>{level.blocks[0].width}×{level.blocks[0].height} target</strong></div>}<div><span>MOVES</span><strong>{history.length}</strong></div>{mode === "levels" && <div><span>BEST</span><strong>{best ?? "—"}</strong></div>}<div><span>ACTIVE AXIS</span><strong className="so-axis-indicator">{board.activeAxis === "H" ? "↔ Horizontal" : "↕ Vertical"}</strong></div></div>
     <p className="so-level-best">{selected === 0 ? "Land on the switch, then head to the exit." : `Exit: ${level.exit.side} side · ${level.blocks[0].width}×${level.blocks[0].height} target`}</p>
@@ -276,7 +263,7 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
         const x = preview?.axis === "H" ? preview.to : block.x;
         const y = preview?.axis === "V" ? preview.to : block.y;
         const style: CSSProperties = { left: `${x / 6 * 100}%`, top: `${y / 6 * 100}%`, width: `${block.width / 6 * 100}%`, height: `${block.height / 6 * 100}%` };
-        return <button type="button" key={block.id} style={style} disabled={status === "COMPLETED" || busy || syncing || !unlocked}
+        return <div key={block.id} role="img" aria-roledescription="draggable puzzle block" style={style} aria-disabled={status === "COMPLETED" || busy || syncing || !unlocked}
           className={`so-block ${block.id === "X" ? "so-target" : block.id.charCodeAt(0) % 2 ? "so-lime" : "so-purple"} ${status === "COMPLETED" && block.id === "X" ? "so-exited" : ""}`}
           aria-label={`${block.id === "X" ? `Target, active axis ${board.activeAxis === "H" ? "horizontal" : "vertical"}` : "Block"} ${block.id}, row ${block.y + 1}, column ${block.x + 1}`}
           onPointerDown={event => { if (status === "COMPLETED" || busy || syncing || !unlocked) return; event.preventDefault();
@@ -289,7 +276,7 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
             const next = gesture(event, dragRef.current); dragRef.current = null; setDrag(null);
             if (next.axis) void commit({ id: next.id, axis: next.axis, to: next.to }); }}
           onPointerCancel={() => { dragRef.current = null; setDrag(null); }}
-          onKeyDown={event => keyMove(event, block)}><span className="so-block-face">{block.id === "X" ? board.activeAxis === "H" ? "↔" : "↕" : null}</span></button>;
+          ><span className="so-block-face">{block.id === "X" ? board.activeAxis === "H" ? "↔" : "↕" : null}</span></div>;
       })}<div className={`so-exit so-level-exit so-exit-${level.exit.side}`} style={exitStyle} aria-label={`Exit on the ${level.exit.side} side at cell ${level.exit.cell + 1}`}><span>EXIT {exitArrow}</span></div>
     </div></div>{mode === "tutorial" && <aside className="so-side"><p className="so-side-label">THE OBJECTIVE</p><h2>Learn the direction switch.</h2>{status !== "COMPLETED" && <p className="so-tutorial-prompt" role="status">{board.activeAxis === "H" ? "Slide the pink target horizontally onto the marked switch. You can pass over it, but must stop on it to change direction." : "The target now moves vertically. Slide it down through the exit."}</p>}<p>The pink target slides only along its active axis. Land on a marked switch to toggle between horizontal and vertical movement. Passing over a switch does nothing.</p><p>Slide the target through the one-cell opening on the {level.exit.side} side. Other blocks move along their length and do not activate switches. Each slide counts as one move.</p>{status === "COMPLETED" && <p>Tutorial complete!</p>}</aside>}</div>
     {mode === "levels" && <details className="so-level-help"><summary>Objective &amp; controls</summary><div><p>Slide the pink target only along its active axis. Land on a marked switch to toggle between horizontal and vertical movement.</p><p>Guide it through the opening on the {level.exit.side} side. Other blocks move along their length, and every slide counts as one move.</p></div></details>}

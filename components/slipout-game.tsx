@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import Link from "next/link";
 import { reachableRange } from "@/lib/slipout/movement";
 import { loadBest, saveAttempt, saveBest } from "@/lib/slipout/persistence";
@@ -124,13 +124,13 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
     if (next.status === "COMPLETED") void finalize(next);
   }
 
-  function pointerPosition(event: ReactPointerEvent<HTMLButtonElement>, active: Drag) {
+  function pointerPosition(event: ReactPointerEvent<HTMLDivElement>, active: Drag) {
     const coordinate = active.id && sessionRef.current.blocks.find(block => block.id === active.id)?.axis === "H" ? event.clientX : event.clientY;
     const to = Math.max(active.min, Math.min(active.max, active.origin + Math.round((coordinate - active.start) / active.cell)));
     return active.id === "X" && to === 5 && active.max === 6 ? 6 : to;
   }
 
-  function pointerDown(event: ReactPointerEvent<HTMLButtonElement>, block: Block) {
+  function pointerDown(event: ReactPointerEvent<HTMLDivElement>, block: Block) {
     if (sessionRef.current.status !== "PLAYING" || dragRef.current || !boardRef.current) return;
     event.preventDefault();
     const [min, max] = reachableRange(sessionRef.current.blocks, block.id);
@@ -141,34 +141,20 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
     setDrag({ id: block.id, to: origin });
   }
 
-  function pointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
+  function pointerMove(event: ReactPointerEvent<HTMLDivElement>) {
     const active = dragRef.current;
     if (active?.pointerId !== event.pointerId) return;
     const to = pointerPosition(event, active);
     setDrag(current => current?.to === to ? current : { id: active.id, to });
   }
 
-  function pointerUp(event: ReactPointerEvent<HTMLButtonElement>) {
+  function pointerUp(event: ReactPointerEvent<HTMLDivElement>) {
     const active = dragRef.current;
     if (active?.pointerId !== event.pointerId) return;
     const to = pointerPosition(event, active);
     dragRef.current = null; setDrag(null);
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
     commit({ id: active.id, to });
-  }
-
-  function keyMove(event: ReactKeyboardEvent<HTMLButtonElement>, block: Block) {
-    if (sessionRef.current.status !== "PLAYING") return;
-    const horizontal = block.axis === "H";
-    const backward = horizontal ? event.key === "ArrowLeft" : event.key === "ArrowUp";
-    const forward = horizontal ? event.key === "ArrowRight" : event.key === "ArrowDown";
-    if (!backward && !forward && event.key !== "Home" && event.key !== "End") return;
-    event.preventDefault();
-    const [min, max] = reachableRange(sessionRef.current.blocks, block.id);
-    const origin = horizontal ? block.x : block.y;
-    let to = event.key === "Home" ? min : event.key === "End" ? max : origin + (backward ? -1 : 1);
-    if (block.id === "X" && to === 5 && max === 6) to = 6;
-    if (to >= min && to <= max) commit({ id: block.id, to });
   }
 
   const share = result ? shareText(puzzle, result, `${typeof window === "undefined" ? "" : window.location.origin}/daily/slipout`) : "";
@@ -193,11 +179,11 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
         const y = block.axis === "V" ? visual : block.y;
         const style: CSSProperties = { left: `${x / 6 * 100}%`, top: `${y / 6 * 100}%`,
           width: `${(block.axis === "H" ? block.length : 1) / 6 * 100}%`, height: `${(block.axis === "V" ? block.length : 1) / 6 * 100}%` };
-        return <button key={block.id} type="button" className={`so-block ${block.id === "X" ? "so-target" : block.id.charCodeAt(0) % 2 ? "so-lime" : "so-purple"} ${drag?.id === block.id ? "so-dragging" : ""} ${session.status === "COMPLETED" && block.id === "X" ? "so-exited" : ""}`}
-          style={style} disabled={session.status !== "PLAYING"} aria-label={`${block.id === "X" ? "Target block" : "Block"} ${block.id}, ${block.axis === "H" ? "horizontal" : "vertical"}, row ${block.y + 1}, column ${block.x + 1}`}
+        return <div key={block.id} role="img" aria-roledescription="draggable puzzle block" className={`so-block ${block.id === "X" ? "so-target" : block.id.charCodeAt(0) % 2 ? "so-lime" : "so-purple"} ${drag?.id === block.id ? "so-dragging" : ""} ${session.status === "COMPLETED" && block.id === "X" ? "so-exited" : ""}`}
+          style={style} aria-disabled={session.status !== "PLAYING"} aria-label={`${block.id === "X" ? "Target block" : "Block"} ${block.id}, ${block.axis === "H" ? "horizontal" : "vertical"}, row ${block.y + 1}, column ${block.x + 1}`}
           onPointerDown={event => pointerDown(event, block)} onPointerMove={pointerMove} onPointerUp={pointerUp}
           onPointerCancel={() => { dragRef.current = null; setDrag(null); }} onLostPointerCapture={() => { dragRef.current = null; setDrag(null); }}
-          onKeyDown={event => keyMove(event, block)}><span className="so-block-face">{block.id === "X" ? <span className="so-target-mark">SLIP OUT →</span> : null}</span></button>;
+          ><span className="so-block-face">{block.id === "X" ? <span className="so-target-mark">SLIP OUT →</span> : null}</span></div>;
       })}
       <div className="so-exit" aria-hidden="true"><span>EXIT →</span></div>
     </div></div></div>

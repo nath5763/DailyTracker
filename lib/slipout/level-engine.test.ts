@@ -23,9 +23,10 @@ describe("SlipOut level catalog", () => {
     expect(html).toContain("so-level-exit");
     expect(html).toContain(">Restart</button>");
     expect(html).not.toContain("Start tutorial");
-    const target = html.match(/<button type="button"[^>]*class="so-block so-target[^"]*"[^>]*>/)?.[0];
+    const target = html.match(/<div[^>]*class="so-block so-target[^"]*"[^>]*>/)?.[0];
     expect(target).toBeDefined();
-    expect(target).not.toContain("disabled");
+    expect(target).toContain('aria-disabled="false"');
+    expect(html).not.toMatch(/<button[^>]*class="so-block/);
   });
   it("opens Levels on the campaign selector without rendering a puzzle board", () => {
     const html = renderToStaticMarkup(createElement(SlipOutLevels, { signedIn: false, mode: "levels" }));

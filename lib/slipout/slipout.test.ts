@@ -73,7 +73,8 @@ describe("SlipOut results and retries", () => {
     expect(html).toContain("Start puzzle");
     expect(html).toContain("so-board");
     expect(html).toContain("so-block-face");
-    expect(html).toMatch(/class="so-block so-target[^\"]*"[^>]*disabled/);
+    expect(html).toMatch(/class="so-block so-target[^\"]*"[^>]*aria-disabled="true"/);
+    expect(html).not.toMatch(/<button[^>]*class="so-block/);
     expect(html).not.toContain("optimal moves");
   });
   it("opens on the daily puzzle with the level grid in its own mode", () => {
