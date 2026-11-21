@@ -825,8 +825,41 @@ html[data-theme="dark"] .so-level-page .so-axis-indicator { color: #ffb2cd; }
 .so-tutorial-panel .so-side { width: min(100%, 680px); padding-top: 0; }
 .so-tutorial-panel .so-side h2 { margin: 5px 0 10px; font-size: clamp(22px, 3vw, 28px); }
 .so-tutorial-panel .so-side p { margin: 9px 0; }
+.so-level-selection .so-section-intro { margin-bottom: 20px; }
+.so-difficulty-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 5px; border: 1px solid var(--so-line); border-radius: 12px; background: #20222c; }
+.so-difficulty-tabs button { min-height: 42px; border: 0; border-radius: 8px; background: transparent; color: var(--so-muted); font: inherit; font-size: 13px; font-weight: 900; text-transform: capitalize; cursor: pointer; }
+.so-difficulty-tabs button:hover { color: #fff; }
+.so-difficulty-tabs button.selected { background: var(--so-purple); color: #191a25; }
+.so-difficulty-tabs button:focus-visible { outline: 2px solid var(--so-pink); outline-offset: 2px; }
+.so-level-progress { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(160px, 1.3fr) auto; align-items: center; gap: 16px; margin: 18px 0; padding: 16px; border: 1px solid var(--so-line); border-radius: 12px; background: var(--so-surface); }
+.so-level-progress span, .so-level-progress strong { display: block; }
+.so-level-progress span { margin-bottom: 4px; color: var(--so-muted); font-size: 10px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.so-level-progress strong { font-family: var(--font-display); font-size: 20px; text-transform: capitalize; }
+.so-level-progress > small { grid-column: 1 / -1; color: var(--so-muted); font-size: 12px; }
+.so-level-progress progress { width: 100%; height: 9px; overflow: hidden; border: 0; border-radius: 999px; background: #1f202b; accent-color: var(--so-lime); }
+.so-level-progress progress::-webkit-progress-bar { border-radius: 999px; background: #1f202b; }
+.so-level-progress progress::-webkit-progress-value { border-radius: 999px; background: var(--so-lime); }
+.so-level-progress progress::-moz-progress-bar { border-radius: 999px; background: var(--so-lime); }
+.so-level-selection .so-level-list { display: block; margin: 0; }
+.so-level-selection .so-level-list > div { padding: clamp(12px, 2vw, 18px); }
+.so-level-selection .so-level-buttons { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.so-level-selection .so-level-buttons button { min-height: 54px; }
+.so-level-selection .so-level-buttons button.recent { box-shadow: 0 0 0 2px #292738, 0 0 0 4px var(--so-pink); }
+.so-selection-note { margin: 14px 0 0; color: var(--so-muted); font-size: 13px; }
+.so-level-play-nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+.so-level-play-nav strong { color: #e3dbff; font-size: 14px; }
+.so-level-gameplay .so-stats { grid-template-columns: .6fr .6fr 1.2fr; width: min(100%, 680px); margin-inline: auto; }
+.so-level-gameplay .so-main { display: block; }
+.so-level-gameplay .so-board-shell { width: min(100%, 620px); margin-inline: auto; }
+.so-level-help { width: min(100%, 680px); margin: 18px auto 0; border-block: 1px solid var(--so-line); color: var(--so-muted); }
+.so-level-help summary { padding: 13px 2px; color: #e3dbff; font-size: 13px; font-weight: 800; cursor: pointer; }
+.so-level-help div { padding: 0 2px 10px; font-size: 13px; line-height: 1.5; }
+.so-level-help p { margin: 0 0 8px; }
+.so-level-gameplay .so-controls, .so-level-gameplay > .so-result { width: min(100%, 680px); margin-inline: auto; }
+.so-level-complete-note { color: var(--so-muted); font-size: 13px; }
 @media (max-width: 760px) { .so-experience { width: calc(100% - 24px); }.so-leaderboard-entry { align-items: start; }.so-leaderboard-entry .so-secondary { align-self: center; }.so-section-intro { flex-wrap: wrap; }.so-tutorial-progress { display: flex; align-items: center; justify-items: start; } }
-@media (max-width: 480px) { .so-experience { width: calc(100% - 16px); padding: 14px; margin-top: 10px; }.so-game-header h1 { font-size: 34px; }.so-mode-nav { margin-top: 14px; }.so-mode-nav button { font-size: 13px; }.so-challenge-header { margin-bottom: 12px; }.so-daily-panel .so-board-shell { width: calc(100% - 43px); }.so-daily-controls { align-items: start; }.so-control-actions .so-primary, .so-control-actions .so-secondary { min-height: 40px; padding: 8px 12px; }.so-leaderboard-entry { flex-wrap: wrap; }.so-leaderboard-entry .so-secondary { align-self: auto; }.so-tutorial-progress { flex-wrap: wrap; } }
+@media (max-width: 760px) { .so-level-progress { grid-template-columns: 1fr; }.so-level-progress .so-primary { justify-self: start; }.so-level-selection .so-level-buttons { grid-template-columns: repeat(5, minmax(0, 1fr)); }.so-level-gameplay .so-board-shell { width: min(100%, 580px); } }
+@media (max-width: 480px) { .so-experience { width: calc(100% - 16px); padding: 14px; margin-top: 10px; }.so-game-header h1 { font-size: 34px; }.so-mode-nav { margin-top: 14px; }.so-mode-nav button { font-size: 13px; }.so-challenge-header { margin-bottom: 12px; }.so-daily-panel .so-board-shell { width: calc(100% - 43px); }.so-daily-controls { align-items: start; }.so-control-actions .so-primary, .so-control-actions .so-secondary { min-height: 40px; padding: 8px 12px; }.so-leaderboard-entry { flex-wrap: wrap; }.so-leaderboard-entry .so-secondary { align-self: auto; }.so-tutorial-progress { flex-wrap: wrap; }.so-level-play-nav { align-items: baseline; }.so-level-play-nav strong { font-size: 12px; }.so-level-gameplay .so-stats { grid-template-columns: 1fr 1fr; }.so-level-gameplay .so-stats > div:last-child { grid-column: 1 / -1; }.so-level-selection .so-level-buttons { gap: 6px; }.so-level-selection .so-level-buttons button { min-height: 49px; }.so-level-progress { padding: 13px; } }
 
 /* Bloom & Boom */
 .bb-page { --bb-ink: #5b2934; --bb-coral: #c96069; --bb-rose: #e9a0a8; --bb-gold: #d69648; --bb-lavender: #8177a4; --bb-sage: #78865a; --bb-cream: #fff4dc; position: relative; isolation: isolate; padding: 34px clamp(16px, 2vw, 28px) 90px; border: 1px solid #c779704d; border-radius: 28px; background: radial-gradient(circle at 3% 3%, #d8d9eb 0 4%, transparent 18%), radial-gradient(circle at 97% 2%, #efc6ca 0 5%, transparent 20%), linear-gradient(135deg, #fff8e9, #f9ead9 55%, #f7e4dd); box-shadow: inset 0 0 70px #d58d7650, 0 18px 55px #663b3512; color: var(--bb-ink); }

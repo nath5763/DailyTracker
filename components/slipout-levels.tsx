@@ -3,6 +3,15 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type KeyboardEvent } from "react";
 import catalog from "@/lib/slipout/levels.json";
 import { applyLevelMove, initialLevelState, levelRange, type Axis, type Level, type LevelBlock, type LevelMove, type LevelState } from "@/lib/slipout/level-engine";
+import {
+  isCampaignLevelUnlocked,
+  playCampaignLevel,
+  recommendedCampaignLevel,
+  selectCampaignDifficulty,
+  showCampaignSelection,
+  type CampaignDifficulty,
+  type CampaignNavigation
+} from "@/lib/slipout/level-navigation";
 
 type Saved = { levelNumber: number; bestMoves: number; moves: LevelMove[]; catalogId?: string };
 type Progress = { levelNumber: number; bestMoves: number; legacy?: boolean };
@@ -12,6 +21,7 @@ const tiers = ["easy", "medium", "hard"] as const;
 const tierLevels = Object.fromEntries(tiers.map(tier => [tier, levels.filter(level => level.difficulty === tier)
   .sort((a, b) => a.optimalMoves - b.optimalMoves || a.number - b.number)])) as Record<(typeof tiers)[number], Level[]>;
 const storageKey = "slipout:levels:v3";
+const firstCampaignLevel = tierLevels.easy[0].number;
 
 function storedProgress(): Saved[] {
   try {
@@ -45,9 +55,13 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
   onAttemptStateChange?: (mode: "levels" | "how-to-play", playing: boolean) => void
 }) {
   const [progress, setProgress] = useState<Progress[]>([]);
-  const [selected, setSelected] = useState(mode === "tutorial" ? 0 : tierLevels.easy[0].number);
+  const [navigation, setNavigation] = useState<CampaignNavigation>({
+    view: mode === "tutorial" ? "playing" : "selection",
+    difficulty: "easy",
+    selectedLevel: firstCampaignLevel
+  });
   const [status, setStatus] = useState<"READY" | "PLAYING" | "COMPLETED">("READY");
-  const [board, setBoard] = useState<LevelState>(initialLevelState(levels[0]));
+  const [board, setBoard] = useState<LevelState>(initialLevelState(levels[mode === "tutorial" ? 0 : firstCampaignLevel]));
   const [history, setHistory] = useState<LevelMove[]>([]);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -57,11 +71,11 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
   const boardRef = useRef<HTMLDivElement>(null);
   const attemptRef = useRef<string | null>(null);
   const startingRef = useRef(false);
+  const selected = mode === "tutorial" ? 0 : navigation.selectedLevel;
   const level = levels[selected];
   const sequence = level.difficulty === "tutorial" ? [] : tierLevels[level.difficulty];
   const tierIndex = sequence.findIndex(item => item.number === selected);
-  const previous = tierIndex > 0 ? sequence[tierIndex - 1].number : 0;
-  const unlocked = selected === 0 || progress.some(item => item.levelNumber === selected || item.levelNumber === previous);
+  const unlocked = selected === 0 || isCampaignLevelUnlocked(sequence, selected, progress);
   const nextLevel = selected === 0 ? tierLevels.easy[0] : sequence[tierIndex + 1];
   const nextUnlocked = !!nextLevel && progress.some(item => item.levelNumber === selected);
   const selectedProgress = progress.find(item => item.levelNumber === selected);
@@ -99,15 +113,31 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
     return () => { live = false; };
   }, [signedIn, active]);
 
-  function choose(number: number) {
+  useEffect(() => {
+    if (mode !== "levels" || navigation.view !== "playing" || !active) return;
+    boardRef.current?.scrollIntoView({ block: "start" });
+  }, [mode, navigation.view, navigation.selectedLevel, active]);
+
+  async function choose(number: number) {
     const candidate = levels[number];
     const order = candidate?.difficulty === "tutorial" ? [] : tierLevels[candidate.difficulty];
-    const index = order?.findIndex(item => item.number === number) ?? -1;
-    const predecessor = index > 0 ? order[index - 1].number : 0;
-    if (!candidate || busy || startingRef.current || syncing || status === "PLAYING" || number > 0 &&
-        !progress.some(item => item.levelNumber === number || item.levelNumber === predecessor)) return;
-    setSelected(number); setBoard(initialLevelState(levels[number])); setHistory([]); setStatus("READY"); setMessage("");
+    if (!candidate || busy || startingRef.current || syncing || number > 0 &&
+        !isCampaignLevelUnlocked(order, number, progress)) return;
+    if (number === selected) {
+      setNavigation(current => playCampaignLevel(current, candidate.difficulty as CampaignDifficulty, number));
+      return;
+    }
+    setBusy(true);
+    try {
+      if (status === "PLAYING" && signedIn && attemptRef.current)
+        await request("/finish", "POST", { attemptId: attemptRef.current, moves: history });
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not change levels.");
+      return;
+    } finally { setBusy(false); }
     attemptRef.current = null;
+    setBoard(initialLevelState(candidate)); setHistory([]); setStatus("READY"); setMessage(""); setDrag(null); dragRef.current = null;
+    setNavigation(current => playCampaignLevel(current, candidate.difficulty as CampaignDifficulty, number));
   }
   async function finish(moves: LevelMove[]) {
     setBusy(true);
@@ -189,22 +219,48 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
     void commit({ id: block.id, axis, to });
   }
 
-  return <section className={`so-level-page so-mode-panel ${mode === "tutorial" ? "so-tutorial-panel" : ""}`} aria-label={mode === "tutorial" ? "SlipOut tutorial" : "SlipOut levels"}>
+  if (mode === "levels" && navigation.view === "selection") {
+    const difficulty = navigation.difficulty;
+    const visibleLevels = tierLevels[difficulty];
+    const completed = visibleLevels.filter(item => progress.some(value => value.levelNumber === item.number)).length;
+    const recommended = recommendedCampaignLevel(visibleLevels, progress);
+    const recommendedIndex = recommended ? visibleLevels.findIndex(item => item.number === recommended.number) : -1;
+    return <section className="so-level-page so-mode-panel so-level-selection" aria-label="SlipOut level selection">
+      <div className="so-section-intro"><div><p className="so-kicker">90 LEVELS · THREE DIFFICULTIES</p><h2>Choose a level</h2><p>Complete the tutorial to unlock the first puzzle in each difficulty. Each difficulty progresses independently.</p></div></div>
+      <div className="so-difficulty-tabs" role="tablist" aria-label="Level difficulty">
+        {tiers.map(item => <button type="button" role="tab" key={item} aria-selected={difficulty === item}
+          className={difficulty === item ? "selected" : ""}
+          onClick={() => setNavigation(current => selectCampaignDifficulty(current, item))}>{item}</button>)}
+      </div>
+      <div className="so-level-progress">
+        <div><span>{difficulty} progress</span><strong>{completed} of {visibleLevels.length} complete</strong></div>
+        <progress value={completed} max={visibleLevels.length} aria-label={`${completed} of ${visibleLevels.length} ${difficulty} levels complete`} />
+        <button type="button" className="so-primary" disabled={!recommended || busy || syncing}
+          onClick={() => { if (recommended) void choose(recommended.number); }}>
+          {recommended ? `${completed === visibleLevels.length ? "Replay" : "Continue playing"} · Level ${recommendedIndex + 1} →` : "Continue playing →"}
+        </button>
+        {!recommended && <small>Complete the tutorial to unlock this difficulty.</small>}
+      </div>
+      <div className="so-level-list"><div><h2>{difficulty}</h2><div className="so-level-buttons">{visibleLevels.map((item, index) => {
+        const completion = progress.find(value => value.levelNumber === item.number);
+        const score = completion?.legacy ? undefined : completion?.bestMoves;
+        const open = isCampaignLevelUnlocked(visibleLevels, item.number, progress);
+        const recent = selected === item.number;
+        return <button type="button" key={item.id} className={recent ? "selected recent" : ""}
+          disabled={!open || busy || syncing} onClick={() => void choose(item.number)} aria-current={recent ? "true" : undefined}
+          aria-label={`${difficulty} level ${index + 1}, ${open ? score ? `best ${score} moves` : completion?.legacy ? "previously completed" : "unlocked" : "locked"}`}>
+          <strong>{index + 1}</strong><small>{!open ? "Locked" : score ? `${score} moves` : completion?.legacy ? "Replay" : recent && status === "PLAYING" ? "In progress" : "Ready"}</small></button>;
+      })}</div></div></div>
+      {status === "PLAYING" && <p className="so-selection-note">Your current puzzle is preserved. Select the highlighted level to resume it.</p>}
+      {message && <p className="so-status" role="status">{message}</p>}
+    </section>;
+  }
+
+  return <section className={`so-level-page so-mode-panel ${mode === "tutorial" ? "so-tutorial-panel" : "so-level-gameplay"}`} aria-label={mode === "tutorial" ? "SlipOut tutorial" : "SlipOut level gameplay"}>
     {mode === "tutorial" ? <div className="so-section-intro"><div><p className="so-kicker">HOW TO PLAY</p><h2>Learn the direction switch.</h2><p>Slide blocks along their length. Stop the pink target on a switch to change its active direction, then guide it through the exit. Drag with a mouse or touch, or focus a block and use the arrow keys. Each slide counts as one move.</p><p>The daily puzzle starts with the Start button and has no time limit. Fewer moves rank higher; you can retry it as often as you like.</p></div><div className="so-tutorial-progress"><span>{progress.some(item => item.levelNumber === 0) ? "✓ Tutorial completed" : "Tutorial ready"}</span>{progress.some(item => item.levelNumber === 0) && <button type="button" className="so-secondary" disabled={busy || syncing} onClick={() => void restart()}>Replay tutorial</button>}</div></div>
-      : <><div className="so-section-intro"><div><p className="so-kicker">90 LEVELS · THREE DIFFICULTIES</p><h2>Choose a level</h2><p>Complete the tutorial to unlock the first puzzle in each difficulty. Each difficulty progresses independently.</p></div></div>
-    <div className="so-level-list">{tiers.map(difficulty => <div key={difficulty}><h2>{difficulty}</h2><div className="so-level-buttons">{tierLevels[difficulty].map((item, index) => {
-      const completion = progress.find(value => value.levelNumber === item.number);
-      const score = completion?.legacy ? undefined : completion?.bestMoves;
-      const prior = index > 0 ? tierLevels[difficulty][index - 1].number : 0;
-      const open = progress.some(value => value.levelNumber === item.number || value.levelNumber === prior);
-      return <button type="button" key={item.id} className={selected === item.number ? "selected" : ""}
-        disabled={!open || busy || syncing || status === "PLAYING"} onClick={() => choose(item.number)}
-        aria-label={`${difficulty} level ${index + 1}, ${open ? score ? `best ${score} moves` : completion?.legacy ? "previously completed" : "unlocked" : "locked"}`}>
-        <strong>{index + 1}</strong><small>{!open ? "Locked" : score ? `${score} moves` : completion?.legacy ? "Replay" : "Ready"}</small></button>;
-    })}</div></div>)}</div></>}
-    <div className="so-stats"><div><span>{selected === 0 ? "TUTORIAL" : `${level.difficulty.toUpperCase()} ${tierIndex + 1} OF ${sequence.length}`}</span><strong>{level.blocks[0].width}×{level.blocks[0].height} target</strong></div><div><span>MOVES</span><strong>{history.length}</strong></div><div><span>ACTIVE AXIS</span><strong className="so-axis-indicator">{board.activeAxis === "H" ? "↔ Horizontal" : "↕ Vertical"}</strong></div></div>
-    <p className="so-level-best">{selected === 0 ? "Land on the switch, then head to the exit." :
-      `${selectedProgress?.legacy ? "Previous board completed" : `Best: ${best ? `${best} moves` : "No finish yet"}`} · Exit: ${level.exit.side} side`}</p>
+      : <div className="so-level-play-nav"><button type="button" className="so-text-button" onClick={() => setNavigation(current => showCampaignSelection(current))}>← All levels</button><strong>{level.difficulty[0].toUpperCase() + level.difficulty.slice(1)} · Level {tierIndex + 1}</strong></div>}
+    <div className="so-stats">{mode === "tutorial" && <div><span>TUTORIAL</span><strong>{level.blocks[0].width}×{level.blocks[0].height} target</strong></div>}<div><span>MOVES</span><strong>{history.length}</strong></div>{mode === "levels" && <div><span>BEST</span><strong>{best ?? "—"}</strong></div>}<div><span>ACTIVE AXIS</span><strong className="so-axis-indicator">{board.activeAxis === "H" ? "↔ Horizontal" : "↕ Vertical"}</strong></div></div>
+    <p className="so-level-best">{selected === 0 ? "Land on the switch, then head to the exit." : `Exit: ${level.exit.side} side · ${level.blocks[0].width}×${level.blocks[0].height} target`}</p>
     <div className="so-main"><div className="so-board-shell"><div className="so-board" ref={boardRef} aria-label={selected === 0 ? "SlipOut tutorial board" : `SlipOut ${level.difficulty} level ${tierIndex + 1} board`}>
       {Array.from({ length: 36 }, (_, index) => <span className="so-cell" key={index} aria-hidden="true" />)}
       {level.switches.map(cell => {
@@ -235,8 +291,9 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
           onPointerCancel={() => { dragRef.current = null; setDrag(null); }}
           onKeyDown={event => keyMove(event, block)}><span className="so-block-face">{block.id === "X" ? board.activeAxis === "H" ? "↔" : "↕" : null}</span></button>;
       })}<div className={`so-exit so-level-exit so-exit-${level.exit.side}`} style={exitStyle} aria-label={`Exit on the ${level.exit.side} side at cell ${level.exit.cell + 1}`}><span>EXIT {exitArrow}</span></div>
-    </div></div><aside className="so-side"><p className="so-side-label">THE OBJECTIVE</p><h2>{selected === 0 ? "Learn the direction switch." : "Switch direction, find the exit."}</h2>{selected === 0 && status !== "COMPLETED" && <p className="so-tutorial-prompt" role="status">{board.activeAxis === "H" ? "Slide the pink target horizontally onto the marked switch. You can pass over it, but must stop on it to change direction." : "The target now moves vertically. Slide it down through the exit."}</p>}<p>The pink target slides only along its active axis. Land on a marked switch to toggle between horizontal and vertical movement. Passing over a switch does nothing.</p><p>Slide the target through the one-cell opening on the {level.exit.side} side. Other blocks move along their length and do not activate switches. Each slide counts as one move.</p>{status === "COMPLETED" && <p>{selected === 0 ? "Tutorial complete!" : <>Optimal solution: <strong>{level.optimalMoves} moves</strong></>}</p>}</aside></div>
+    </div></div>{mode === "tutorial" && <aside className="so-side"><p className="so-side-label">THE OBJECTIVE</p><h2>Learn the direction switch.</h2>{status !== "COMPLETED" && <p className="so-tutorial-prompt" role="status">{board.activeAxis === "H" ? "Slide the pink target horizontally onto the marked switch. You can pass over it, but must stop on it to change direction." : "The target now moves vertically. Slide it down through the exit."}</p>}<p>The pink target slides only along its active axis. Land on a marked switch to toggle between horizontal and vertical movement. Passing over a switch does nothing.</p><p>Slide the target through the one-cell opening on the {level.exit.side} side. Other blocks move along their length and do not activate switches. Each slide counts as one move.</p>{status === "COMPLETED" && <p>Tutorial complete!</p>}</aside>}</div>
+    {mode === "levels" && <details className="so-level-help"><summary>Objective &amp; controls</summary><div><p>Slide the pink target only along its active axis. Land on a marked switch to toggle between horizontal and vertical movement.</p><p>Guide it through the opening on the {level.exit.side} side. Other blocks move along their length, and every slide counts as one move.</p></div></details>}
     <div className="so-controls"><button type="button" className="so-secondary" disabled={busy || syncing} onClick={() => void restart()}>Restart</button><span className="so-status" role="status">{message}</span></div>
-    {status === "COMPLETED" && <div className="so-result" role="status"><p className="so-kicker">{selected === 0 ? "TUTORIAL COMPLETE" : "LEVEL COMPLETE"}</p><h2>{selected === 0 ? "You switched directions!" : `${history.length} moves.`}</h2>{selected !== 0 && <p>Optimal: {level.optimalMoves} moves.</p>}{mode === "levels" && nextUnlocked && <div className="so-result-actions"><button type="button" className="so-primary" onClick={() => choose(nextLevel?.number ?? selected)}>Next level →</button></div>}</div>}
+    {status === "COMPLETED" && <div className="so-result" role="status"><p className="so-kicker">{selected === 0 ? "TUTORIAL COMPLETE" : "LEVEL COMPLETE"}</p><h2>{selected === 0 ? "You switched directions!" : `${history.length} moves.`}</h2>{selected !== 0 && <p>Optimal: {level.optimalMoves} moves.</p>}{mode === "levels" && <div className="so-result-actions">{nextUnlocked && nextLevel ? <button type="button" className="so-primary" onClick={() => void choose(nextLevel.number)}>Next level →</button> : <span className="so-level-complete-note">No next unlocked level.</span>}<button type="button" className="so-secondary" onClick={() => setNavigation(current => showCampaignSelection(current))}>All levels</button></div>}</div>}
   </section>;
 }
