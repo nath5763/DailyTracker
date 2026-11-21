@@ -29,7 +29,9 @@ const game = { id: "game", slug: "fermi", name: "Fermi", sourceUrl: "https://fer
 const summary = { id: "board", name: "Friends", ownerId: "owner", owner: false, game, games: [game],
   boardType: "SINGLE_GAME", locked: false };
 
-function render() { return renderToStaticMarkup(createElement(LeaderboardDetail, { id: "board" })); }
+function render(props: { requestedRange?: string } = {}) {
+  return renderToStaticMarkup(createElement(LeaderboardDetail, { id: "board", ...props }));
+}
 afterEach(() => vi.unstubAllGlobals());
 function expectBackLink(html: string) {
   expect(html).toContain('href="/leaderboards"');
@@ -92,6 +94,55 @@ test("shows verified per-guess details on today's leaderboard", () => {
       { label: "Q1", value: "1.20×" }, { label: "Q2", value: "1.40×" }, { label: "Q3", value: "2.10×" },
     ] }] };
   expect(render()).toContain("Q1 1.20× · Q2 1.40× · Q3 2.10×");
+});
+
+test("shows aggregate placement, score, participation, and the current player without changing order", () => {
+  state.summaries = [summary];
+  state.board = { ...summary, members: [
+    { userId: "leader", displayName: "Leader", avatarColor: "#dfff4f", owner: false },
+    { userId: "viewer", displayName: "Viewer", avatarColor: "#ff8db6", owner: false },
+  ], rankings: [
+    { rank: 1, userId: "leader", shareId: "leader-share", displayName: "Leader", average: 84,
+      leaderboardPoints: 84, displayScore: "84 leaderboard pts", gamesPlayed: 2,
+      averagePlacement: 1.5, averageScore: 23.75 },
+    { rank: 2, userId: "viewer", shareId: "viewer-share", displayName: "Viewer", average: 64,
+      leaderboardPoints: 64, displayScore: "64 leaderboard pts", gamesPlayed: 5,
+      averagePlacement: 1.5, averageScore: 12 },
+  ], absent: [], range: "7d" };
+  const html = render({ requestedRange: "7d" });
+  expect(state.cachePathArgs).toEqual(["board", "fermi", "7d"]);
+  expect(html.indexOf("Leader")).toBeLessThan(html.indexOf("Viewer"));
+  expect(html).toContain("#1.5");
+  expect(html).toContain("23.8");
+  expect(html).toContain("12.0");
+  expect(html).toContain("2 results submitted");
+  expect(html).toContain("5 results submitted");
+  expect(html).toContain("Avg. placement");
+  expect(html).toContain("Avg. score");
+  expect(html).toContain("Results played");
+  expect(html).toContain("current-user-row");
+  expect(html).not.toContain("leaderboard pts");
+});
+
+test("keeps today's raw result presentation and handles missing aggregate metrics", () => {
+  state.summaries = [summary];
+  state.board = { ...summary, members: [], rankings: [
+    { rank: 1, userId: "viewer", shareId: "viewer-share", displayName: "Viewer", average: 10,
+      gamesPlayed: 1, displayScore: "10.00×" },
+  ], absent: [], range: "today" };
+  const today = render();
+  expect(today).toContain("10.00×");
+  expect(today).not.toContain("Avg. placement");
+
+  state.board = { ...state.board as object, range: "30d", rankings: [
+    { rank: 1, userId: "viewer", shareId: "viewer-share", displayName: "Viewer", average: 84,
+      leaderboardPoints: 84, displayScore: "84 leaderboard pts", gamesPlayed: 1 },
+  ] };
+  const aggregate = render({ requestedRange: "30d" });
+  expect(aggregate).toContain("Avg. placement");
+  expect(aggregate).toContain("Avg. score");
+  expect(aggregate).toContain("—");
+  expect(aggregate).not.toContain("84 leaderboard pts");
 });
 
 test("keeps the leaderboard section visible when no one has scored", () => {

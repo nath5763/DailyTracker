@@ -48,6 +48,7 @@ test("shows the summary, formatted results, and retained profile link", () => {
     member: { userId: "player", shareId: "share", displayName: "Player", avatarColor: "#fff", owner: false },
     game, period: "7d", rankedPlayerCount: 4,
     ranking: { rank: 2, userId: "player", shareId: "share", displayName: "Player", average: 11.25, gamesPlayed: 2,
+      averagePlacement: 1.5, averageScore: 11.25,
       manualResults: 1, assistedResults: 1, unknownAssistanceResults: 0, hints: 2, mistakes: 0, beginnerAssists: 0 },
     scores: [{ id: "score", puzzleKey: "Fermi #12", playedOn: "2026-11-05", primaryScore: 12.5,
       gameName: "Fermi", gameSlug: "fermi", game, metrics: {} }],
@@ -55,6 +56,11 @@ test("shows the summary, formatted results, and retained profile link", () => {
   const html = renderPanel();
   expect(state.path).toContain("game=fermi&range=7d");
   expect(html).toContain("#2 of 4");
+  expect(html).toContain("Avg. placement");
+  expect(html).toContain("#1.5");
+  expect(html).toContain("Avg. score");
+  expect(html).toContain("11.3");
+  expect(html).not.toContain("Leaderboard value");
   expect(html).toContain("12.50×");
   expect(html).toContain("Fermi #12");
   expect(html).toContain("Nov 5, 2026");

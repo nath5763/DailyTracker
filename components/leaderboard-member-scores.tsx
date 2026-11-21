@@ -3,6 +3,7 @@
 import { AppLink } from "@/components/app-link";
 import { leaderboardMemberScoresCachePath, useCachedApi } from "@/lib/client-cache";
 import { formatRankingScore, formatResultScore } from "@/lib/format";
+import { aggregateMetrics } from "@/lib/leaderboard-metrics";
 import type { Game, LeaderboardMemberScores } from "@/lib/types";
 
 export type ExpandedPlayer = { userId: string; location: "ranking" | "podium" | "combined" } | null;
@@ -38,12 +39,14 @@ export function LeaderboardMemberScoresPanel({ boardId, userId, shareId, game, r
 
 function MemberScoresContent({ details, shareId }: { details: LeaderboardMemberScores; shareId: string }) {
   const ranking = details.ranking;
+  const metrics = ranking ? aggregateMetrics(ranking) : null;
+  const aggregate = details.period !== "today";
   return <>
     <div className="member-scores-heading"><div><p className="section-number">{details.game.name.toUpperCase()} RESULTS</p><h3>{details.member.displayName}</h3></div><AppLink className="secondary-link" href={`/profile/${shareId}`}>View full profile</AppLink></div>
     <div className="member-score-summary">
       <Summary label="Rank" value={ranking ? `#${ranking.rank} of ${details.rankedPlayerCount}` : "Not ranked"} />
-      <Summary label="Leaderboard value" value={ranking ? formatRankingScore(ranking, details.game) : "—"} />
-      <Summary label="Scores" value={String(details.scores.length)} />
+      {aggregate ? <><Summary label="Avg. placement" value={metrics?.averagePlacement ?? "—"} /><Summary label="Avg. score" value={metrics?.averageScore ?? "—"} /></> : <Summary label="Result" value={ranking ? formatRankingScore(ranking, details.game) : "—"} />}
+      <Summary label={aggregate ? "Results played" : "Scores"} value={String(details.scores.length)} />
       <Summary label="Manual" value={String(ranking?.manualResults ?? 0)} />
       <Summary label="Assisted" value={String(ranking?.assistedResults ?? 0)} />
       <Summary label="Unknown assistance" value={String(ranking?.unknownAssistanceResults ?? 0)} />
