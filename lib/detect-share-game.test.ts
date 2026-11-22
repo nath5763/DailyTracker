@@ -29,3 +29,10 @@ test("detects normalized multi-metric games by their signed header", () => {
   expect(detectShareGame("Daily Quordle 1746\n5️⃣9️⃣\n8️⃣", ["quordle"])).toBe("quordle");
   expect(detectShareGame("TimeGuessr #807 — 40,693/50,000", ["timeguessr"])).toBe("timeguessr");
 });
+
+test("detects both Travle share modes without matching practice or mixed shares", () => {
+  expect(detectShareGame("#travle #1439 +2\n✅🟧✅\nhttps://travle.earth", ["travle"])).toBe("travle");
+  expect(detectShareGame("#travle_challenge #38 +0\n✅✅\nhttps://travle.earth/challenge", ["travle"])).toBe("travle");
+  expect(detectShareGame("#travle_practice #1 +0", ["travle"])).toBeNull();
+  expect(detectShareGame("#travle #1439 +0\nWordle 1961 2/6", ["travle", "wordle"])).toBeNull();
+});

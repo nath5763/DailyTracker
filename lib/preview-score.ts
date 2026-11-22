@@ -95,9 +95,62 @@ function krillion(rawText: string): ParsedSubmission {
     metrics: { tiers: results.map((tier) => tier.id) }, parserVersion: 1 };
 }
 
+const travleResult = "(?:✅|🟩|🟧|🟥)+";
+const travleHeader = new RegExp(
+  `^#(travle|travle_challenge) #([1-9][0-9]*) \\+([0-6])(?: \\((?:(Perfect)|([0-3]) (hint|hints))\\))?\\s*(${travleResult})$`,
+  "u",
+);
+
+function travle(rawText: string): ParsedSubmission {
+  const text = rawText.trim();
+  if (!text) throw new Error("Paste your complete Travle result first.");
+  if (text.length > 10_000) throw new Error("Result text is too long.");
+  const lines = text.split(/\r\n|\n|\r/).map((line) => line.trim()).filter(Boolean);
+  if (lines.length < 2 || lines.length > 3) throw new Error("Paste a complete English Travle result.");
+
+  const match = travleHeader.exec(lines.slice(0, -1).join(" "));
+  if (!match) throw new Error("Travle needs a numbered Daily or Weekly Challenge header and a result path.");
+  const [, shareMode, puzzleToken, scoreToken, perfect, hintToken, hintWord, resultSequence] = match;
+  const gameMode = shareMode === "travle" ? "Daily" : "Weekly";
+  const expectedUrl = gameMode === "Daily" ? /^https:\/\/travle\.earth\/?$/ : /^https:\/\/travle\.earth\/challenge\/?$/;
+  if (!expectedUrl.test(lines.at(-1) ?? "")) throw new Error(`Travle ${gameMode} results need their matching official link.`);
+
+  const puzzle = Number(puzzleToken);
+  if (!Number.isSafeInteger(puzzle) || puzzle < 1 || puzzle > 100_000) throw new Error("Travle puzzle number is invalid.");
+  const extraGuesses = Number(scoreToken);
+  const hints = hintToken === undefined ? 0 : Number(hintToken);
+  if (perfect && extraGuesses !== 0) throw new Error("Only a +0 Travle result can be Perfect.");
+  if (hintToken !== undefined && ((hints === 1) !== (hintWord === "hint"))) {
+    throw new Error("Travle hint text must use the correct singular or plural form.");
+  }
+
+  const playedOn = gameMode === "Daily"
+    ? new Date(Date.parse("2026-11-22T00:00:00Z") + (puzzle - 1439) * DAY_MS).toISOString().slice(0, 10)
+    : new Date(Date.parse("2024-10-21T00:00:00Z") + (puzzle - 38) * 7 * DAY_MS).toISOString().slice(0, 10);
+  if (playedOn > new Date().toISOString().slice(0, 10)) throw new Error("That Travle puzzle appears to be dated in the future.");
+
+  return {
+    puzzleKey: `${gameMode}:${puzzle}`,
+    puzzleNumber: puzzle,
+    playedOn,
+    primaryScore: extraGuesses,
+    metrics: {
+      completionStatus: "WIN",
+      extraGuesses,
+      hints,
+      assistanceStatus: hints > 0 ? "assisted" : "unassisted",
+      resultSequence,
+      gameMode,
+      displayScore: `+${extraGuesses}`,
+    },
+    parserVersion: 1,
+  };
+}
+
 export function previewScore(gameSlug: string, rawText: string): ParsedSubmission {
   if (gameSlug === "fermi") return fermi(rawText);
   if (gameSlug === "krillion") return krillion(rawText);
+  if (gameSlug === "travle") return travle(rawText);
   if (["wordle", "pinpoint", "queens", "crossclimb", "tango", "zip"].includes(gameSlug)) return extendedPreviewScore(gameSlug, rawText);
   throw new Error("Preview is not available for this game yet.");
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatBloomTime } from "@/lib/bloom-and-boom/format";
@@ -111,7 +110,6 @@ export function BloomAndBoomGame({ signedIn }: { signedIn: boolean }) {
       <div className="bb-hero-copy"><p className="bb-kicker">DAILY GARDEN · {puzzle.puzzleDate}</p><h1>Bloom <em>&</em> Boom</h1>
         <p>Turn every safe seed packet without waking a storm-bug. The clues tell you how many are hiding in each row and column.</p>
         <div className="bb-motif-strip" aria-hidden="true"><span>✿ Bloom</span><i>◆</i><span>☁ Boom</span><i>◆</i><span>⚑ Mark</span></div></div>
-      <div className="bb-hero-art"><Image src="/bloom-and-boom/bloom-and-boom.png" width={768} height={512} priority alt="Watercolor garden satchel filled with flowers and sleepy storm-bugs" /><span aria-hidden="true">TODAY&apos;S GARDEN</span></div>
     </header>
 
     <div className="bb-game-layout">

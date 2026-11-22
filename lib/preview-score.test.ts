@@ -34,3 +34,39 @@ test("rejects other Krillion modes and mismatched scores", () => {
   expect(() => previewScore("krillion", "Krillion #82 🦐\n181\n\n🐟🫧🫧🐟🦑🫧🐟")).toThrow("does not match");
   expect(() => previewScore("krillion", "Krillion #82 🦐\n150\n\n🐟🫧🫧🐟🦑🫧")).toThrow("seven");
 });
+
+test("previews Travle Daily and Weekly Challenge results with mode-specific dates and keys", () => {
+  expect(previewScore("travle", "#travle #1439 +2 (1 hint)\n✅🟧🟩✅\nhttps://travle.earth")).toEqual({
+    puzzleKey: "Daily:1439", puzzleNumber: 1439, playedOn: "2026-11-22", primaryScore: 2,
+    metrics: { completionStatus: "WIN", extraGuesses: 2, hints: 1, assistanceStatus: "assisted",
+      resultSequence: "✅🟧🟩✅", gameMode: "Daily", displayScore: "+2" }, parserVersion: 1,
+  });
+  expect(previewScore("travle", "#travle_challenge #38 +1✅🟥✅\nhttps://travle.earth/challenge")).toMatchObject({
+    puzzleKey: "Weekly:38", puzzleNumber: 38, playedOn: "2024-10-21", primaryScore: 1,
+    metrics: { hints: 0, gameMode: "Weekly", resultSequence: "✅🟥✅", displayScore: "+1" },
+  });
+});
+
+test("previews perfect and plural-hint Travle scores", () => {
+  expect(previewScore("travle", "#travle #1439 +0 (Perfect) ✅✅✅\nhttps://travle.earth/")).toMatchObject({
+    primaryScore: 0, metrics: { hints: 0, assistanceStatus: "unassisted", displayScore: "+0" },
+  });
+  expect(previewScore("travle", "#travle_challenge #38 +0 (3 hints)\n🟩🟩✅\nhttps://travle.earth/challenge/").metrics)
+    .toMatchObject({ hints: 3, assistanceStatus: "assisted" });
+});
+
+test("rejects malformed or mismatched Travle shares", () => {
+  const invalid = [
+    "#travle_practice #1439 +0\n✅✅\nhttps://travle.earth",
+    "#travle #1439 +0\n✅✅\nhttps://travle.earth/challenge",
+    "#travle_challenge #38 +0\n✅✅\nhttps://travle.earth",
+    "#travle #1439 +7\n✅✅\nhttps://travle.earth",
+    "#travle #1439 +0 (4 hints)\n✅✅\nhttps://travle.earth",
+    "#travle #1439 +0 (1 hints)\n✅✅\nhttps://travle.earth",
+    "#travle #1439 +1 (Perfect)\n✅✅\nhttps://travle.earth",
+    "#travle #1439 +0\nhttps://travle.earth",
+    "#travle #1439 +0\n✅✅\nWordle 1 1/6\nhttps://travle.earth",
+    "#travle #100000 +0\n✅✅\nhttps://travle.earth",
+  ];
+  for (const share of invalid) expect(() => previewScore("travle", share)).toThrow();
+});
