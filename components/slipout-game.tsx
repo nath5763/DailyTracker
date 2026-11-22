@@ -6,7 +6,7 @@ import { reachableRange } from "@/lib/slipout/movement";
 import { loadBest, saveAttempt, saveBest } from "@/lib/slipout/persistence";
 import { puzzleForDate, todayUtc, type Puzzle } from "@/lib/slipout/puzzles";
 import { resultFromSession, shareText, type SlipOutResult } from "@/lib/slipout/results";
-import { moveSession, readySession, startSession, type Session } from "@/lib/slipout/session";
+import { moveSession, readySession, startSession, undoSession, type Session } from "@/lib/slipout/session";
 import type { Block, Move } from "@/lib/slipout/model";
 
 type ServerStart = { attemptId: string };
@@ -115,6 +115,14 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
     }
   }
 
+  function undo() {
+    const current = sessionRef.current;
+    if (busy || current.status !== "PLAYING" || current.history.length === 0) return;
+    dragRef.current = null;
+    setDrag(null);
+    setLiveSession(undoSession(current, puzzle));
+  }
+
   function commit(move: Move) {
     const current = sessionRef.current;
     if (current.status !== "PLAYING") return;
@@ -187,7 +195,7 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
       })}
       <div className="so-exit" aria-hidden="true"><span>EXIT →</span></div>
     </div></div></div>
-    <div className="so-daily-controls"><div className="so-current-axis"><span>ACTIVE DIRECTION</span><strong>{activeAxis === "V" ? "↕ Vertical" : "↔ Horizontal"}</strong></div><div className="so-control-actions">{session.status === "READY" ? <button type="button" className="so-primary" onClick={() => void start()} disabled={busy}>Start puzzle →</button> : null}<button type="button" className="so-secondary" onClick={restart} disabled={busy || session.status === "READY"}>Restart</button></div></div>
+    <div className="so-daily-controls"><div className="so-current-axis"><span>ACTIVE DIRECTION</span><strong>{activeAxis === "V" ? "↕ Vertical" : "↔ Horizontal"}</strong></div><div className="so-control-actions">{session.status === "READY" ? <button type="button" className="so-primary" onClick={() => void start()} disabled={busy}>Start puzzle →</button> : null}<button type="button" className="so-secondary" onClick={undo} disabled={busy || session.status !== "PLAYING" || session.history.length === 0}>Undo</button><button type="button" className="so-secondary" onClick={restart} disabled={busy || session.status === "READY"}>Restart</button></div></div>
     {message && <p className="so-status" role="status">{message}</p>}
     {result && <div className="so-result" role="status"><p className="so-kicker">PUZZLE COMPLETE</p><h2>You slipped out.</h2><div className="so-result-numbers"><p><strong>{result.moves}</strong><span>moves</span></p><p><strong>{puzzle.optimalMoves}</strong><span>optimal moves</span></p></div><div className="so-result-actions"><button type="button" className="so-primary" onClick={restart} disabled={busy}>Play again</button><button type="button" className="so-secondary" onClick={() => void shareResult()}>Share results</button></div></div>}
     <section className="so-leaderboard-entry"><div><p className="so-kicker">DAILY RESULTS</p><h2>Your DailyTracker leaderboard</h2><p>{!signedIn ? "Sign in before starting to submit your score and compare with friends." : serverEnabled ? "Complete the puzzle to submit your score and compare with friends." : "Online scores are unavailable. This device keeps your best result."}</p>{best && <p className="so-personal-best">Your best today: <strong>{best.moves} {best.moves === 1 ? "move" : "moves"}</strong></p>}{result && !busy && <p className="so-save-state">{result.playerId ? "Your completed score is saved." : serverEnabled && attemptRef.current ? "This score could not be submitted." : "This result is saved on this device only."}</p>}</div>{signedIn ? <Link className="so-secondary" href="/leaderboards">View leaderboards →</Link> : <Link className="so-secondary" href="/auth">Sign in →</Link>}</section>

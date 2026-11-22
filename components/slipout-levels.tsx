@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import catalog from "@/lib/slipout/levels.json";
-import { applyLevelMove, initialLevelState, levelRange, type Axis, type Level, type LevelMove, type LevelState } from "@/lib/slipout/level-engine";
+import { applyLevelMove, initialLevelState, levelRange, replayLevelMoves, type Axis, type Level, type LevelMove, type LevelState } from "@/lib/slipout/level-engine";
 import {
   isCampaignLevelUnlocked,
   playCampaignLevel,
@@ -172,6 +172,14 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not restart."); }
     finally { setBusy(false); }
   }
+  function undo() {
+    if (status !== "PLAYING" || history.length === 0 || busy || syncing || startingRef.current) return;
+    const moves = history.slice(0, -1);
+    dragRef.current = null;
+    setDrag(null);
+    setBoard(replayLevelMoves(level, moves));
+    setHistory(moves);
+  }
   async function commit(move: LevelMove) {
     if (status === "COMPLETED" || busy || syncing || startingRef.current || !unlocked) return;
     try {
@@ -280,7 +288,7 @@ export function SlipOutLevels({ signedIn, mode = "levels", active = true, onAtte
       })}<div className={`so-exit so-level-exit so-exit-${level.exit.side}`} style={exitStyle} aria-label={`Exit on the ${level.exit.side} side at cell ${level.exit.cell + 1}`}><span>EXIT {exitArrow}</span></div>
     </div></div>{mode === "tutorial" && <aside className="so-side"><p className="so-side-label">THE OBJECTIVE</p><h2>Learn the direction switch.</h2>{status !== "COMPLETED" && <p className="so-tutorial-prompt" role="status">{board.activeAxis === "H" ? "Slide the pink target horizontally onto the marked switch. You can pass over it, but must stop on it to change direction." : "The target now moves vertically. Slide it down through the exit."}</p>}<p>The pink target slides only along its active axis. Land on a marked switch to toggle between horizontal and vertical movement. Passing over a switch does nothing.</p><p>Slide the target through the one-cell opening on the {level.exit.side} side. Other blocks move along their length and do not activate switches. Each slide counts as one move.</p>{status === "COMPLETED" && <p>Tutorial complete!</p>}</aside>}</div>
     {mode === "levels" && <details className="so-level-help"><summary>Objective &amp; controls</summary><div><p>Slide the pink target only along its active axis. Land on a marked switch to toggle between horizontal and vertical movement.</p><p>Guide it through the opening on the {level.exit.side} side. Other blocks move along their length, and every slide counts as one move.</p></div></details>}
-    <div className="so-controls"><button type="button" className="so-secondary" disabled={busy || syncing} onClick={() => void restart()}>Restart</button><span className="so-status" role="status">{message}</span></div>
+    <div className="so-controls"><button type="button" className="so-secondary" disabled={status !== "PLAYING" || history.length === 0 || busy || syncing} onClick={undo}>Undo</button><button type="button" className="so-secondary" disabled={busy || syncing} onClick={() => void restart()}>Restart</button><span className="so-status" role="status">{message}</span></div>
     {status === "COMPLETED" && <div className="so-result" role="status"><p className="so-kicker">{selected === 0 ? "TUTORIAL COMPLETE" : "LEVEL COMPLETE"}</p><h2>{selected === 0 ? "You switched directions!" : `${history.length} moves.`}</h2>{selected !== 0 && <p>Optimal: {level.optimalMoves} moves.</p>}{mode === "levels" && <div className="so-result-actions">{nextUnlocked && nextLevel ? <button type="button" className="so-primary" onClick={() => void choose(nextLevel.number)}>Next level →</button> : <span className="so-level-complete-note">No next unlocked level.</span>}<button type="button" className="so-secondary" onClick={() => setNavigation(current => showCampaignSelection(current))}>All levels</button></div>}</div>}
   </section>;
 }

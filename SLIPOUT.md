@@ -10,13 +10,14 @@ Each level has one one-cell-wide exit on a specified side and cell. The target c
 
 Run `node tools/generate-slipout-levels.mjs` to recheck every shortest route and orientation uniqueness for levels 61-90 against the curated generation record.
 
-Guest best moves and their verified move histories are saved on this device. Signed-in best moves and unlocks are saved through `/api/v1/slipout/levels`; guest completions are imported after sign-in and replayed by the server before they count. There is no public level leaderboard. Existing tutorial and levels 1-60 keep their IDs and progress. Levels 61-90 require every shortest solution to change the target active axis 1-3 times, spend at least 60% of slides on obstacle blocks, and move at least 50% of obstacles in easy, 75% in medium, and 90% in hard. Migration V43__expand_slipout_levels_to_90.sql expands the allowed level numbers without clearing progress. Daily results and rankings are unaffected.
+Guest best moves and their verified move histories are saved on this device. Signed-in best moves and unlocks are saved through `/api/v1/slipout/levels`; guest completions are imported after sign-in and replayed by the server before they count. There is no public level leaderboard. During an active tutorial or level attempt, Undo removes the latest slide and rebuilds the board and target axis from the remaining move history. Undo is unavailable before the first move and after completion. Existing tutorial and levels 1-60 keep their IDs and progress. Levels 61-90 require every shortest solution to change the target active axis 1-3 times, spend at least 60% of slides on obstacle blocks, and move at least 50% of obstacles in easy, 75% in medium, and 90% in hard. Migration V43__expand_slipout_levels_to_90.sql expands the allowed level numbers without clearing progress. Daily results and rankings are unaffected.
 
 ## Daily gameplay
 
 - The board is 6×6. Every block is two or three cells long and moves only along its horizontal or vertical axis.
 - Drag a block with a mouse or touch, or focus it and use arrow keys. Home and End move to the farthest available position. Positions snap to cells.
 - One continuous slide counts as one move, including a slide across several cells. A release at the original position counts as zero. Sliding back is another move.
+- During an active attempt, Undo removes one move and reconstructs the board from the remaining move history. It does not start a new attempt, contact the backend, or count as a move. Undo is unavailable before the first move and after completion, and there is no redo.
 - Start reveals the blocks. Guide the pink target out of the exit on the right of row three. The exit movement itself counts as a move.
 - There is no time limit. Retries are unlimited; restarting ends the current attempt and resets the board.
 

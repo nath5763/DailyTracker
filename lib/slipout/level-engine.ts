@@ -94,6 +94,10 @@ export function applyLevelMove(level: Level, state: LevelState, move: LevelMove)
     activeAxis: toggled ? state.activeAxis === "H" ? "V" : "H" : state.activeAxis }, exited: exiting, moved: true };
 }
 
+export function replayLevelMoves(level: Level, moves: readonly LevelMove[]): LevelState {
+  return moves.reduce((state, move) => applyLevelMove(level, state, move).state, initialLevelState(level));
+}
+
 export function solveLevelPath(level: Level, limit = 500_000): LevelMove[] | null {
   if (!validLevel(level)) return null;
   const key = (state: LevelState) => `${state.activeAxis}:${state.blocks.map(block => `${block.x},${block.y}`).join(";")}`;

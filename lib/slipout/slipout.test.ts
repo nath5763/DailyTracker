@@ -7,7 +7,7 @@ import { applyMove, reachableRange } from "./movement";
 import { loadBest, saveAttempt, saveBest } from "./persistence";
 import { puzzleForDate } from "./puzzles";
 import { compareResults, resultFromSession, shareText, type SlipOutResult } from "./results";
-import { moveSession, readySession, startSession } from "./session";
+import { moveSession, readySession, startSession, undoSession } from "./session";
 import { solve } from "./solver";
 import type { Board } from "./model";
 
@@ -47,6 +47,27 @@ describe("SlipOut movement", () => {
     expect(complete.history).toHaveLength(1);
     expect(moveSession(complete, { id: "A", to: 1 }, 1300)).toBe(complete);
   });
+  it("undoes one move at a time by replaying the remaining history", () => {
+    const started = startSession(readySession(puzzle), 1000);
+    const first = moveSession(started, { id: "B", to: 4 }, 1100);
+    const second = moveSession(first, { id: "B", to: 2 }, 1200);
+    const once = undoSession(second, puzzle);
+    expect(once).toMatchObject({ status: "PLAYING", blocks: first.blocks, history: first.history,
+      startedAt: 1000, endedAt: null });
+    expect(second.blocks[2]).toMatchObject({ x: 2 });
+    expect(second.history).toHaveLength(2);
+    const twice = undoSession(once, puzzle);
+    expect(twice).toMatchObject({ status: "PLAYING", blocks: puzzle.blocks, history: [],
+      startedAt: 1000, endedAt: null });
+  });
+  it("leaves empty, ready, and completed sessions unchanged", () => {
+    const ready = readySession(puzzle);
+    const empty = startSession(ready, 1000);
+    const completed = moveSession(empty, { id: "X", to: 6 }, 1200);
+    expect(undoSession(ready, puzzle)).toBe(ready);
+    expect(undoSession(empty, puzzle)).toBe(empty);
+    expect(undoSession(completed, puzzle)).toBe(completed);
+  });
 });
 
 describe("SlipOut daily puzzles", () => {
@@ -76,6 +97,7 @@ describe("SlipOut results and retries", () => {
     expect(html).toMatch(/class="so-block so-target[^\"]*"[^>]*aria-disabled="true"/);
     expect(html).not.toMatch(/<button[^>]*class="so-block/);
     expect(html).not.toContain("optimal moves");
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Undo<\/button>/);
   });
   it("opens on the daily puzzle with the level grid in its own mode", () => {
     const html = renderToStaticMarkup(createElement(SlipOutExperience, { signedIn: false }));

@@ -20,3 +20,10 @@ export function moveSession(session: Session, move: Move, now: number): Session 
   return { ...session, blocks: applied.blocks, history: [...session.history, move],
     status: applied.exited ? "COMPLETED" : "PLAYING", endedAt: applied.exited ? now : null };
 }
+
+export function undoSession(session: Session, puzzle: Puzzle): Session {
+  if (session.status !== "PLAYING" || session.history.length === 0) return session;
+  const history = session.history.slice(0, -1);
+  const blocks = history.reduce((current, move) => applyMove(current, move).blocks, puzzle.blocks);
+  return { ...session, status: "PLAYING", blocks, history, endedAt: null };
+}

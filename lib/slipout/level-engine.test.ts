@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { execFileSync } from "node:child_process";
 import { SlipOutLevels } from "@/components/slipout-levels";
 import catalog from "./levels.json";
-import { applyLevelMove, initialLevelState, levelRange, solveLevel, solveLevelPath, validLevel, type Level } from "./level-engine";
+import { applyLevelMove, initialLevelState, levelRange, replayLevelMoves, solveLevel, solveLevelPath, validLevel, type Level } from "./level-engine";
 
 const levels = catalog as Level[];
 const retainedBoards = new Set([1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 13, 14, 15,
@@ -22,6 +22,7 @@ describe("SlipOut level catalog", () => {
     expect(html).toContain('class="so-switch');
     expect(html).toContain("so-level-exit");
     expect(html).toContain(">Restart</button>");
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Undo<\/button>/);
     expect(html).not.toContain("Start tutorial");
     const target = html.match(/<div[^>]*class="so-block so-target[^"]*"[^>]*>/)?.[0];
     expect(target).toBeDefined();
@@ -110,6 +111,21 @@ describe("SlipOut level catalog", () => {
     state = applyLevelMove(level, state, { id: "X", axis: "H", to: 2 }).state;
     expect(state.activeAxis).toBe("V"); // Cell 3 is new, cell 2 was already covered.
     expect(() => levelRange(level, state, "X", "H")).toThrow();
+  });
+
+  it("replays remaining moves to restore positions and the previous active axis", () => {
+    const level = simple("top", 2, 0, 2);
+    const moves = [
+      { id: "X", axis: "H" as const, to: 2 },
+      { id: "X", axis: "V" as const, to: 3 }
+    ];
+    const played = replayLevelMoves(level, moves);
+    expect(played).toMatchObject({ activeAxis: "V", blocks: [{ id: "X", x: 2, y: 3 }] });
+    const once = replayLevelMoves(level, moves.slice(0, -1));
+    expect(once).toMatchObject({ activeAxis: "V", blocks: [{ id: "X", x: 2, y: 2 }] });
+    const twice = replayLevelMoves(level, []);
+    expect(twice).toEqual(initialLevelState(level));
+    expect(played.blocks[0]).toMatchObject({ x: 2, y: 3 });
   });
 
   it.each([
