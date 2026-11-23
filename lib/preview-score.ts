@@ -142,10 +142,68 @@ function travle(rawText: string): ParsedSubmission {
   };
 }
 
+const farflungDistances: Record<string, number> = {
+  Miss: 0,
+  Common: 40,
+  Uncommon: 55,
+  Rare: 70,
+  Elusive: 85,
+  Farflung: 100,
+};
+
+function farflung(rawText: string): ParsedSubmission {
+  const text = rawText.trim();
+  if (!text) throw new Error("Paste your complete Farflung result first.");
+  if (text.length > 10_000) throw new Error("Result text is too long.");
+  const lines = text.split(/\r\n|\n|\r/).map(line => line.trim()).filter(Boolean);
+  if (lines.length !== 3) throw new Error("Paste a complete standard Farflung daily result.");
+
+  const header = /^Farflung #([1-9][0-9]*) · ([0-9]{1,3})\/500 km$/.exec(lines[0]);
+  if (!header) throw new Error("Farflung needs a numbered expedition and distance out of 500 km.");
+  const puzzle = Number(header[1]);
+  if (!Number.isSafeInteger(puzzle) || puzzle < 1 || puzzle > 100_000) {
+    throw new Error("Farflung expedition number is invalid.");
+  }
+  const distance = Number(header[2]);
+
+  const rarities = lines[1].split(" · ");
+  if (rarities.length !== 5 || rarities.some(rarity => farflungDistances[rarity] === undefined)) {
+    throw new Error("Farflung results must contain exactly five valid rarity labels.");
+  }
+  const expectedDistance = rarities.reduce((sum, rarity) => sum + farflungDistances[rarity], 0);
+  if (distance !== expectedDistance) throw new Error("Farflung distance does not match the five rarity results.");
+
+  const shareUrl = /^https:\/\/farflung\.game\/s\/[a-z0-9]{6}\?e=([1-9][0-9]*)$/.exec(lines[2]);
+  if (!shareUrl || Number(shareUrl[1]) !== puzzle) {
+    throw new Error("Farflung needs its matching official result link.");
+  }
+
+  const playedOn = puzzleDate("2026-10-05", puzzle);
+  const tomorrow = new Date(Date.now() + DAY_MS).toISOString().slice(0, 10);
+  if (playedOn > tomorrow) throw new Error("That Farflung expedition appears to be dated in the future.");
+  return {
+    puzzleKey: String(puzzle),
+    puzzleNumber: puzzle,
+    playedOn,
+    primaryScore: distance,
+    metrics: {
+      completionStatus: "WIN",
+      distanceKm: distance,
+      rarities,
+      gameMode: "Daily",
+      scoreRaw: `${distance}/500 km`,
+      scoreUnit: "km",
+      displayScore: `${distance}/500 km`,
+    },
+    parserVersion: 1,
+  };
+}
+
 export function previewScore(gameSlug: string, rawText: string): ParsedSubmission {
   if (gameSlug === "fermi") return fermi(rawText);
   if (gameSlug === "krillion") return krillion(rawText);
   if (gameSlug === "travle") return travle(rawText);
+  if (gameSlug === "farflung") return farflung(rawText);
   if (["wordle", "pinpoint", "queens", "crossclimb", "tango", "zip"].includes(gameSlug)) return extendedPreviewScore(gameSlug, rawText);
   throw new Error("Preview is not available for this game yet.");
 }

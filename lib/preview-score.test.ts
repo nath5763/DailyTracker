@@ -71,3 +71,45 @@ test("rejects malformed or mismatched Travle shares", () => {
   ];
   for (const share of invalid) expect(() => previewScore("travle", share)).toThrow();
 });
+
+test("previews the supplied Farflung result with verified rarities and date", () => {
+  const share = "Farflung #50 · 195/500 km\nMiss · Elusive · Rare · Miss · Common\nhttps://farflung.game/s/qtrtpp?e=50";
+  expect(previewScore("farflung", share)).toEqual({
+    puzzleKey: "50",
+    puzzleNumber: 50,
+    playedOn: "2026-11-23",
+    primaryScore: 195,
+    metrics: {
+      completionStatus: "WIN",
+      distanceKm: 195,
+      rarities: ["Miss", "Elusive", "Rare", "Miss", "Common"],
+      gameMode: "Daily",
+      scoreRaw: "195/500 km",
+      scoreUnit: "km",
+      displayScore: "195/500 km",
+    },
+    parserVersion: 1,
+  });
+});
+
+test("accepts Farflung score boundaries and rejects malformed or starred shares", () => {
+  expect(previewScore("farflung", "Farflung #1 · 0/500 km\n" +
+    "Miss · Miss · Miss · Miss · Miss\nhttps://farflung.game/s/aaaaaa?e=1").primaryScore).toBe(0);
+  expect(previewScore("farflung", "Farflung #1 · 500/500 km\n" +
+    "Farflung · Farflung · Farflung · Farflung · Farflung\nhttps://farflung.game/s/zzzzzz?e=1").primaryScore).toBe(500);
+
+  const share = "Farflung #50 · 195/500 km\nMiss · Elusive · Rare · Miss · Common\nhttps://farflung.game/s/qtrtpp?e=50";
+  const invalid = [
+    share.replace("195/500", "196/500"),
+    share.replace("Miss · Common", "Common"),
+    share.replace("Common", "Legendary"),
+    share.replace("?e=50", "?e=49"),
+    share.replace("farflung.game", "example.com"),
+    share.replace("qtrtpp", "QTRTPP"),
+    share.replace("#50", "#050"),
+    share.replace("195/500 km", "195/500 km ★"),
+    share + "\nWordle 1 1/6",
+    "Farflung #100000 · 0/500 km\nMiss · Miss · Miss · Miss · Miss\nhttps://farflung.game/s/aaaaaa?e=100000",
+  ];
+  for (const value of invalid) expect(() => previewScore("farflung", value)).toThrow();
+});

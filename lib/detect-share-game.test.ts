@@ -41,3 +41,9 @@ test("detects both Travle share modes without matching practice or mixed shares"
   expect(detectShareGame("#travle_practice #1 +0", ["travle"])).toBeNull();
   expect(detectShareGame("#travle #1439 +0\nWordle 1961 2/6", ["travle", "wordle"])).toBeNull();
 });
+
+test("detects a Farflung daily result", () => {
+  const share = "Farflung #50 · 195/500 km\nMiss · Elusive · Rare · Miss · Common\nhttps://farflung.game/s/qtrtpp?e=50";
+  expect(detectShareGame(share, ["farflung"])).toBe("farflung");
+  expect(detectShareGame(share + "\nWordle 1961 2/6", ["farflung", "wordle"])).toBeNull();
+});
