@@ -113,3 +113,80 @@ test("accepts Farflung score boundaries and rejects malformed or starred shares"
   ];
   for (const value of invalid) expect(() => previewScore("farflung", value)).toThrow();
 });
+
+const perceptleShare = "Perceptle #129 - C (62)\n" +
+  "🔢 13  🎯 93  📐 93  🥁 11  ✂️ 98\nhttps://perceptle.io/";
+
+function perceptleGrade(score: number) {
+  if (score >= 95) return "S";
+  if (score >= 85) return "A";
+  if (score >= 70) return "B";
+  if (score >= 55) return "C";
+  if (score >= 40) return "D";
+  return "F";
+}
+
+function makePerceptleShare(overall: number, scores: number[], puzzle = 1) {
+  return `Perceptle #${puzzle} - ${perceptleGrade(overall)} (${overall})\n` +
+    `🔢 ${scores[0]}  🎯 ${scores[1]}  📐 ${scores[2]}  🥁 ${scores[3]}  ✂️ ${scores[4]}\n` +
+    "https://perceptle.io/";
+}
+
+test("previews the supplied Perceptle result with verified score, grade, events, and date", () => {
+  expect(previewScore("perceptle", perceptleShare)).toEqual({
+    puzzleKey: "129",
+    puzzleNumber: 129,
+    playedOn: "2026-11-23",
+    primaryScore: 62,
+    metrics: {
+      completionStatus: "WIN",
+      overallScore: 62,
+      countScore: 13,
+      trackScore: 93,
+      angleScore: 93,
+      tempoScore: 11,
+      splitScore: 98,
+      grade: "C",
+      gameMode: "Daily",
+      scoreRaw: "62",
+      scoreUnit: "points",
+      displayScore: "C (62)",
+    },
+    parserVersion: 1,
+  });
+});
+
+test("accepts Perceptle boundaries, grade thresholds, rounding, and variable spacing", () => {
+  expect(previewScore("perceptle", makePerceptleShare(0, [0, 0, 0, 0, 0])).primaryScore).toBe(0);
+  expect(previewScore("perceptle", makePerceptleShare(100, [100, 100, 100, 100, 100])).primaryScore).toBe(100);
+  for (const score of [40, 55, 70, 85, 95]) {
+    expect(previewScore("perceptle", makePerceptleShare(score, Array(5).fill(score))).metrics.grade)
+      .toBe(perceptleGrade(score));
+  }
+  const expected = [50, 50, 50, 51, 51];
+  for (let remainder = 0; remainder < 5; remainder++) {
+    expect(previewScore("perceptle", makePerceptleShare(expected[remainder], [50 + remainder, 50, 50, 50, 50])).primaryScore)
+      .toBe(expected[remainder]);
+  }
+  expect(previewScore("perceptle", perceptleShare.replaceAll("  ", "\t   ").replace("✂️ 98", "✂98")).primaryScore)
+    .toBe(62);
+});
+
+test("rejects malformed, mismatched, future, non-daily, and mixed Perceptle shares", () => {
+  const invalid = [
+    perceptleShare.replace("C (62)", "C (63)"),
+    perceptleShare.replace("C (62)", "B (62)"),
+    perceptleShare.replace("✂️ 98", ""),
+    perceptleShare.replace("✂️ 98", "✂️ 98  🔢 13"),
+    perceptleShare.replace("🔢 13", "🔢 101"),
+    perceptleShare.replace("#129", "#0"),
+    perceptleShare.replace("#129", "#0129"),
+    perceptleShare.replace("#129", "#100000"),
+    perceptleShare.replace("perceptle.io", "example.com"),
+    perceptleShare.replace("https://perceptle.io/", "https://perceptle.io/unlimited/"),
+    perceptleShare.replace("#129 -", "#129 🃏 -"),
+    perceptleShare.replace("C (62)", "C (62) ★"),
+    perceptleShare + "\nWordle 1 1/6",
+  ];
+  for (const value of invalid) expect(() => previewScore("perceptle", value)).toThrow();
+});

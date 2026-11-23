@@ -199,11 +199,82 @@ function farflung(rawText: string): ParsedSubmission {
   };
 }
 
+const perceptleScores = /^🔢\s*([0-9]{1,3})\s*🎯\s*([0-9]{1,3})\s*📐\s*([0-9]{1,3})\s*🥁\s*([0-9]{1,3})\s*✂\uFE0F?\s*([0-9]{1,3})$/u;
+
+function perceptleGrade(score: number) {
+  if (score >= 95) return "S";
+  if (score >= 85) return "A";
+  if (score >= 70) return "B";
+  if (score >= 55) return "C";
+  if (score >= 40) return "D";
+  return "F";
+}
+
+function perceptle(rawText: string): ParsedSubmission {
+  const text = rawText.trim();
+  if (!text) throw new Error("Paste your complete Perceptle result first.");
+  if (text.length > 10_000) throw new Error("Result text is too long.");
+  const lines = text.split(/\r\n|\n|\r/).map(line => line.trim()).filter(Boolean);
+  if (lines.length !== 3) throw new Error("Paste a complete standard Perceptle daily result.");
+
+  const header = /^Perceptle #([1-9][0-9]*) - ([SABCDF]) \(([0-9]{1,3})\)$/.exec(lines[0]);
+  if (!header) throw new Error("Perceptle needs a numbered daily score and grade.");
+  const puzzle = Number(header[1]);
+  if (!Number.isSafeInteger(puzzle) || puzzle < 1 || puzzle > 100_000) {
+    throw new Error("Perceptle puzzle number is invalid.");
+  }
+  const grade = header[2];
+  const overallScore = Number(header[3]);
+  if (overallScore > 100) throw new Error("Perceptle scores must be between 0 and 100.");
+
+  const scoreMatch = perceptleScores.exec(lines[1]);
+  if (!scoreMatch) throw new Error("Perceptle results must contain exactly five valid event scores.");
+  const eventScores = scoreMatch.slice(1).map(Number);
+  if (eventScores.some(score => score > 100)) {
+    throw new Error("Perceptle event scores must be between 0 and 100.");
+  }
+  const expectedOverall = Math.round(eventScores.reduce((sum, score) => sum + score, 0) / 5);
+  if (overallScore !== expectedOverall) {
+    throw new Error("Perceptle score does not match the rounded event average.");
+  }
+  if (grade !== perceptleGrade(overallScore)) {
+    throw new Error("Perceptle grade does not match the overall score.");
+  }
+  if (lines[2] !== "https://perceptle.io/") throw new Error("Perceptle needs its official result link.");
+
+  const playedOn = puzzleDate("2026-07-18", puzzle);
+  if (playedOn > new Date().toISOString().slice(0, 10)) {
+    throw new Error("That Perceptle puzzle appears to be dated in the future.");
+  }
+  return {
+    puzzleKey: String(puzzle),
+    puzzleNumber: puzzle,
+    playedOn,
+    primaryScore: overallScore,
+    metrics: {
+      completionStatus: "WIN",
+      overallScore,
+      countScore: eventScores[0],
+      trackScore: eventScores[1],
+      angleScore: eventScores[2],
+      tempoScore: eventScores[3],
+      splitScore: eventScores[4],
+      grade,
+      gameMode: "Daily",
+      scoreRaw: String(overallScore),
+      scoreUnit: "points",
+      displayScore: `${grade} (${overallScore})`,
+    },
+    parserVersion: 1,
+  };
+}
+
 export function previewScore(gameSlug: string, rawText: string): ParsedSubmission {
   if (gameSlug === "fermi") return fermi(rawText);
   if (gameSlug === "krillion") return krillion(rawText);
   if (gameSlug === "travle") return travle(rawText);
   if (gameSlug === "farflung") return farflung(rawText);
+  if (gameSlug === "perceptle") return perceptle(rawText);
   if (["wordle", "pinpoint", "queens", "crossclimb", "tango", "zip"].includes(gameSlug)) return extendedPreviewScore(gameSlug, rawText);
   throw new Error("Preview is not available for this game yet.");
 }

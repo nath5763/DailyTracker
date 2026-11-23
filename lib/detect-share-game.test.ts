@@ -47,3 +47,9 @@ test("detects a Farflung daily result", () => {
   expect(detectShareGame(share, ["farflung"])).toBe("farflung");
   expect(detectShareGame(share + "\nWordle 1961 2/6", ["farflung", "wordle"])).toBeNull();
 });
+
+test("detects a Perceptle daily result without accepting a mixed share", () => {
+  const share = "Perceptle #129 - C (62)\n🔢 13  🎯 93  📐 93  🥁 11  ✂️ 98\nhttps://perceptle.io/";
+  expect(detectShareGame(share, ["perceptle"])).toBe("perceptle");
+  expect(detectShareGame(share + "\nWordle 1961 2/6", ["perceptle", "wordle"])).toBeNull();
+});
