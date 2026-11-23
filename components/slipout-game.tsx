@@ -8,6 +8,7 @@ import { puzzleForDate, todayUtc, type Puzzle } from "@/lib/slipout/puzzles";
 import { resultFromSession, shareText, type SlipOutResult } from "@/lib/slipout/results";
 import { moveSession, readySession, startSession, undoSession, type Session } from "@/lib/slipout/session";
 import type { Block, Move } from "@/lib/slipout/model";
+import { invalidateDashboardCache } from "@/lib/client-cache";
 
 type ServerStart = { attemptId: string };
 type ServerFinish = { result: SlipOutResult; best: SlipOutResult | null };
@@ -22,7 +23,7 @@ async function api<T>(path: string, method = "GET", body?: unknown): Promise<T> 
   return value as T;
 }
 
-export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
+export function SlipOutGame({ signedIn, userId }: { signedIn: boolean; userId?: string | null }) {
   const [puzzle, setPuzzle] = useState(() => puzzleForDate(todayUtc()));
   const [session, setSession] = useState(() => readySession(puzzle));
   const sessionRef = useRef(session);
@@ -66,6 +67,7 @@ export function SlipOutGame({ signedIn }: { signedIn: boolean }) {
       setBusy(true);
       try {
         const saved = await api<ServerFinish>("/finish", "POST", { attemptId, moves: finished.history });
+        invalidateDashboardCache(userId);
         if (attemptRef.current === attemptId) { setResult(saved.result); setBest(saved.best); }
       } catch (error) { setMessage(error instanceof Error ? error.message : "Could not verify this result."); }
       finally { setBusy(false); }

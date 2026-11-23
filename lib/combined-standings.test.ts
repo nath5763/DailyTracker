@@ -12,10 +12,10 @@ const ranking = (values: Partial<Ranking> = {}): Ranking => ({
   ...values,
 });
 
-test("formats authoritative combined performance to one decimal", () => {
+test("formats authoritative combined performance with at most two decimals", () => {
   const row = ranking({ leaderboardPoints: 92.75, average: 12 });
   expect(combinedPerformanceScore(row)).toBe(92.75);
-  expect(formatCombinedPerformance(row)).toBe("92.8");
+  expect(formatCombinedPerformance(row)).toBe("92.75");
 });
 
 test("uses the normalized 0–100 bar scale and handles missing or defensive out-of-range values", () => {

@@ -10,5 +10,5 @@ export const metadata: Metadata = {
 
 export default async function BloomAndBoomPage() {
   const viewer = await getViewer();
-  return <main><SiteHeader viewer={viewer} /><BloomAndBoomGame signedIn={!!viewer.profile} /></main>;
+  return <main><SiteHeader viewer={viewer} /><BloomAndBoomGame signedIn={!!viewer.profile} userId={viewer.profile?.userId} /></main>;
 }

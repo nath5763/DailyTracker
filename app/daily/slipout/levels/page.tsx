@@ -6,5 +6,5 @@ import { SlipOutExperience } from "@/components/slipout-experience";
 export const metadata: Metadata = { title: "SlipOut Levels" };
 export default async function LevelsPage() {
   const viewer = await getViewer();
-  return <main><SiteHeader viewer={viewer} /><SlipOutExperience signedIn={!!viewer.profile} initialMode="levels" /></main>;
+  return <main><SiteHeader viewer={viewer} /><SlipOutExperience signedIn={!!viewer.profile} userId={viewer.profile?.userId} initialMode="levels" /></main>;
 }

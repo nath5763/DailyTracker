@@ -7,5 +7,5 @@ export const metadata: Metadata = { title: "SlipOut" };
 
 export default async function SlipOutPage() {
   const viewer = await getViewer();
-  return <main><SiteHeader viewer={viewer} /><SlipOutExperience signedIn={!!viewer.profile} /></main>;
+  return <main><SiteHeader viewer={viewer} /><SlipOutExperience signedIn={!!viewer.profile} userId={viewer.profile?.userId} /></main>;
 }

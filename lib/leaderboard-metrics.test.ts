@@ -12,12 +12,12 @@ const ranking = (values: Partial<Ranking> = {}): Ranking => ({
   ...values,
 });
 
-test("formats backend averages to one decimal only at display time", () => {
-  expect(formatAveragePlacement(1.45)).toBe("#1.5");
-  expect(formatAverageScore(23.75)).toBe("23.8");
+test("formats backend averages with at most two decimals only at display time", () => {
+  expect(formatAveragePlacement(1.45)).toBe("#1.45");
+  expect(formatAverageScore(23.75)).toBe("23.75");
   expect(aggregateMetrics(ranking({ averagePlacement: 2, averageScore: 12 }))).toEqual({
-    averagePlacement: "#2.0",
-    averageScore: "12.0",
+    averagePlacement: "#2",
+    averageScore: "12",
     resultsPlayed: 3,
   });
 });

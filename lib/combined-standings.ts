@@ -1,4 +1,5 @@
 import type { Ranking } from "@/lib/types";
+import { formatNumber } from "@/lib/format";
 
 export function combinedPerformanceScore(ranking: Ranking): number | null {
   const value = ranking.leaderboardPoints ?? ranking.average;
@@ -7,11 +8,7 @@ export function combinedPerformanceScore(ranking: Ranking): number | null {
 
 export function formatCombinedPerformance(ranking: Ranking): string {
   const score = combinedPerformanceScore(ranking);
-  return score === null ? "—" : score.toLocaleString("en-US", {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-    useGrouping: false,
-  });
+  return formatNumber(score);
 }
 
 export function combinedPerformanceBar(ranking: Ranking): number {

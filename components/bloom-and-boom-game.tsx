@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatBloomTime } from "@/lib/bloom-and-boom/format";
+import { invalidateDashboardCache } from "@/lib/client-cache";
 
 type Position = { row: number; column: number };
 type Cell = Position & { kind: "SAFE" | "HAZARD" };
@@ -35,7 +36,7 @@ async function request(path = "", method = "GET", body?: unknown): Promise<Daily
 }
 
 function cellKey(row: number, column: number) { return `${row}:${column}`; }
-export function BloomAndBoomGame({ signedIn }: { signedIn: boolean }) {
+export function BloomAndBoomGame({ signedIn, userId }: { signedIn: boolean; userId?: string | null }) {
   const [puzzle, setPuzzle] = useState<DailyPuzzle | null>(null);
   const [flags, setFlags] = useState<Set<string>>(new Set());
   const [flagMode, setFlagMode] = useState(false);
@@ -94,7 +95,12 @@ export function BloomAndBoomGame({ signedIn }: { signedIn: boolean }) {
     if (busyCell || visible.has(key)) return;
     if (flagMode || flags.has(key)) { toggleFlag(row, column); return; }
     setBusyCell(key); setMessage("");
-    try { setPuzzle(await request("/reveal", "POST", { row, column })); setNow(Date.now()); }
+    try {
+      const next = await request("/reveal", "POST", { row, column });
+      setPuzzle(next);
+      if (next.status === "WON" || next.status === "LOST") invalidateDashboardCache(userId);
+      setNow(Date.now());
+    }
     catch (error) { setMessage(error instanceof Error ? error.message : "That tile could not be turned."); }
     finally { setBusyCell(null); }
   }

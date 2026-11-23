@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { formatRankingScore, formatResultDetails, formatScore } from "./format";
+import { formatNumber, formatNumericDisplay, formatRankingScore, formatResultDetails, formatScore } from "./format";
 
 describe("score formatting", () => {
   it("formats backend numeric values consistently", () => {
-    expect(formatScore(1.3)).toBe("1.30×");
+    expect(formatScore(1.3)).toBe("1.3×");
     expect(formatScore(null)).toBe("—");
   });
 
@@ -14,9 +14,25 @@ describe("score formatting", () => {
   });
 });
 
+it("formats ordinary numeric values with at most two decimals", () => {
+  expect(formatNumber(1)).toBe("1");
+  expect(formatNumber(1.5)).toBe("1.5");
+  expect(formatNumber(1.234)).toBe("1.23");
+  expect(formatNumber(-1.235)).toBe("-1.24");
+  expect(formatNumber(null)).toBe("—");
+  expect(formatNumber(Number.NaN)).toBe("—");
+});
+
+it("rounds simple stored numeric labels without changing compound game displays", () => {
+  expect(formatNumericDisplay("1.234×")).toBe("1.23×");
+  expect(formatNumericDisplay("1.00×")).toBe("1×");
+  expect(formatNumericDisplay("3/4 · 32")).toBe("3/4 · 32");
+  expect(formatNumericDisplay("1:38")).toBe("1:38");
+});
+
 it("formats verified per-guess result details", () => {
-  expect(formatResultDetails([{ label: "Q1", value: "1.20×" }, { label: "Q2", value: "1.40×" }]))
-    .toBe("Q1 1.20× · Q2 1.40×");
+  expect(formatResultDetails([{ label: "Q1", value: "1.20×" }, { label: "Q2", value: "1.456×" }]))
+    .toBe("Q1 1.2× · Q2 1.46×");
   expect(formatResultDetails()).toBe("");
 });
 

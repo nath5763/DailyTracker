@@ -93,7 +93,7 @@ test("shows verified per-guess details on today's leaderboard", () => {
     absent: [], range: "today", dailyResults: [{ userId: "viewer", puzzleKey: "7", details: [
       { label: "Q1", value: "1.20×" }, { label: "Q2", value: "1.40×" }, { label: "Q3", value: "2.10×" },
     ] }] };
-  expect(render()).toContain("Q1 1.20× · Q2 1.40× · Q3 2.10×");
+  expect(render()).toContain("Q1 1.2× · Q2 1.4× · Q3 2.1×");
 });
 
 test("shows aggregate placement, score, participation, and the current player without changing order", () => {
@@ -113,8 +113,8 @@ test("shows aggregate placement, score, participation, and the current player wi
   expect(state.cachePathArgs).toEqual(["board", "fermi", "7d"]);
   expect(html.indexOf("Leader")).toBeLessThan(html.indexOf("Viewer"));
   expect(html).toContain("#1.5");
-  expect(html).toContain("23.8");
-  expect(html).toContain("12.0");
+  expect(html).toContain("23.75");
+  expect(html).toContain("12");
   expect(html).toContain("2 results submitted");
   expect(html).toContain("5 results submitted");
   expect(html).toContain("Avg. placement");
@@ -131,7 +131,7 @@ test("keeps today's raw result presentation and handles missing aggregate metric
       gamesPlayed: 1, displayScore: "10.00×" },
   ], absent: [], range: "today" };
   const today = render();
-  expect(today).toContain("10.00×");
+  expect(today).toContain("10×");
   expect(today).not.toContain("Avg. placement");
 
   state.board = { ...state.board as object, range: "30d", rankings: [
@@ -224,8 +224,8 @@ test("renders combined standings as normalized performance bars with authoritati
     ] };
   const html = render({ requestedRange: "30d" });
   expect(html).toContain("ALL GAMES · LAST 30 DAYS");
-  expect(html).toContain("92.8");
-  expect(html).toContain("64.0");
+  expect(html).toContain("92.75");
+  expect(html).toContain("64");
   expect(html).toContain('style="width:92.75%"');
   expect(html).toContain('style="width:64%"');
   expect(html).toContain("60 games played");

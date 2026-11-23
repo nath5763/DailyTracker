@@ -1,5 +1,6 @@
 import type { ParsedSubmission } from "./types";
 import { extendedPreviewScore } from "./extended-preview-score";
+import { formatNumber } from "./format";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const multiplier = /(\d+(?:[.,]\d+)*)\s*[×x]/gi;
@@ -24,23 +25,17 @@ function fermi(rawText: string): ParsedSubmission {
   const puzzle = puzzleMatch ? Number(puzzleMatch[1]) : NaN;
   if (!Number.isSafeInteger(puzzle) || puzzle < 1 || puzzle > 2_147_483_647) errors.push("Could not find a valid Fermi puzzle number.");
   const scoreMatch = /(\d+(?:[.,]\d+)*)\s*[×x]\s*score\b/i.exec(text);
-  let scoreToken = scoreMatch?.[1];
   let score = scoreMatch ? decimal(scoreMatch[1]) : NaN;
   if (!Number.isFinite(score)) {
     const scoreLine = text.split(/\r\n|\n|\r/).find((line) => line.toLowerCase().includes("score") && /(\d+(?:[.,]\d+)*)\s*[×x]/i.test(line));
     const fallback = scoreLine ? /(\d+(?:[.,]\d+)*)\s*[×x]/i.exec(scoreLine) : null;
-    scoreToken = fallback?.[1];
     score = fallback ? decimal(fallback[1]) : NaN;
   }
   if (!Number.isFinite(score) || score < 1) errors.push("Could not find a valid final score of 1× or greater.");
   if (errors.length) throw new Error(errors.join(" "));
 
   const metrics: Record<string, unknown> = {};
-  if (scoreToken) {
-    const display = /^[0-9]{1,3}(,[0-9]{3})+(?:\.[0-9]+)?$/.test(scoreToken)
-      ? scoreToken : scoreToken.replace(",", ".");
-    metrics.displayScore = `${display}×`;
-  }
+  metrics.displayScore = `${formatNumber(score)}×`;
   const percentile = /top\s*(\d+(?:\.\d+)?)\s*%/i.exec(text);
   if (percentile) metrics.percentile = Number(percentile[1]);
   const components: number[] = [];

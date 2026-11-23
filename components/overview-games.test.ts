@@ -68,7 +68,7 @@ test("history renders server pagination, deterministic order, and game-specific 
 test("submission details render complete metadata and preserve original share-text line breaks", () => {
   const detail: SubmissionDetail = {
     id: "submission-id", puzzleKey: "200", playedOn: "2026-11-21", submittedAt: "2026-11-21T15:30:00Z",
-    primaryScore: 4, metrics: { displayScore: "4/6", clueUsed: true, components: [1, 2, 3] },
+    primaryScore: 4.234, metrics: { displayScore: "4/6", clueUsed: true, components: [1.234, 2, 3] },
     submissionMethod: "SHARE_TEXT", parserVersion: 3, rawText: "Wordle 200 4/6\nâ¬›ðŸŸ©â¬›ðŸŸ©â¬›\nðŸŸ©ðŸŸ©ðŸŸ©ðŸŸ©ðŸŸ©", game,
     details: [{ label: "Hints", value: "0" }],
   };
@@ -76,6 +76,9 @@ test("submission details render complete metadata and preserve original share-te
   const html = renderToStaticMarkup(createElement(SubmissionDetails, { id: detail.id, onClose: vi.fn() }));
   expect(html).toContain("Formatted score");
   expect(html).toContain("4/6");
+  expect(html).toContain("4.23");
+  expect(html).toContain("[1.23, 2, 3]");
+  expect(html).not.toContain("1.234");
   expect(html).toContain("Clue Used");
   expect(html).toContain("Wordle 200 4/6\n");
   expect(html).toContain("Original share text");

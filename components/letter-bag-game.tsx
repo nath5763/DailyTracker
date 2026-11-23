@@ -6,6 +6,7 @@ import type { Round, Tile, Word } from "@/lib/letter-bag/engine";
 import { LetterBagPlayHistory, LetterBagTileFace, potentialWordPoints } from "@/components/letter-bag-play-details";
 import { reconcileTileDisplayOrder, shuffleTileDisplayOrder, tilesInDisplayOrder } from "@/lib/letter-bag/display-order";
 import { baseWordPoints, letterBonus } from "@/lib/letter-bag/scoring";
+import { invalidateDashboardCache } from "@/lib/client-cache";
 
 type View = { date: string; gameNumber: string; rack: Tile[]; preview: Tile[]; bagRemaining: number; words: Word[]; score: number; startedAt: number | null; endedAt: number | null };
 const day = () => new Date().toISOString().slice(0, 10);
@@ -16,7 +17,7 @@ async function request(path: string, method = "GET", ids?: number[]): Promise<Vi
   if (!response.ok) throw new Error(data.error || "Could not load Letter Bag.");
   return data;
 }
-export function LetterBagGame({ saved }: { saved: boolean }) {
+export function LetterBagGame({ saved, userId }: { saved: boolean; userId?: string | null }) {
   const [view, setView] = useState<View | null>(null);
   const [local, setLocal] = useState<Round | null>(null);
   const [practice, setPractice] = useState(false);
@@ -44,6 +45,9 @@ export function LetterBagGame({ saved }: { saved: boolean }) {
         setLocal(round); nextView = localView(round);
       }
       if (nextView) {
+        if (saved && !practice && view.endedAt === null && nextView.endedAt !== null) {
+          invalidateDashboardCache(userId);
+        }
         const oldIds = new Set(view.rack.map(tile => tile.id));
         setFreshTiles(action === "words" && nextView.words.length > view.words.length
           ? nextView.rack.filter(tile => !oldIds.has(tile.id)).map(tile => tile.id) : []);
@@ -58,7 +62,7 @@ export function LetterBagGame({ saved }: { saved: boolean }) {
       setSelected([]);
     } catch (error) { setMessage(error instanceof Error ? error.message : "Something went wrong."); if (saved && !practice) request("").then(recovered => { setView(recovered); setDisplayOrder(current => reconcileTileDisplayOrder(current, recovered.rack)); }).catch(() => {}); }
     finally { setBusy(false); }
-  }, [view, busy, saved, practice, selected, local]);
+  }, [view, busy, saved, practice, selected, local, userId]);
   const replay = useCallback(async () => {
     if (!view || busy) return;
     setBusy(true); setMessage("");

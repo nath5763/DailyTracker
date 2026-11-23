@@ -7,5 +7,5 @@ export const metadata: Metadata = { title: "How to Play SlipOut" };
 
 export default async function SlipOutHowToPlayPage() {
   const viewer = await getViewer();
-  return <main><SiteHeader viewer={viewer} /><SlipOutExperience signedIn={!!viewer.profile} initialMode="how-to-play" /></main>;
+  return <main><SiteHeader viewer={viewer} /><SlipOutExperience signedIn={!!viewer.profile} userId={viewer.profile?.userId} initialMode="how-to-play" /></main>;
 }

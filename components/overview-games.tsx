@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { AppLink } from "@/components/app-link";
 import { useCachedApi } from "@/lib/client-cache";
-import { formatScore, formatStoredScore } from "@/lib/format";
+import { formatNumber, formatNumericDisplay, formatResultDetails, formatScore, formatStoredScore } from "@/lib/format";
 import type { Game, GameStats, SubmissionDetail, SubmissionHistory, SubmissionTrendPoint } from "@/lib/types";
 
 const INITIAL_GAME_LIMIT = 8;
@@ -92,7 +92,7 @@ export function GameDetails({ gameSlug, page, selectedSubmissionId, onPageChange
         const open = selectedSubmissionId === submission.id;
         return <div className="submission-history-item" key={submission.id}>
           <button type="button" aria-expanded={open} onClick={() => onSubmissionChange(open ? null : submission.id)}>
-            <span className="submission-history-date"><strong>{formatPlayedOn(submission.playedOn)}</strong><small>{data.game.submission.puzzleLabel} {submission.puzzleKey}{submission.submissionMethod === "MANUAL" ? " · Manual · unverified" : ""}</small>{submission.details.length ? <small className="submission-history-details">{submission.details.map(detail => `${detail.label} ${detail.value}`).join(" · ")}</small> : null}</span>
+            <span className="submission-history-date"><strong>{formatPlayedOn(submission.playedOn)}</strong><small>{data.game.submission.puzzleLabel} {submission.puzzleKey}{submission.submissionMethod === "MANUAL" ? " · Manual · unverified" : ""}</small>{submission.details.length ? <small className="submission-history-details">{formatResultDetails(submission.details)}</small> : null}</span>
             <strong className="submission-history-score">{formatStoredScore(submission, data.game)}</strong>
             <span className="submission-expand-mark" aria-hidden="true">{open ? "−" : "+"}</span>
           </button>
@@ -121,10 +121,10 @@ export function SubmissionDetails({ id, onClose }: { id: string; onClose: () => 
       <div><dt>Played</dt><dd>{formatPlayedOn(data.playedOn)}</dd></div>
       <div><dt>Submitted</dt><dd>{formatSubmittedAt(data.submittedAt)}</dd></div>
       <div><dt>Formatted score</dt><dd>{formatStoredScore(data, data.game)}</dd></div>
-      <div><dt>Raw score</dt><dd>{data.primaryScore}</dd></div>
+      <div><dt>Raw score</dt><dd>{formatNumber(data.primaryScore)}</dd></div>
       <div><dt>Submission ID</dt><dd className="monospace">{data.id}</dd></div>
     </dl>
-    {data.details.length ? <div className="submission-breakdown"><h5>Result breakdown</h5><dl>{data.details.map(detail => <div key={`${detail.label}-${detail.value}`}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl></div> : null}
+    {data.details.length ? <div className="submission-breakdown"><h5>Result breakdown</h5><dl>{data.details.map(detail => <div key={`${detail.label}-${detail.value}`}><dt>{detail.label}</dt><dd>{formatNumericDisplay(detail.value)}</dd></div>)}</dl></div> : null}
     {metadata.length ? <details className="submission-metadata"><summary>All saved metadata</summary><dl>{metadata.map(([key, value]) => <div key={key}><dt>{humanizeKey(key)}</dt><dd>{formatMetadataValue(value)}</dd></div>)}</dl></details> : null}
     {data.rawText ? <div className="submission-share-text"><h5>Original share text</h5><pre>{data.rawText}</pre></div> : null}
   </section>;
@@ -169,6 +169,15 @@ function humanizeKey(value: string): string {
 
 function formatMetadataValue(value: unknown): string {
   if (typeof value === "boolean") return value ? "Yes" : "No";
-  if (typeof value === "string" || typeof value === "number") return String(value);
-  return JSON.stringify(value);
+  if (typeof value === "number") return formatNumber(value);
+  if (typeof value === "string") return value;
+  return formatMetadataJson(value);
+}
+
+function formatMetadataJson(value: unknown): string {
+  if (typeof value === "number") return formatNumber(value);
+  if (Array.isArray(value)) return `[${value.map(formatMetadataJson).join(", ")}]`;
+  if (value && typeof value === "object") return `{${Object.entries(value)
+    .map(([key, item]) => `${JSON.stringify(key)}: ${formatMetadataJson(item)}`).join(", ")}}`;
+  return JSON.stringify(value) ?? String(value);
 }

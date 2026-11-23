@@ -59,9 +59,9 @@ test("shows the summary, formatted results, and retained profile link", () => {
   expect(html).toContain("Avg. placement");
   expect(html).toContain("#1.5");
   expect(html).toContain("Avg. score");
-  expect(html).toContain("11.3");
+  expect(html).toContain("11.25");
   expect(html).not.toContain("Leaderboard value");
-  expect(html).toContain("12.50×");
+  expect(html).toContain("12.5×");
   expect(html).toContain("Fermi #12");
   expect(html).toContain("Nov 5, 2026");
   expect(html).toContain('href="/profile/share"');

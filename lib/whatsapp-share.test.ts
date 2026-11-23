@@ -20,7 +20,7 @@ test("shares the selected game and range with only the first three formatted ran
   const url = leaderboardUrl(board, "https://daily.club");
   expect(url).toBe("https://daily.club/leaderboards/board-id?game=fermi&range=7d");
   const message = leaderboardResultsMessage(board, url);
-  expect(message).toBe("Friday Friends — Fermi leaderboard (Last 7 days)\n#1 Ava: 1.20×\n#2 Ben: 2.30 pts\n#3 Cam: 3.40×\n" + url);
+  expect(message).toBe("Friday Friends — Fermi leaderboard (Last 7 days)\n#1 Ava: 1.2×\n#2 Ben: 2.3 pts\n#3 Cam: 3.4×\n" + url);
   expect(message).not.toContain("Dee");
   expect(message).not.toContain("profile-uuid");
   expect(message).not.toContain("share-1");

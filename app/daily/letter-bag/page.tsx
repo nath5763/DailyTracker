@@ -6,5 +6,5 @@ import { LetterBagModes } from "@/components/letter-bag-modes";
 export const metadata: Metadata = { title: "Letter Bag" };
 export default async function LetterBagPage() {
   const viewer = await getViewer();
-  return <main><SiteHeader viewer={viewer} /><LetterBagModes current="/daily/letter-bag" /><LetterBagGame saved={!!viewer.profile} /></main>;
+  return <main><SiteHeader viewer={viewer} /><LetterBagModes current="/daily/letter-bag" /><LetterBagGame saved={!!viewer.profile} userId={viewer.profile?.userId} /></main>;
 }

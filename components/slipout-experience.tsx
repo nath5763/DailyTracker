@@ -18,7 +18,7 @@ function modeFromPath(path: string): SlipOutMode {
   return "daily";
 }
 
-export function SlipOutExperience({ signedIn, initialMode = "daily" }: { signedIn: boolean; initialMode?: SlipOutMode }) {
+export function SlipOutExperience({ signedIn, userId, initialMode = "daily" }: { signedIn: boolean; userId?: string | null; initialMode?: SlipOutMode }) {
   const [mode, setMode] = useState<SlipOutMode>(initialMode);
   const [visited, setVisited] = useState<SlipOutMode[]>([initialMode]);
   const [practiceAttempt, setPracticeAttempt] = useState<"levels" | "how-to-play" | null>(null);
@@ -60,7 +60,7 @@ export function SlipOutExperience({ signedIn, initialMode = "daily" }: { signedI
         title={practiceAttempt && item !== "daily" && item !== practiceAttempt ? "Finish or restart the current practice puzzle first" : undefined}
         onClick={() => select(item)}>{item === "how-to-play" ? "How to Play" : item === "daily" ? "Daily" : "Levels"}</button>)}
     </nav>
-    {visited.includes("daily") && <div hidden={mode !== "daily"} className="so-mode-pane"><SlipOutGame signedIn={signedIn} /></div>}
+    {visited.includes("daily") && <div hidden={mode !== "daily"} className="so-mode-pane"><SlipOutGame signedIn={signedIn} userId={userId} /></div>}
     {visited.includes("levels") && <div hidden={mode !== "levels"} className="so-mode-pane"><SlipOutLevels signedIn={signedIn} mode="levels" active={mode === "levels"} onAttemptStateChange={attemptChanged} /></div>}
     {visited.includes("how-to-play") && <div hidden={mode !== "how-to-play"} className="so-mode-pane"><SlipOutLevels signedIn={signedIn} mode="tutorial" active={mode === "how-to-play"} onAttemptStateChange={attemptChanged} /></div>}
   </section>;

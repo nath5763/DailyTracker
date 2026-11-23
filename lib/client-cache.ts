@@ -23,7 +23,8 @@ function readEntry<T>(userId: string, path: string, storage: CacheStorage = "ses
     } catch { /* Storage may be unavailable. The in-memory cache still works. */ }
   }
   if (!entry) return null;
-  if (!Number.isFinite(entry.savedAt) || Date.now() - entry.savedAt >= CACHE_TTL_MS) {
+  const expired = path !== "/dashboard" && Date.now() - entry.savedAt >= CACHE_TTL_MS;
+  if (!Number.isFinite(entry.savedAt) || expired) {
     memory.delete(key);
     if (storage === "session") try { window.sessionStorage.removeItem(key); } catch { /* Storage may be unavailable. */ }
     return null;
@@ -52,6 +53,10 @@ export function invalidateClientCache(userId: string, paths: string[]) {
   for (const path of paths) {
     invalidateKey(cacheKey(userId, path));
   }
+}
+
+export function invalidateDashboardCache(userId: string | null | undefined) {
+  if (userId) invalidateClientCache(userId, ["/dashboard"]);
 }
 
 export function invalidateClientCachePrefix(userId: string, pathPrefix: string) {
