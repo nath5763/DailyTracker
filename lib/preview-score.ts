@@ -1,5 +1,6 @@
 import type { ParsedSubmission } from "./types";
 import { extendedPreviewScore } from "./extended-preview-score";
+import { dailyOrbsPreview, dailySetPreview, globlePreview, minuteCrypticPreview, nerdlePreview } from "./tracked-preview-score";
 import { formatNumber } from "./format";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -408,6 +409,11 @@ export function previewScore(gameSlug: string, rawText: string): ParsedSubmissio
   if (gameSlug === "farflung") return farflung(rawText);
   if (gameSlug === "perceptle") return perceptle(rawText);
   if (gameSlug === "gazillion") return gazillion(rawText);
+  if (gameSlug === "daily-set") return dailySetPreview(rawText);
+  if (gameSlug === "daily-orbs") return dailyOrbsPreview(rawText);
+  if (gameSlug === "minute-cryptic") return minuteCrypticPreview(rawText);
+  if (gameSlug === "nerdle") return nerdlePreview(rawText);
+  if (gameSlug === "globle") return globlePreview(rawText);
   if (["wordle", "pinpoint", "queens", "crossclimb", "tango", "zip"].includes(gameSlug)) return extendedPreviewScore(gameSlug, rawText);
   throw new Error("Preview is not available for this game yet.");
 }

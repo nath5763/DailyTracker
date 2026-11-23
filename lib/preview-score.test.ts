@@ -258,3 +258,108 @@ test("rejects malformed, mismatched, non-English, non-daily, and future Gazillio
   ];
   for (const value of invalid) expect(() => previewScore("gazillion", value)).toThrow();
 });
+
+const dailySetShare = "The Daily Set 🎯 Nov 23\n" +
+  "🟩8s 🟨12s 🟨14s 🟩7s 🟥31s 🟨11s → ⏱️ 1:23\n" +
+  "https://setpuzzle.com/share/2026-11-23/1-23/regular";
+
+test("previews Daily Set with mode, elapsed time, and optional six-set timing details", () => {
+  expect(previewScore("daily-set", dailySetShare)).toEqual({
+    puzzleKey: "2026-11-23:regular", playedOn: "2026-11-23", primaryScore: 83,
+    metrics: { completionStatus: "WIN", elapsedSeconds: 83, gameMode: "Regular", scoreRaw: "1:23",
+      scoreUnit: "seconds", displayScore: "1:23", setTimesSeconds: [8, 12, 14, 7, 31, 11] },
+    parserVersion: 1,
+  });
+  expect(previewScore("daily-set", "The Daily Set 🔥 Nov 23\n" +
+    "https://setpuzzle.com/share/2026-11-23/2-05/diablo")).toMatchObject({
+    primaryScore: 125, metrics: { gameMode: "Diablo" },
+  });
+});
+
+test("rejects mismatched Daily Set modes, dates, bands, totals, and mixed shares", () => {
+  for (const share of [
+    dailySetShare.replace("🎯", "🔥"),
+    dailySetShare.replace("Nov 23", "Nov 22"),
+    dailySetShare.replace("🟩8s", "🟨8s"),
+    dailySetShare.replace("🟨11s", "🟨21s"),
+    `${dailySetShare}\nWordle 1 1/6`,
+  ]) expect(() => previewScore("daily-set", share)).toThrow();
+});
+
+const dailyOrbsShare = "DailyOrbs November 23 2026\n" +
+  "https://DailyOrbs.com/2026-11-23?utm_source=share\n" +
+  "🟠🧡🟠🟢💚🟢🔵🔵🏆🟣🟣";
+
+test("previews Daily Orbs from its orb and heart event narrative", () => {
+  expect(previewScore("daily-orbs", dailyOrbsShare)).toEqual({
+    puzzleKey: "2026-11-23", playedOn: "2026-11-23", primaryScore: 8,
+    metrics: { completionStatus: "WIN", orbTotal: 8, orangeOrbs: 2, greenOrbs: 2, blueOrbs: 2,
+      purpleOrbs: 2, eventSequence: "🟠🧡🟠🟢💚🟢🔵🔵🏆🟣🟣", gameMode: "Daily",
+      heartsDisclosed: true, scoreRaw: "8/12 orbs", scoreUnit: "orbs", displayScore: "8/12 orbs",
+      heartLosses: 2, orangeHeartsLost: 1, greenHeartsLost: 1, blueHeartsLost: 0, purpleHeartsLost: 0 },
+    parserVersion: 1,
+  });
+  expect(previewScore("daily-orbs", "DailyOrbs November 23 2026\n" +
+    "https://dailyorbs.com/2026-11-23?utm_source=share\n🟠🟠🟠🟢🟢🟢🏆")).toMatchObject({
+    primaryScore: 6, metrics: { heartsDisclosed: false },
+  });
+});
+
+test("rejects incomplete, mistimed-trophy, invalid-count, and mixed Daily Orbs shares", () => {
+  for (const share of [
+    dailyOrbsShare.replace("🔵🔵🏆", "🔵🏆🔵"),
+    dailyOrbsShare.replace("🏆", ""),
+    "DailyOrbs November 23 2026\nhttps://dailyorbs.com/2026-11-23?utm_source=share\n🟠🟠🟠🟠🟢🟢🏆",
+    `${dailyOrbsShare}\nWordle 1 1/6`,
+  ]) expect(() => previewScore("daily-orbs", share)).toThrow();
+});
+
+const minuteCrypticShare = "Minute Cryptic - 23 November, 2026\n" +
+  "\"Kitchen cleaners yelled 'You left sugar on the counter!'\" (4)\n" +
+  "🟣🟣🟣🟣🟣🟣🟣\n" +
+  "🏆 0 hints – 1 under the community par (101,965 solvers so far). Time: 1m 59s.\n" +
+  "https://www.minutecryptic.com/?utm_source=share";
+
+test("previews current and legacy Minute Cryptic shares using hints as the rank score", () => {
+  expect(previewScore("minute-cryptic", minuteCrypticShare)).toEqual({
+    puzzleKey: "2026-11-23", playedOn: "2026-11-23", primaryScore: 0,
+    metrics: { completionStatus: "WIN", hints: 0, communityParDelta: -1,
+      clue: "Kitchen cleaners yelled 'You left sugar on the counter!' (4)", symbolRow: "🟣🟣🟣🟣🟣🟣🟣",
+      shareFormat: "current", scoreRaw: "0 hints", scoreUnit: "hints", displayScore: "0 hints",
+      solverCount: 101965, completionTimeSeconds: 119 },
+    parserVersion: 1,
+  });
+  const legacy = "Minute Cryptic - 30 June, 2024\n\"Tell us what you think of 1 divided by 3.14\" (5)\n" +
+    "🟪🟨🟪🟪🟪\nI scored: 1 under par\nhttps://www.minutecryptic.com";
+  expect(previewScore("minute-cryptic", legacy)).toMatchObject({
+    primaryScore: 1, metrics: { hints: 1, communityParDelta: -1, shareFormat: "legacy" },
+  });
+});
+
+test("rejects inconsistent Minute Cryptic hints, icons, times, URLs, and mixed shares", () => {
+  for (const share of [
+    minuteCrypticShare.replace("0 hints", "1 hints"),
+    minuteCrypticShare.replace("🏆 0 hints", "🤝 0 hints"),
+    minuteCrypticShare.replace("🏆 0 hints – 1 under", "🤝 0 hints – 0 under"),
+    minuteCrypticShare.replace("1m 59s", "1m 60s"),
+    minuteCrypticShare.replace("minutecryptic.com", "example.com"),
+    `${minuteCrypticShare}\nWordle 1 1/6`,
+  ]) expect(() => previewScore("minute-cryptic", share)).toThrow();
+});
+
+test("keeps Nerdle and Globle browser previews strict and equivalent to their backend contracts", () => {
+  const nerdle = "nerdlegame 1622 3/6\n🟪⬛️⬛️⬛️🟪🟩⬛️⬛️\n🟩⬛️🟩🟩⬛️🟩🟩⬛️\n🟩🟩🟩🟩🟩🟩🟩🟩";
+  expect(previewScore("nerdle", nerdle)).toMatchObject({
+    puzzleKey: "1622", puzzleNumber: 1622, playedOn: "2026-06-29", primaryScore: 3,
+    metrics: { completionStatus: "WIN", attemptsUsed: 3, attemptsMaximum: 6, scoreRaw: "3/6" },
+  });
+  expect(() => previewScore("nerdle", `${nerdle}\nWordle 1 1/6`)).toThrow();
+
+  const globle = "🌎 Aug 21, 2026 🌍\n🔥 5 | Avg. Guesses: 7.4\n🟨🟥🟥🟥🟥🟥🟩 = 7\n" +
+    "https://globle-game.com/\n#globle";
+  expect(previewScore("globle", globle)).toMatchObject({
+    puzzleKey: "2026-08-21", playedOn: "2026-08-21", primaryScore: 7,
+    metrics: { completionStatus: "WIN", attemptsUsed: 7, proximityGrid: "🟨🟥🟥🟥🟥🟥🟩" },
+  });
+  expect(() => previewScore("globle", globle.replace("globle-game.com", "example.com"))).toThrow();
+});

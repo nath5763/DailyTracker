@@ -61,3 +61,11 @@ test("detects a Gazillion daily result without accepting a mixed share", () => {
   expect(detectShareGame(share, ["gazillion"])).toBe("gazillion");
   expect(detectShareGame(share + "\nWordle 1961 2/6", ["gazillion", "wordle"])).toBeNull();
 });
+
+test("detects Daily Set, Daily Orbs, Minute Cryptic, Nerdle, and Globle headers", () => {
+  expect(detectShareGame("The Daily Set 🎯 Nov 23", ["daily-set"])).toBe("daily-set");
+  expect(detectShareGame("DailyOrbs November 23 2026", ["daily-orbs"])).toBe("daily-orbs");
+  expect(detectShareGame("Minute Cryptic - 23 November, 2026", ["minute-cryptic"])).toBe("minute-cryptic");
+  expect(detectShareGame("nerdlegame 1622 3/6", ["nerdle"])).toBe("nerdle");
+  expect(detectShareGame("🌎 Aug 21, 2026 🌍\n#globle", ["globle"])).toBe("globle");
+});
