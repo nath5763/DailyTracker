@@ -14,6 +14,11 @@ test("detects either game from mixed-case share text", () => {
   expect(detectShareGame("kRiLlIoN #82 🦐\n180", games)).toBe("krillion");
 });
 
+test("detects a FoxiMax share", () => {
+  expect(detectShareGame("🦊#FoxiMax #1549 6/8 (19 letters)\nhttps://foximax.com/", ["foximax"]))
+    .toBe("foximax");
+});
+
 test("leaves unknown, ambiguous, and unavailable games for manual selection", () => {
   expect(detectShareGame("Wordle #92", games)).toBeNull();
   expect(detectShareGame("Fermi and Krillion", games)).toBeNull();
