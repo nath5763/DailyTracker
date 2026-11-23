@@ -42,7 +42,7 @@ export function OverviewGames({ values }: { values: GameStats[] }) {
 
   return <section aria-labelledby="my-games-heading">
     <div className="overview-section-heading">
-      <div><p className="section-number">MY GAMES</p><h2 id="my-games-heading">Recently played</h2></div>
+      <h2 id="my-games-heading">Recently played</h2>
       <span>{ordered.length} game{ordered.length === 1 ? "" : "s"}</span>
     </div>
     <div className="overview-game-grid">
