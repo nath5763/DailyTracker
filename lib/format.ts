@@ -17,8 +17,12 @@ export function formatScore(value: number | null, format: ScoreFormat = defaultS
 }
 
 export function formatResultScore(score: Score): string {
+  return formatStoredScore(score, score.game);
+}
+
+export function formatStoredScore(score: { primaryScore: number; metrics?: Record<string, unknown> }, game: Game): string {
   const display = score.metrics?.displayScore;
-  return typeof display === "string" ? display : formatScore(score.primaryScore, score.game.scoreFormat);
+  return typeof display === "string" ? display : formatScore(score.primaryScore, game.scoreFormat);
 }
 
 export function formatRankingScore(ranking: Ranking, game: Game): string {
