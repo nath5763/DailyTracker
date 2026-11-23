@@ -53,3 +53,11 @@ test("detects a Perceptle daily result without accepting a mixed share", () => {
   expect(detectShareGame(share, ["perceptle"])).toBe("perceptle");
   expect(detectShareGame(share + "\nWordle 1961 2/6", ["perceptle", "wordle"])).toBeNull();
 });
+
+test("detects a Gazillion daily result without accepting a mixed share", () => {
+  const share = "Gazillion #32 · 2,037/5,000\n🥇🥉✅🤏❌  top 45%\n" +
+    "🐪 Travelled back to the Ancient Egypt (2,792 BC)\n" +
+    "Can you beat 2,037? https://gazillion.world/?s=cp&c=2037&d=32";
+  expect(detectShareGame(share, ["gazillion"])).toBe("gazillion");
+  expect(detectShareGame(share + "\nWordle 1961 2/6", ["gazillion", "wordle"])).toBeNull();
+});

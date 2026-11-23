@@ -190,3 +190,71 @@ test("rejects malformed, mismatched, future, non-daily, and mixed Perceptle shar
   ];
   for (const value of invalid) expect(() => previewScore("perceptle", value)).toThrow();
 });
+
+const gazillionShare = "Gazillion #32 · 2,037/5,000\n" +
+  "🥇🥉✅🤏❌  top 45%\n" +
+  "🐪 Travelled back to the Ancient Egypt (2,792 BC)\n" +
+  "Can you beat 2,037?  https://gazillion.world/?s=cp&r=spd7ywd9sp&c=2037&d=32";
+
+test("previews the supplied Gazillion result with verified score, tiers, percentile, and date", () => {
+  expect(previewScore("gazillion", gazillionShare)).toEqual({
+    puzzleKey: "32",
+    puzzleNumber: 32,
+    playedOn: "2026-11-23",
+    primaryScore: 2037,
+    metrics: {
+      completionStatus: "WIN",
+      totalScore: 2037,
+      maximumScore: 5000,
+      resultTiers: ["gold", "bronze", "caught", "close", "miss"],
+      percentile: 45,
+      travelledBackTo: "the Ancient Egypt (2,792 BC)",
+      gameMode: "Daily",
+      scoreRaw: "2,037/5,000",
+      scoreUnit: "points",
+      displayScore: "2,037/5,000",
+    },
+    parserVersion: 1,
+  });
+});
+
+test("accepts Gazillion boundaries, decorations, official URLs, and every travel era", () => {
+  const makeShare = (score: number, tiers: string, era: string, extra = "") => {
+    const value = score.toLocaleString("en-US");
+    return `${extra}Gazillion #1 · ${value}/5,000\n${tiers}\n${era} Travelled back to somewhere\n` +
+      `Can you beat ${value}? 👉 https://gazillion.world`;
+  };
+  expect(previewScore("gazillion", makeShare(0, "❌❌❌❌❌", "🏙️")).primaryScore).toBe(0);
+  expect(previewScore("gazillion", makeShare(5000, "🏆🏆🏆🏆🏆  top 1%", "💥",
+    "💎 PERFECT 5,000 · ONE IN A GAZILLION 💎\n").replace("/5,000\n", "/5,000 · 🔥12\n")).metrics)
+    .toMatchObject({ percentile: 1, streak: 12 });
+  for (const [score, tiers, era] of [
+    [699, "✅✅✅✅✅", "🏙️"], [700, "🥉✅✅✅✅", "🏰"], [1400, "🥈🥈✅✅✅", "🐪"],
+    [2100, "🥇🥉🥉🥉✅", "🔥"], [2800, "🥇🥇🥉🥉🥉", "🦣"], [3500, "🥇🥇🥈🥈🥈", "🦖"],
+    [4200, "🏆🏆🥇🥇🥈", "🌋"], [4800, "🏆🏆🏆🏆🏆", "💥"],
+  ] as const) {
+    expect(previewScore("gazillion", makeShare(score, tiers, era)).primaryScore).toBe(score);
+  }
+  expect(previewScore("gazillion", gazillionShare.replace("s=cp&r=spd7ywd9sp", "s=wa")).primaryScore)
+    .toBe(2037);
+});
+
+test("rejects malformed, mismatched, non-English, non-daily, and future Gazillion shares", () => {
+  const invalid = [
+    gazillionShare.replace("2,037/5,000", "2037/5,000"),
+    gazillionShare.replace("Can you beat 2,037?", "Can you beat 2,038?"),
+    gazillionShare.replace("c=2037", "c=2038"),
+    gazillionShare.replace("d=32", "d=31"),
+    gazillionShare.replace("s=cp", "s=unknown"),
+    gazillionShare.replace("r=spd7ywd9sp", "r=bad"),
+    gazillionShare.replace("top 45%", "top 51%"),
+    gazillionShare.replace("🐪 Travelled", "🔥 Travelled"),
+    gazillionShare.replace("🥇🥉✅🤏❌", "🏆🏆🏆🏆🏆"),
+    gazillionShare.replace("#32", "#100000").replace("d=32", "d=100000"),
+    gazillionShare.replace("Gazillion #32", "Gazillion ∞"),
+    gazillionShare.replace("Travelled back to", "He viajado hasta:"),
+    `💎 PERFECT 5,000 · ONE IN A GAZILLION 💎\n${gazillionShare}`,
+    `${gazillionShare}\nWordle 1 1/6`,
+  ];
+  for (const value of invalid) expect(() => previewScore("gazillion", value)).toThrow();
+});

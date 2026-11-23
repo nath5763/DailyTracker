@@ -269,12 +269,145 @@ function perceptle(rawText: string): ParsedSubmission {
   };
 }
 
+const gazillionHeader = /^Gazillion #([1-9][0-9]*) · ((?:0|[1-9][0-9]{0,2}(?:,[0-9]{3})?))\/5,000(?: · 🔥([1-9][0-9]*))?$/;
+const gazillionResults = /^([🏆🥇🥈🥉✅🤏❌]{5})(?:  top ([1-9][0-9]?)%)?$/u;
+const gazillionTravel = /^([🏙🏰🐪🔥🦣🦖🌋💥])\uFE0F? Travelled back to (.+)$/u;
+const gazillionChallenge = /^Can you beat ((?:0|[1-9][0-9]{0,2}(?:,[0-9]{3})?))\?\s+(?:👉\s+)?(https:\/\/gazillion\.world\/?(?:\?[^\s#]+)?)$/;
+const gazillionPerfect = "💎 PERFECT 5,000 · ONE IN A GAZILLION 💎";
+const gazillionSources = new Set(["cp", "sh", "wa", "x", "tg", "sms", "bs"]);
+const gazillionTiers: Record<string, { id: string; minimum: number; maximum: number }> = {
+  "🏆": { id: "perfect", minimum: 950, maximum: 1000 },
+  "🥇": { id: "gold", minimum: 800, maximum: 949 },
+  "🥈": { id: "silver", minimum: 600, maximum: 799 },
+  "🥉": { id: "bronze", minimum: 400, maximum: 599 },
+  "✅": { id: "caught", minimum: 1, maximum: 399 },
+  "🤏": { id: "close", minimum: 1, maximum: 399 },
+  "❌": { id: "miss", minimum: 0, maximum: 0 },
+};
+const gazillionEraMinimums = [0, 700, 1400, 2100, 2800, 3500, 4200, 4800];
+const gazillionEraEmojis = ["🏙", "🏰", "🐪", "🔥", "🦣", "🦖", "🌋", "💥"];
+
+function gazillionPoints(value: string) {
+  return Number(value.replaceAll(",", ""));
+}
+
+function gazillionFormat(value: number) {
+  return value.toLocaleString("en-US", { useGrouping: true, maximumFractionDigits: 0 });
+}
+
+function expectedGazillionEra(score: number) {
+  let emoji = gazillionEraEmojis[0];
+  for (let index = 1; index < gazillionEraMinimums.length; index++) {
+    if (score >= gazillionEraMinimums[index]) emoji = gazillionEraEmojis[index];
+  }
+  return emoji;
+}
+
+function validateGazillionUrl(rawUrl: string, score: number, puzzle: number) {
+  let url: URL;
+  try { url = new URL(rawUrl); }
+  catch { throw new Error("Gazillion needs a valid official result link."); }
+  if (url.protocol !== "https:" || url.hostname !== "gazillion.world" || url.port || url.username || url.password ||
+      url.pathname !== "/" || url.hash) {
+    throw new Error("Gazillion needs a valid official result link.");
+  }
+  if (!url.search) return;
+  const allowed = new Set(["s", "r", "c", "d", "by"]);
+  const keys = [...url.searchParams.keys()];
+  if (keys.some(key => !allowed.has(key) || url.searchParams.getAll(key).length !== 1 || !url.searchParams.get(key)) ||
+      !gazillionSources.has(url.searchParams.get("s") ?? "") ||
+      url.searchParams.get("c") !== String(score) || url.searchParams.get("d") !== String(puzzle)) {
+    throw new Error("Gazillion needs its matching official result link.");
+  }
+  const reference = url.searchParams.get("r");
+  if (reference !== null && !/^[a-z0-9]{8,12}$/.test(reference)) {
+    throw new Error("Gazillion needs its matching official result link.");
+  }
+}
+
+function gazillion(rawText: string): ParsedSubmission {
+  const text = rawText.trim();
+  if (!text) throw new Error("Paste your complete Gazillion result first.");
+  if (text.length > 10_000) throw new Error("Result text is too long.");
+  const lines = text.split(/\r\n|\n|\r/).map(line => line.trim()).filter(Boolean);
+  const perfectBanner = lines.length === 5 && lines[0] === gazillionPerfect;
+  if (lines.length !== 4 && !perfectBanner) {
+    throw new Error("Paste a complete standard English Gazillion daily result.");
+  }
+  const offset = perfectBanner ? 1 : 0;
+  const header = gazillionHeader.exec(lines[offset]);
+  const resultLine = gazillionResults.exec(lines[offset + 1]);
+  const travel = gazillionTravel.exec(lines[offset + 2]);
+  const challenge = gazillionChallenge.exec(lines[offset + 3]);
+  if (!header || !resultLine || !travel || !challenge) {
+    throw new Error("Paste a complete standard English Gazillion daily result.");
+  }
+
+  const puzzle = Number(header[1]);
+  if (!Number.isSafeInteger(puzzle) || puzzle < 1 || puzzle > 100_000) {
+    throw new Error("Gazillion daily number is invalid.");
+  }
+  const score = gazillionPoints(header[2]);
+  if (score > 5_000 || gazillionPoints(challenge[1]) !== score) {
+    throw new Error("Gazillion score details do not match.");
+  }
+  if (perfectBanner !== (score === 5_000)) {
+    throw new Error("Gazillion's perfect-score banner does not match the score.");
+  }
+  const streak = header[3] === undefined ? undefined : Number(header[3]);
+  if (streak !== undefined && (!Number.isSafeInteger(streak) || streak < 2 || streak > 100_000)) {
+    throw new Error("Gazillion streak is invalid.");
+  }
+  const percentile = resultLine[2] === undefined ? undefined : Number(resultLine[2]);
+  if (percentile !== undefined && percentile > 50) throw new Error("Gazillion percentile is invalid.");
+
+  const tiers = [...resultLine[1]].map(emoji => gazillionTiers[emoji]);
+  if (tiers.length !== 5 || tiers.some(tier => !tier)) {
+    throw new Error("Gazillion needs exactly five result tiers.");
+  }
+  const minimum = tiers.reduce((sum, tier) => sum + tier.minimum, 0);
+  const maximum = tiers.reduce((sum, tier) => sum + tier.maximum, 0);
+  if (score < minimum || score > maximum) {
+    throw new Error("Gazillion score is not possible for the five result tiers.");
+  }
+  if (travel[1] !== expectedGazillionEra(score)) {
+    throw new Error("Gazillion's travelled-back era does not match the score.");
+  }
+  validateGazillionUrl(challenge[2], score, puzzle);
+
+  const playedOn = puzzleDate("2026-10-23", puzzle);
+  const tomorrow = new Date(Date.now() + DAY_MS).toISOString().slice(0, 10);
+  if (playedOn > tomorrow) throw new Error("That Gazillion daily appears to be dated in the future.");
+  const displayScore = `${gazillionFormat(score)}/5,000`;
+  return {
+    puzzleKey: String(puzzle),
+    puzzleNumber: puzzle,
+    playedOn,
+    primaryScore: score,
+    metrics: {
+      completionStatus: "WIN",
+      totalScore: score,
+      maximumScore: 5_000,
+      resultTiers: tiers.map(tier => tier.id),
+      ...(percentile === undefined ? {} : { percentile }),
+      ...(streak === undefined ? {} : { streak }),
+      travelledBackTo: travel[2],
+      gameMode: "Daily",
+      scoreRaw: displayScore,
+      scoreUnit: "points",
+      displayScore,
+    },
+    parserVersion: 1,
+  };
+}
+
 export function previewScore(gameSlug: string, rawText: string): ParsedSubmission {
   if (gameSlug === "fermi") return fermi(rawText);
   if (gameSlug === "krillion") return krillion(rawText);
   if (gameSlug === "travle") return travle(rawText);
   if (gameSlug === "farflung") return farflung(rawText);
   if (gameSlug === "perceptle") return perceptle(rawText);
+  if (gameSlug === "gazillion") return gazillion(rawText);
   if (["wordle", "pinpoint", "queens", "crossclimb", "tango", "zip"].includes(gameSlug)) return extendedPreviewScore(gameSlug, rawText);
   throw new Error("Preview is not available for this game yet.");
 }
